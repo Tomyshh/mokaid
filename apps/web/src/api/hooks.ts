@@ -7,6 +7,10 @@ import type {
   AppNotification,
   BillingOverview,
   CalendarEvent,
+  DispatchAnalysis,
+  DispatchConfirmResult,
+  DispatchCustomAgent,
+  DispatchFileInput,
   DriveItem,
   Envelope,
   IntegrationConnection,
@@ -146,6 +150,35 @@ export function useExecuteAi() {
         body: { input },
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+  });
+}
+
+/* ---------- Intelligent dispatch ---------- */
+
+export function useDispatchAnalyze() {
+  return useMutation({
+    mutationFn: (body: { instruction: string; files?: DispatchFileInput[] }) =>
+      apiFetch<Envelope<DispatchAnalysis>>("/api/dispatch/analyze", { method: "POST", body }),
+  });
+}
+
+export function useDispatchConfirm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      instruction: string;
+      task?: { title?: string; description?: string; priority?: string; project_id?: string };
+      agent_id?: string;
+      custom_agent?: DispatchCustomAgent;
+      grant_installation_ids?: string[];
+      drive_item_ids?: string[];
+      start_now?: boolean;
+    }) => apiFetch<Envelope<DispatchConfirmResult>>("/api/dispatch/confirm", { method: "POST", body }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+      queryClient.invalidateQueries({ queryKey: ["drive"] });
+    },
   });
 }
 
@@ -591,6 +624,17 @@ export function useWorkspace() {
     queryKey: ["workspace", workspaceId],
     enabled: workspaceId != null,
     queryFn: () => apiFetch<Envelope<Workspace>>(`/api/workspaces/${workspaceId}`),
+  });
+}
+
+export function useCreateWorkspace() {
+  return useMutation({
+    mutationFn: (body: { name: string }) =>
+      apiFetch<Envelope<Workspace>>("/api/workspaces", {
+        method: "POST",
+        body,
+        skipWorkspace: true,
+      }),
   });
 }
 

@@ -13,6 +13,9 @@ import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TaskDetailPanel } from "@/components/tasks/task-detail-panel";
 import { NewTaskModal } from "@/components/modals/new-task-modal";
+import { useAuthStore } from "@/stores/auth-store";
+import { useActiveProjectId } from "@/stores/project-store";
+import { useUiStore } from "@/stores/ui-store";
 import { cn } from "@/lib/cn";
 import { formatRelative } from "@/lib/format";
 
@@ -74,11 +77,20 @@ function KanbanCard({
 export function TasksPage() {
   const [view, setView] = useState<ViewMode>("kanban");
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [showNewTask, setShowNewTask] = useState(false);
 
-  const { data, isLoading } = useTasks();
+  // Shared selection: toasts and header notifications can open a task from anywhere.
+  const selectedId = useUiStore((s) => s.selectedTaskId);
+  const setSelectedId = useUiStore((s) => s.selectTask);
+
+  // Scoped to the project selected in the header (all projects when null).
+  const workspaceId = useAuthStore((s) => s.workspaceId);
+  const activeProjectId = useActiveProjectId(workspaceId);
+
+  const { data, isLoading } = useTasks(
+    activeProjectId ? { project_id: activeProjectId } : {},
+  );
   const updateTask = useUpdateTask();
 
   const tasks = useMemo(() => {
@@ -98,8 +110,6 @@ export function TasksPage() {
     });
     return map;
   }, [tasks]);
-
-  const selectedTask = tasks.find((t) => t.id === selectedId) ?? null;
 
   const handleDrop = (status: TaskStatus) => (e: DragEvent) => {
     e.preventDefault();
@@ -127,7 +137,7 @@ export function TasksPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex rounded-md border border-border bg-surface p-0.5">
+          <div className="flex rounded-md bg-surface-raised p-0.5">
             <button
               onClick={() => setView("kanban")}
               className={cn(
@@ -182,7 +192,7 @@ export function TasksPage() {
                   onDragLeave={() => setDragOver(null)}
                   onDrop={handleDrop(status)}
                   className={cn(
-                    "flex w-64 shrink-0 flex-col rounded-lg border border-border bg-bg-deep/60 transition-colors",
+                    "flex w-64 shrink-0 flex-col rounded-lg bg-bg-deep/60 transition-colors",
                     dragOver === status && "border-primary/50 bg-primary-muted/20",
                   )}
                 >
@@ -251,8 +261,13 @@ export function TasksPage() {
         )}
       </div>
 
-      <TaskDetailPanel task={selectedTask} onClose={() => setSelectedId(null)} />
-      <NewTaskModal open={showNewTask} onOpenChange={setShowNewTask} />
+      <TaskDetailPanel taskId={selectedId} onClose={() => setSelectedId(null)} />
+      <NewTaskModal
+        open={showNewTask}
+        onOpenChange={setShowNewTask}
+        defaultProjectId={activeProjectId ?? undefined}
+      />
+
     </div>
   );
 }

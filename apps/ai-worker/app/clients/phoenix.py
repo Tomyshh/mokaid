@@ -121,3 +121,24 @@ class PhoenixClient:
             {"workspace_id": workspace_id, "subtasks": subtasks},
         )
         return (result or {}).get("data", [])
+
+    async def save_task_output(
+        self,
+        workspace_id: str,
+        task_id: str,
+        filename: str,
+        content: str,
+        mime_type: str | None = None,
+        encoding: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Persists an agent-produced artifact as a Drive file linked to the task."""
+        payload: dict[str, Any] = {
+            "workspace_id": workspace_id,
+            "filename": filename,
+            "content": content,
+            "mime_type": mime_type,
+        }
+        if encoding:
+            payload["encoding"] = encoding
+        result = await self._post(f"/api/worker/tasks/{task_id}/output", payload)
+        return (result or {}).get("data")

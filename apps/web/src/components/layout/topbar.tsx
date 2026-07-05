@@ -12,17 +12,29 @@ import { disconnect } from "@/realtime/phoenix-client";
 import { Avatar } from "@/components/ui/avatar";
 import { NewTaskModal } from "@/components/modals/new-task-modal";
 import { GlobalSearch } from "@/components/layout/global-search";
+import { WorkspaceProjectSwitcher } from "@/components/layout/workspace-project-switcher";
+import { useActiveProjectId } from "@/stores/project-store";
 
 export function Topbar() {
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const user = useAuthStore((s) => s.user);
+  const workspaceId = useAuthStore((s) => s.workspaceId);
   const logout = useAuthStore((s) => s.logout);
+  const activeProjectId = useActiveProjectId(workspaceId);
   const navigate = useNavigate();
   const { data: notifications } = useNotifications();
   const markRead = useMarkNotificationRead();
+  const selectTask = useUiStore((s) => s.selectTask);
   const [showNewTask, setShowNewTask] = useState(false);
 
   const unread = notifications?.data.filter((n) => !n.read_at).length ?? 0;
+
+  const openNotification = (n: { resource_type: string | null; resource_id: string | null }) => {
+    if (n.resource_type === "task" && n.resource_id) {
+      selectTask(n.resource_id);
+      navigate({ to: "/tasks" });
+    }
+  };
 
   const handleLogout = () => {
     disconnect();
@@ -36,15 +48,21 @@ export function Topbar() {
         <PanelLeft size={17} />
       </Button>
 
-      <GlobalSearch />
+      <WorkspaceProjectSwitcher />
 
       <div className="flex-1" />
+
+      <GlobalSearch />
 
       <Button size="sm" data-tour="new-task" onClick={() => setShowNewTask(true)}>
         <Plus size={14} />
         New Task
       </Button>
-      <NewTaskModal open={showNewTask} onOpenChange={setShowNewTask} />
+      <NewTaskModal
+        open={showNewTask}
+        onOpenChange={setShowNewTask}
+        defaultProjectId={activeProjectId ?? undefined}
+      />
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
@@ -64,7 +82,7 @@ export function Topbar() {
           <DropdownMenu.Content
             align="end"
             sideOffset={8}
-            className="z-50 w-80 rounded-lg border border-border bg-surface-overlay p-2 shadow-lg"
+            className="z-50 w-80 rounded-lg bg-surface-overlay p-2 shadow-lg"
           >
             <div className="flex items-center justify-between px-2 py-1.5">
               <p className="text-xs font-semibold text-text">Notifications</p>
@@ -85,9 +103,9 @@ export function Topbar() {
               notifications.data.slice(0, 8).map((n) => (
                 <DropdownMenu.Item
                   key={n.id}
-                  onSelect={(e) => {
-                    e.preventDefault();
+                  onSelect={() => {
                     if (!n.read_at) markRead.mutate(n.id);
+                    openNotification(n);
                   }}
                   className={cn(
                     "cursor-pointer rounded-md px-2 py-2 outline-none data-[highlighted]:bg-surface-hover",
@@ -101,7 +119,12 @@ export function Topbar() {
                   {n.body && (
                     <p className="mt-0.5 line-clamp-2 text-[11px] text-text-secondary">{n.body}</p>
                   )}
-                  <p className="text-[11px] text-text-muted">{formatRelative(n.inserted_at)}</p>
+                  <p className="mt-0.5 flex items-center justify-between text-[11px] text-text-muted">
+                    <span>{formatRelative(n.inserted_at)}</span>
+                    {n.resource_type === "task" && (
+                      <span className="font-medium text-primary-light">View result</span>
+                    )}
+                  </p>
                 </DropdownMenu.Item>
               ))
             ) : (
@@ -124,9 +147,9 @@ export function Topbar() {
           <DropdownMenu.Content
             align="end"
             sideOffset={8}
-            className="z-50 w-52 rounded-lg border border-border bg-surface-overlay p-1.5 shadow-lg"
+            className="z-50 w-52 rounded-lg bg-surface-overlay p-1.5 shadow-lg"
           >
-            <div className="border-b border-border px-2 py-2">
+            <div className="px-2 py-2">
               <p className="text-xs font-semibold text-text">{user?.full_name}</p>
               <p className="text-[11px] text-text-muted">{user?.email}</p>
             </div>

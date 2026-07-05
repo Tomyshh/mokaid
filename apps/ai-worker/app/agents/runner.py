@@ -9,6 +9,8 @@ checkpointer via LangGraph's persistence layer).
 """
 
 import asyncio
+import json
+import re
 
 import structlog
 
@@ -98,10 +100,13 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
             state.steps.append({"tool": tool_name, "ok": True})
             log.info("tool_executed", run_id=request.run_id, tool=tool_name)
 
+        artifacts = await _save_artifacts(request, state, phoenix)
+
         state.status = RunStatus.COMPLETED
         state.output = {
             "steps": len(state.steps),
             "tool_calls": [c.model_dump(mode="json") for c in state.tool_calls],
+            "artifacts": artifacts,
         }
         await phoenix.complete_run(
             request.run_id,
@@ -127,6 +132,53 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
         log.error("run_failed", run_id=request.run_id, error=state.error)
 
     return state
+
+
+def _safe_filename(name: str) -> str:
+    slug = re.sub(r"[^\w\- ]+", "", name, flags=re.UNICODE).strip().replace(" ", "-")
+    return (slug or "output")[:80]
+
+
+async def _save_artifacts(request: RunRequest, state: RunState, phoenix: PhoenixClient) -> list[str]:
+    """Uploads the documents produced during the run as Drive files linked to
+    the task, so users can open the agent's output. Never fails the run."""
+    saver = getattr(phoenix, "save_task_output", None)
+    if saver is None:
+        return []
+
+    artifacts: list[str] = []
+    for call in state.tool_calls:
+        output = call.output if isinstance(call.output, dict) else None
+        if output is None:
+            continue
+
+        try:
+            if call.tool == "draft_document" and output.get("content"):
+                filename = f"{_safe_filename(output.get('title') or request.task_title or 'document')}.md"
+                saved = await saver(
+                    request.workspace_id,
+                    request.task_id,
+                    filename,
+                    output["content"],
+                    mime_type="text/markdown",
+                )
+                if saved:
+                    artifacts.append(filename)
+            elif call.tool == "generate_report" and output.get("report"):
+                filename = f"{_safe_filename(request.task_title or 'report')}-report.json"
+                saved = await saver(
+                    request.workspace_id,
+                    request.task_id,
+                    filename,
+                    json.dumps(output["report"], indent=2, ensure_ascii=False),
+                    mime_type="application/json",
+                )
+                if saved:
+                    artifacts.append(filename)
+        except Exception as exc:  # noqa: BLE001 — artifacts are best-effort
+            log.warning("artifact_save_failed", run_id=request.run_id, tool=call.tool, error=str(exc))
+
+    return artifacts
 
 
 async def _wait_for_decision(run_id: str) -> ResumeRequest:

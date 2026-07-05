@@ -28,6 +28,14 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
             []
           end
 
+        # Files dropped/linked at dispatch time, resolved to presigned URLs
+        # so the worker can actually read their content.
+        attached_files =
+          Mokaid.AI.Dispatcher.attached_files(
+            run.workspace_id,
+            (task && task.metadata["drive_item_ids"]) || run.input["drive_item_ids"] || []
+          )
+
         payload = %{
           run_id: run.id,
           workspace_id: run.workspace_id,
@@ -35,7 +43,10 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
           task_id: run.task_id,
           task_title: task && task.title,
           task_description: task && task.description,
+          task_priority: task && task.priority,
+          task_due_at: task && task.due_at,
           input: run.input,
+          attached_files: attached_files,
           mcp_servers: mcp_servers
         }
 
@@ -55,6 +66,9 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
       {:error, reason} -> {:error, inspect(reason)}
     end
   end
+
+  # Test/offline environments: the run is recorded but nothing is dispatched.
+  defp dispatch(:none, _payload, _config), do: :ok
 
   defp dispatch(:sqs, payload, config) do
     config[:sqs_queue_url]

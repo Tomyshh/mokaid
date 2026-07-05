@@ -87,7 +87,7 @@ export function CalendarPage() {
           <p className="text-xs text-text-muted">Deadlines, meetings, schedules and time off</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex rounded-md border border-border bg-surface p-0.5">
+          <div className="flex rounded-md bg-surface-raised p-0.5">
             {(["month", "week"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}

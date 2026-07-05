@@ -1,13 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type ReactNode,
+} from "react";
 import { toVisualState } from "@mokaid/shared-types";
+import { UploadCloud } from "lucide-react";
 import type { Agent } from "@/api/types";
 import { env } from "@/lib/env";
 import { useSceneStore } from "@/stores/scene-store";
 import { OfficeScene } from "./office-scene";
 import type { SceneAgent } from "./types";
+import { AgentSceneLabel } from "./agent-scene-label";
+import { applyLabelPositions } from "./label-overlay";
 import { AgentStatusBadge } from "@/components/ui/status";
 import { Avatar } from "@/components/ui/avatar";
-import { cn } from "@/lib/cn";
+import { DropDispatchModal } from "@/components/modals/drop-dispatch-modal";
 
 interface BubblePosition {
   x: number;
@@ -29,6 +40,83 @@ function toSceneAgents(agents: Agent[]): SceneAgent[] {
       seatIndex: agent.avatar_config?.seat_index ?? index,
       currentTaskTitle: agent.current_task_id ? "Working on task" : null,
     }));
+}
+
+/**
+ * Drop target covering the whole office view: any file dragged from the OS
+ * highlights the zone; dropping opens the smart dispatch flow.
+ */
+function OfficeDropzone({ children }: { children: ReactNode }) {
+  const [dragActive, setDragActive] = useState(false);
+  const [droppedFiles, setDroppedFiles] = useState<File[]>([]);
+  const [showDispatch, setShowDispatch] = useState(false);
+  // dragenter/dragleave fire on every child; a depth counter keeps the
+  // highlight stable until the pointer truly leaves the zone.
+  const dragDepth = useRef(0);
+
+  const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
+
+  const onDragEnter = useCallback((e: DragEvent) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth.current += 1;
+    setDragActive(true);
+  }, []);
+
+  const onDragOver = useCallback((e: DragEvent) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const onDragLeave = useCallback((e: DragEvent) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setDragActive(false);
+  }, []);
+
+  const onDrop = useCallback((e: DragEvent) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDragActive(false);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      setDroppedFiles(files);
+      setShowDispatch(true);
+    }
+  }, []);
+
+  return (
+    <div
+      className="relative h-full w-full"
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {children}
+
+      {dragActive && (
+        <div className="pointer-events-none absolute inset-0 z-20 p-2">
+          <div className="mk-dropzone-active flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/70 bg-bg/70 backdrop-blur-sm">
+            <span className="mk-dropzone-icon flex h-14 w-14 items-center justify-center rounded-full bg-primary-muted text-primary-light">
+              <UploadCloud size={26} />
+            </span>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-text">Drop your files here</p>
+              <p className="mt-0.5 text-xs text-text-muted">
+                Any format — the dispatcher will route them to the right agent
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <DropDispatchModal open={showDispatch} onOpenChange={setShowDispatch} files={droppedFiles} />
+    </div>
+  );
 }
 
 /** 2D fallback when WebGL is unavailable or 3D is disabled. */
@@ -62,14 +150,16 @@ function FallbackOffice({ agents, onSelectAgent }: { agents: Agent[]; onSelectAg
 
 export function OfficeCanvas({
   agents,
+  selectedAgentId,
   onSelectAgent,
 }: {
   agents: Agent[];
+  selectedAgentId?: string | null;
   onSelectAgent: (id: string | null) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<OfficeScene | null>(null);
-  const [bubbles, setBubbles] = useState<Map<string, BubblePosition>>(new Map());
+  const labelRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const [webglFailed, setWebglFailed] = useState(false);
 
   const fps = useSceneStore((s) => s.fps);
@@ -77,6 +167,11 @@ export function OfficeCanvas({
 
   const sceneAgents = useMemo(() => toSceneAgents(agents), [agents]);
   const disable3d = env.VITE_DISABLE_3D || webglFailed;
+
+  const registerLabel = useCallback((agentId: string, node: HTMLButtonElement | null) => {
+    if (node) labelRefs.current.set(agentId, node);
+    else labelRefs.current.delete(agentId);
+  }, []);
 
   // Create the scene once; never re-create on React re-renders.
   useEffect(() => {
@@ -86,7 +181,9 @@ export function OfficeCanvas({
       sceneRef.current = new OfficeScene(canvasRef.current, {
         onSelectAgent,
         onFps: setFps,
-        onBubblePositions: setBubbles,
+        onBubblePositions: (positions: Map<string, BubblePosition>) => {
+          applyLabelPositions(labelRefs.current, positions);
+        },
       });
     } catch (error) {
       console.warn("[3d] WebGL initialization failed, using fallback", error);
@@ -106,7 +203,11 @@ export function OfficeCanvas({
   }, [sceneAgents]);
 
   if (disable3d) {
-    return <FallbackOffice agents={agents} onSelectAgent={onSelectAgent} />;
+    return (
+      <OfficeDropzone>
+        <FallbackOffice agents={agents} onSelectAgent={onSelectAgent} />
+      </OfficeDropzone>
+    );
   }
 
   const busyAgents = sceneAgents.filter((a) =>
@@ -114,55 +215,31 @@ export function OfficeCanvas({
   );
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <canvas ref={canvasRef} className="h-full w-full outline-none" aria-label="3D office view" />
+    <OfficeDropzone>
+      <div className="relative h-full w-full overflow-hidden">
+        <canvas ref={canvasRef} className="h-full w-full outline-none" aria-label="3D office view" />
 
-      {/* Status bubbles overlay */}
-      {busyAgents.map((agent) => {
-        const position = bubbles.get(agent.id);
-        if (!position?.visible) return null;
-
-        return (
-          <button
+        {/* Status bubbles overlay — positions updated imperatively each frame */}
+        {busyAgents.map((agent) => (
+          <AgentSceneLabel
             key={agent.id}
+            ref={(node) => registerLabel(agent.id, node)}
+            agent={agent}
+            selected={agent.id === selectedAgentId}
             onClick={() => onSelectAgent(agent.id)}
-            className={cn(
-              "pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap",
-              "rounded-full border border-border bg-surface-overlay/95 px-2.5 py-1 text-[10px] font-medium text-text shadow-md backdrop-blur",
-              "transition-opacity hover:border-primary/50",
-            )}
-            style={{ left: position.x, top: position.y }}
-          >
-            <span
-              className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full"
-              style={{
-                backgroundColor:
-                  agent.visualState === "blocked"
-                    ? "#f87171"
-                    : agent.visualState === "waiting" || agent.visualState === "requesting_approval"
-                      ? "#fbbf24"
-                      : "#34d399",
-              }}
-            />
-            {agent.name.split(" ")[0]}
-            {agent.visualState === "typing" && " · typing…"}
-            {agent.visualState === "working" && " · working"}
-            {agent.visualState === "waiting" && " · waiting"}
-            {agent.visualState === "requesting_approval" && " · needs approval"}
-            {agent.visualState === "blocked" && " · blocked"}
-          </button>
-        );
-      })}
+          />
+        ))}
 
-      {/* FPS monitor */}
-      <div className="absolute bottom-3 right-3 rounded-md border border-border bg-surface-overlay/80 px-2 py-1 text-[10px] font-mono text-text-muted backdrop-blur">
-        {fps} FPS
-      </div>
+        {/* FPS monitor */}
+        <div className="absolute bottom-3 right-3 rounded-md border border-border bg-surface-overlay/80 px-2 py-1 text-[10px] font-mono text-text-muted backdrop-blur">
+          {fps} FPS
+        </div>
 
-      {/* Temporary assets notice */}
-      <div className="absolute bottom-3 left-3 rounded-md border border-border bg-surface-overlay/80 px-2 py-1 text-[10px] text-text-muted backdrop-blur">
-        Preview office, final 3D assets coming soon
+        {/* Temporary assets notice */}
+        <div className="absolute bottom-3 left-3 rounded-md border border-border bg-surface-overlay/80 px-2 py-1 text-[10px] text-text-muted backdrop-blur">
+          Preview office, final 3D assets coming soon
+        </div>
       </div>
-    </div>
+    </OfficeDropzone>
   );
 }

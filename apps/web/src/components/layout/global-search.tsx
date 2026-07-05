@@ -86,7 +86,7 @@ export function GlobalSearch() {
       </div>
 
       {open && debounced.length >= 2 && (
-        <div className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-lg border border-border bg-surface-overlay shadow-lg">
+        <div className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-lg bg-surface-overlay shadow-lg">
           {isFetching && !results ? (
             <p className="px-3 py-4 text-center text-xs text-text-muted">Searching…</p>
           ) : totalResults === 0 ? (

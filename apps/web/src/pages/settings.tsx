@@ -185,7 +185,7 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle>Features</CardTitle>
         </CardHeader>
-        <CardBody className="divide-y divide-border">
+        <CardBody className="space-y-4">
           {featureToggles.map((feature) => (
             <ToggleRow
               key={feature.key}

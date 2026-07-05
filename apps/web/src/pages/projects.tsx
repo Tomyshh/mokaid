@@ -2,9 +2,7 @@ import { useState } from "react";
 import { FolderKanban, Plus } from "lucide-react";
 import { useProjects } from "@/api/hooks";
 import type { Project, ProjectActivity } from "@/api/types";
-import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { DetailPanel } from "@/components/ui/detail-panel";
@@ -12,80 +10,93 @@ import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PriorityBadge } from "@/components/ui/status";
 import { NewProjectModal } from "@/components/modals/new-project-modal";
+import { getProjectCover } from "@/lib/project-covers";
 import { cn } from "@/lib/cn";
 import { formatDate, formatRelative } from "@/lib/format";
 
-const statusTone: Record<string, "success" | "primary" | "warning" | "muted" | "info"> = {
-  planning: "info",
-  active: "success",
-  in_review: "primary",
-  on_hold: "warning",
-  completed: "muted",
-  archived: "muted",
+const statusDot: Record<string, string> = {
+  planning: "bg-info",
+  active: "bg-success",
+  in_review: "bg-primary",
+  on_hold: "bg-warning",
+  completed: "bg-text-muted",
+  archived: "bg-text-disabled",
 };
 
-const coverGradients: Record<string, string> = {
-  meeting: "from-[#5936d1] to-[#8f72ff]",
-  coding: "from-[#1d4ed8] to-[#60a5fa]",
-  design: "from-[#be185d] to-[#f472b6]",
-  whiteboard: "from-[#047857] to-[#34d399]",
-  office: "from-[#b45309] to-[#fbbf24]",
-};
+function StatusLabel({ status }: { status: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[10px] capitalize text-text-muted">
+      <span className={cn("h-1.5 w-1.5 rounded-full", statusDot[status] ?? "bg-text-muted")} />
+      {status.replace("_", " ")}
+    </span>
+  );
+}
 
 function ProjectCard({ project, onSelect }: { project: Project; onSelect: () => void }) {
+  const cover = getProjectCover(project.cover_kind);
+  const { Icon } = cover;
+
   return (
     <button
       onClick={onSelect}
-      className="mk-card group overflow-hidden text-left transition-shadow hover:shadow-glow mk-focus-ring"
+      className="group flex flex-col rounded-xl bg-surface p-4 text-left transition-colors duration-200 hover:bg-surface-raised mk-focus-ring"
     >
-      <div
-        className={cn(
-          "flex h-28 items-end bg-gradient-to-br p-3",
-          coverGradients[project.cover_kind ?? "meeting"] ?? coverGradients.meeting,
-        )}
-      >
-        <Badge tone={statusTone[project.status] ?? "default"} className="backdrop-blur">
-          {project.status.replace("_", " ")}
-        </Badge>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <Icon size={15} className="shrink-0 text-text-muted transition-colors group-hover:text-primary-light" strokeWidth={1.5} />
+        <StatusLabel status={project.status} />
       </div>
-      <div className="space-y-3 p-4">
-        <div>
-          <h3 className="text-sm font-semibold text-text group-hover:text-primary-light">
-            {project.name}
-          </h3>
-          <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
-            {project.description}
-          </p>
+
+      <h3 className="text-[13px] font-medium leading-snug text-text">{project.name}</h3>
+      {project.description && (
+        <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
+          {project.description}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-1.5">
+        <ProgressBar value={project.progress_percent} tone="primary" size="xs" />
+        <div className="flex items-center justify-between text-[10px] text-text-muted">
+          <span>
+            {project.completed_task_count}/{project.task_count} tasks
+          </span>
+          <span className="tabular-nums">{project.progress_percent}%</span>
         </div>
-        <div>
-          <div className="mb-1 flex justify-between text-[11px] text-text-muted">
-            <span>
-              {project.completed_task_count}/{project.task_count} tasks
+      </div>
+
+      <div className="mt-3 flex items-center justify-between">
+        <div className="flex -space-x-1">
+          {project.members.slice(0, 3).map((member) => (
+            <Avatar
+              key={member.member_id}
+              name={member.full_name}
+              size="xs"
+              className="ring-1 ring-surface"
+            />
+          ))}
+          {project.members.length > 3 && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-overlay text-[8px] font-medium text-text-muted ring-1 ring-surface">
+              +{project.members.length - 3}
             </span>
-            <span className="font-semibold text-text">{project.progress_percent}%</span>
-          </div>
-          <ProgressBar value={project.progress_percent} />
+          )}
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex -space-x-1.5">
-            {project.members.slice(0, 4).map((member) => (
-              <Avatar
-                key={member.member_id}
-                name={member.full_name}
-                size="xs"
-                className="ring-2 ring-surface"
-              />
-            ))}
-            {project.members.length > 4 && (
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-overlay text-[9px] font-semibold text-text-muted ring-2 ring-surface">
-                +{project.members.length - 4}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] text-text-muted">Due {formatDate(project.due_at)}</span>
-        </div>
+        <span className="text-[10px] text-text-muted">{formatDate(project.due_at)}</span>
       </div>
     </button>
+  );
+}
+
+function ActivityRow({ event }: { event: ProjectActivity }) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-surface">
+      <Avatar name={event.actor_name} size="xs" isAi={event.actor_type === "agent"} />
+      <p className="min-w-0 flex-1 truncate text-[11px] text-text-secondary">
+        <span className="text-text">{event.actor_name ?? "System"}</span>{" "}
+        {event.event_type.replace("project.", "").replace("_", " ")}
+      </p>
+      <span className="shrink-0 text-[10px] tabular-nums text-text-muted">
+        {formatRelative(event.occurred_at)}
+      </span>
+    </div>
   );
 }
 
@@ -100,14 +111,16 @@ export function ProjectsPage() {
 
   return (
     <div className="flex h-full gap-5">
-      <div className="min-w-0 flex-1 space-y-5">
-        <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0 flex-1 space-y-8">
+        <div className="flex items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-text">Projects</h1>
-            <p className="text-xs text-text-muted">{projects.length} projects in this workspace</p>
+            <h1 className="text-lg font-semibold tracking-tight text-text">Projects</h1>
+            <p className="mt-0.5 text-[11px] text-text-muted">
+              {projects.length} in this workspace
+            </p>
           </div>
-          <Button onClick={() => setShowNewProject(true)} data-tour="new-project">
-            <Plus size={14} /> New Project
+          <Button size="sm" onClick={() => setShowNewProject(true)} data-tour="new-project">
+            <Plus size={13} /> New
           </Button>
         </div>
 
@@ -125,7 +138,7 @@ export function ProjectsPage() {
             }
           />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (
               <ProjectCard
                 key={project.id}
@@ -136,104 +149,96 @@ export function ProjectsPage() {
           </div>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardBody className="space-y-3">
-            {activity.slice(0, 8).map((event) => (
-              <div key={event.id} className="flex items-center gap-3 text-xs">
-                <Avatar name={event.actor_name} size="xs" isAi={event.actor_type === "agent"} />
-                <p className="min-w-0 flex-1 truncate text-text-secondary">
-                  <span className="font-semibold text-text">{event.actor_name ?? "System"}</span>{" "}
-                  {event.event_type.replace("project.", "").replace("_", " ")}
-                </p>
-                <span className="shrink-0 text-[11px] text-text-muted">
-                  {formatRelative(event.occurred_at)}
-                </span>
-              </div>
-            ))}
-            {activity.length === 0 && (
-              <p className="py-4 text-center text-xs text-text-muted">No activity yet</p>
-            )}
-          </CardBody>
-        </Card>
+        {activity.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="text-[11px] font-medium uppercase tracking-wider text-text-muted">
+              Recent activity
+            </h2>
+            <div className="space-y-0.5">
+              {activity.slice(0, 8).map((event) => (
+                <ActivityRow key={event.id} event={event} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       <DetailPanel open={selected != null} onClose={() => setSelectedId(null)} title="Project Details">
         {selected && (
-          <div className="space-y-5 px-5 py-4">
+          <div className="space-y-6 px-5 py-4">
             <div>
-              <h3 className="text-sm font-bold text-text">{selected.name}</h3>
-              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-                {selected.description}
-              </p>
+              <div className="mb-2 flex items-center gap-2">
+                {(() => {
+                  const { Icon } = getProjectCover(selected.cover_kind);
+                  return <Icon size={14} className="text-text-muted" strokeWidth={1.5} />;
+                })()}
+                <StatusLabel status={selected.status} />
+                <PriorityBadge priority={selected.priority} />
+              </div>
+              <h3 className="text-sm font-medium text-text">{selected.name}</h3>
+              {selected.description && (
+                <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
+                  {selected.description}
+                </p>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <Badge tone={statusTone[selected.status] ?? "default"}>
-                {selected.status.replace("_", " ")}
-              </Badge>
-              <PriorityBadge priority={selected.priority} />
-            </div>
-
             <div>
-              <div className="mb-1 flex justify-between text-[11px] text-text-muted">
+              <div className="mb-2 flex justify-between text-[11px] text-text-muted">
                 <span>Progress</span>
-                <span className="font-semibold text-text">{selected.progress_percent}%</span>
+                <span className="tabular-nums text-text">{selected.progress_percent}%</span>
               </div>
-              <ProgressBar value={selected.progress_percent} />
+              <ProgressBar value={selected.progress_percent} tone="primary" size="xs" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="mk-card-raised p-3">
-                <p className="text-lg font-bold text-text">{selected.task_count}</p>
-                <p className="text-[11px] text-text-muted">Total tasks</p>
+            <div className="flex gap-6 text-xs">
+              <div>
+                <p className="text-lg font-medium tabular-nums text-text">{selected.task_count}</p>
+                <p className="text-[10px] text-text-muted">Tasks</p>
               </div>
-              <div className="mk-card-raised p-3">
-                <p className="text-lg font-bold text-success">{selected.completed_task_count}</p>
-                <p className="text-[11px] text-text-muted">Completed</p>
+              <div>
+                <p className="text-lg font-medium tabular-nums text-text">{selected.completed_task_count}</p>
+                <p className="text-[10px] text-text-muted">Done</p>
+              </div>
+              <div>
+                <p className="text-lg font-medium tabular-nums text-text">{selected.agent_ids.length}</p>
+                <p className="text-[10px] text-text-muted">Agents</p>
               </div>
             </div>
 
-            <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between">
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between gap-4">
                 <span className="text-text-muted">Owner</span>
-                <span className="text-text">{selected.owner_name ?? "·"}</span>
+                <span className="text-text">{selected.owner_name ?? "—"}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 <span className="text-text-muted">Start</span>
-                <span className="text-text">{formatDate(selected.start_at)}</span>
+                <span className="tabular-nums text-text">{formatDate(selected.start_at)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 <span className="text-text-muted">Due</span>
-                <span className="text-text">{formatDate(selected.due_at)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Agents assigned</span>
-                <span className="text-text">{selected.agent_ids.length}</span>
+                <span className="tabular-nums text-text">{formatDate(selected.due_at)}</span>
               </div>
             </div>
 
-            <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                Team Members
-              </p>
-              <div className="space-y-2">
-                {selected.members.map((member) => (
-                  <div key={member.member_id} className="flex items-center gap-2.5">
-                    <Avatar name={member.full_name} size="sm" />
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-text">{member.full_name}</p>
-                      <p className="text-[10px] capitalize text-text-muted">{member.role}</p>
+            {selected.members.length > 0 && (
+              <div>
+                <p className="mb-2.5 text-[10px] font-medium uppercase tracking-wider text-text-muted">
+                  Team
+                </p>
+                <div className="space-y-2">
+                  {selected.members.map((member) => (
+                    <div key={member.member_id} className="flex items-center gap-2.5">
+                      <Avatar name={member.full_name} size="sm" />
+                      <div className="min-w-0">
+                        <p className="truncate text-xs text-text">{member.full_name}</p>
+                        <p className="text-[10px] capitalize text-text-muted">{member.role}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {selected.members.length === 0 && (
-                  <p className="text-xs text-text-muted">No members assigned.</p>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </DetailPanel>

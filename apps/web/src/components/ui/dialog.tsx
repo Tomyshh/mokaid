@@ -29,13 +29,12 @@ export function Dialog({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in" />
         <DialogPrimitive.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-[440px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2",
-            "max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg",
-            "mk-fade-up",
+            "mk-dialog-in fixed left-1/2 top-1/2 z-50 w-[440px] max-w-[calc(100vw-2rem)]",
+            "max-h-[min(85vh,calc(100dvh-2rem))] overflow-y-auto rounded-lg bg-surface shadow-lg",
             className,
           )}
         >
-          <div className="flex items-start justify-between border-b-[0.5px] border-border/25 px-5 py-4">
+          <div className="flex items-start justify-between px-5 py-4">
             <div>
               <DialogPrimitive.Title className="text-sm font-semibold text-text">
                 {title}
@@ -55,7 +54,7 @@ export function Dialog({
           </div>
           <div className="px-5 py-4">{children}</div>
           {footer && (
-            <div className="flex items-center justify-end gap-2 border-t-[0.5px] border-border/25 px-5 py-3">
+            <div className="flex items-center justify-end gap-2 px-5 py-3">
               {footer}
             </div>
           )}

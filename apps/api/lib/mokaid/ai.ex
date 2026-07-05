@@ -15,10 +15,19 @@ defmodule Mokaid.AI do
   def start_run(%WorkTask{} = task, input \\ %{}) do
     with :ok <- validate_ai_assignable(task),
          {:ok, run} <- Tasks.create_execution_run(task, input) do
-      case Agents.get_agent(task.workspace_id, task.assigned_agent_id) do
-        nil -> :ok
-        agent -> Agents.change_status(agent, "busy", current_task_id: task.id, reason: "ai_run")
+      agent = Agents.get_agent(task.workspace_id, task.assigned_agent_id)
+
+      if agent do
+        Agents.change_status(agent, "busy", current_task_id: task.id, reason: "ai_run")
       end
+
+      Realtime.broadcast_workspace(task.workspace_id, "task.run_started", %{
+        task_id: task.id,
+        run_id: run.id,
+        title: task.title,
+        agent_id: agent && agent.id,
+        agent_name: agent && agent.display_name
+      })
 
       Billing.record_usage(
         task.workspace_id,
@@ -94,28 +103,28 @@ defmodule Mokaid.AI do
         )
       end
 
-      case Tasks.get_task(run.workspace_id, run.task_id) do
-        nil ->
-          :ok
+      task = Tasks.get_task(run.workspace_id, run.task_id)
 
-        task ->
-          Tasks.update_task(task, %{"status" => "in_review", "progress_percent" => 100})
+      if task do
+        Tasks.update_task(task, %{"status" => "in_review", "progress_percent" => 100})
 
-          Notifications.notify_member(
-            run.workspace_id,
-            task.created_by_member_id,
-            "ai_run_completed",
-            "Task completed: #{task.title}",
-            body: "The agent finished this task. It is now waiting for your review.",
-            resource_type: "task",
-            resource_id: task.id
-          )
+        Notifications.notify_member(
+          run.workspace_id,
+          task.created_by_member_id,
+          "ai_run_completed",
+          "Ready for review: #{task.title}",
+          body: "The agent finished its work. Review the output and approve or request changes.",
+          resource_type: "task",
+          resource_id: task.id
+        )
       end
 
       Realtime.broadcast_workspace(run.workspace_id, "task.progress_changed", %{
         task_id: run.task_id,
         run_id: run.id,
-        status: "completed"
+        status: "completed",
+        title: task && task.title,
+        agent_id: run.agent_id
       })
 
       {:ok, run}
@@ -134,21 +143,27 @@ defmodule Mokaid.AI do
         agent -> Agents.change_status(agent, "blocked", reason: "run_failed")
       end
 
-      case Tasks.get_task(run.workspace_id, run.task_id) do
-        nil ->
-          :ok
+      task = Tasks.get_task(run.workspace_id, run.task_id)
 
-        task ->
-          Notifications.notify_member(
-            run.workspace_id,
-            task.created_by_member_id,
-            "ai_run_failed",
-            "Task failed: #{task.title}",
-            body: error_message,
-            resource_type: "task",
-            resource_id: task.id
-          )
+      if task do
+        Notifications.notify_member(
+          run.workspace_id,
+          task.created_by_member_id,
+          "ai_run_failed",
+          "Task failed: #{task.title}",
+          body: error_message,
+          resource_type: "task",
+          resource_id: task.id
+        )
       end
+
+      Realtime.broadcast_workspace(run.workspace_id, "task.progress_changed", %{
+        task_id: run.task_id,
+        run_id: run.id,
+        status: "failed",
+        title: task && task.title,
+        agent_id: run.agent_id
+      })
 
       {:ok, run}
     else

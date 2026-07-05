@@ -33,6 +33,8 @@ defmodule Mokaid.Workspaces do
   end
 
   def create_workspace(attrs, owner_user) do
+    attrs = put_default_slug(attrs)
+
     Repo.transaction(fn ->
       with {:ok, workspace} <- %Workspace{} |> Workspace.changeset(attrs) |> Repo.insert(),
            {:ok, _roles} <- Members.seed_system_roles(workspace.id),
@@ -54,5 +56,21 @@ defmodule Mokaid.Workspaces do
     workspace
     |> Ecto.Changeset.change(deleted_at: DateTime.utc_now())
     |> Repo.update()
+  end
+
+  # Callers only need to provide a name; the unique slug is derived here.
+  defp put_default_slug(attrs) do
+    if is_binary(attrs["slug"]) and attrs["slug"] != "" do
+      attrs
+    else
+      base =
+        (attrs["name"] || "workspace")
+        |> String.downcase()
+        |> String.replace(~r/[^a-z0-9]+/, "-")
+        |> String.trim("-")
+
+      suffix = :crypto.strong_rand_bytes(3) |> Base.encode16(case: :lower)
+      Map.put(attrs, "slug", "#{base}-#{suffix}")
+    end
   end
 end

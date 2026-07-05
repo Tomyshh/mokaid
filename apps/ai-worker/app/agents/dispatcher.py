@@ -1,0 +1,122 @@
+"""Request triage: routes an instruction (+ dropped files) to the best agent.
+
+Given the workspace roster, connected MCP servers and the wider MCP catalog,
+the LLM decides whether an existing agent should take the task, whether a
+purpose-built agent is warranted, and which MCP connections would speed the
+work up. Phoenix falls back to its own deterministic heuristic when this
+module is unavailable (no API key, worker down), so this only implements the
+LLM path.
+"""
+
+from typing import Any
+
+import structlog
+
+from app import llm
+
+log = structlog.get_logger()
+
+_DISPATCH_SYSTEM = """You are the dispatch coordinator of a team of AI agents inside a
+work workspace. A user dropped files and/or typed an instruction. Decide who should
+handle it.
+
+Respond with a single JSON object:
+{
+  "task": {"title": string (max 80 chars, same language as the instruction),
+           "description": string (actionable brief for the agent),
+           "priority": "low"|"medium"|"high"|"urgent"},
+  "recommendation": {
+    "mode": "existing_agent" | "custom_agent" | "user_choice",
+    "agent_id": string|null,
+    "confidence": integer 0-100,
+    "reason": string (1-2 sentences, user-facing, mention the agent by name),
+    "alternatives": [{"agent_id": string, "confidence": integer, "reason": string}],
+    "custom_agent": {"display_name": string, "role_title": string,
+                     "department": string,
+                     "skills": [{"name": string, "level": integer 0-100}]} | null
+  },
+  "mcp_suggestions": [{"server_key": string, "reason": string (user-facing, explain the speedup)}]
+}
+
+Decision rules:
+- "existing_agent": one agent clearly has the right skills. Do NOT propose a
+  custom agent in that case (custom_agent must be null) — do not bother the
+  user with a choice they don't need.
+- "user_choice": the best agent is a partial fit AND a purpose-built agent
+  would genuinely do better. Provide BOTH agent_id and custom_agent.
+- "custom_agent": nobody on the roster can do this well. agent_id must be null
+  and custom_agent must be filled with a sensible specialist profile.
+- Prefer agents with fewer open tasks when skills are comparable.
+- confidence reflects skill match AND availability.
+- mcp_suggestions: at most 3, only when a connection would clearly make the
+  work faster or better (e.g. Figma for .fig files, GitHub for code review).
+  Suggest servers from the connected list first, then from the catalog.
+  An empty list is the right answer for most simple requests.
+- Priority: infer from wording (deadlines, "urgent", business impact); default "medium".
+"""
+
+
+def is_available() -> bool:
+    return llm.is_configured()
+
+
+async def analyze(payload: dict[str, Any]) -> dict[str, Any]:
+    """Runs the triage prompt. Raises on LLM failure (caller returns 5xx)."""
+    usage = llm.UsageTracker()
+
+    files = payload.get("files") or []
+    files_block = (
+        "\n".join(
+            f"- {f.get('name')} ({f.get('mime_type') or 'unknown type'}, "
+            f"{f.get('size_bytes') or '?'} bytes)"
+            for f in files
+        )
+        or "(none)"
+    )
+
+    agents = payload.get("agents") or []
+    agents_block = (
+        "\n".join(
+            f"- id={a.get('id')} | {a.get('name')} | role: {a.get('role_title') or '-'} | "
+            f"dept: {a.get('department') or '-'} | status: {a.get('status')} | "
+            f"open tasks: {a.get('open_tasks', 0)} | "
+            f"skills: {', '.join(s.get('name', '') for s in (a.get('skills') or [])) or '-'}"
+            for a in agents
+        )
+        or "(no agents yet)"
+    )
+
+    connected = payload.get("mcp_connected") or []
+    connected_block = (
+        "\n".join(f"- {c.get('server_key')}: {c.get('name')} ({c.get('category')})" for c in connected)
+        or "(none)"
+    )
+
+    available = (payload.get("mcp_available") or [])[:60]
+    available_block = (
+        "\n".join(
+            f"- {s.get('key')}: {s.get('name')} — {(s.get('description') or '')[:100]}"
+            for s in available
+        )
+        or "(none)"
+    )
+
+    result = await llm.chat_json(
+        system=_DISPATCH_SYSTEM,
+        user=(
+            f"Instruction: {payload.get('instruction') or '(none — files only)'}\n\n"
+            f"Dropped files:\n{files_block}\n\n"
+            f"Agent roster:\n{agents_block}\n\n"
+            f"MCP servers already connected to the workspace:\n{connected_block}\n\n"
+            f"MCP servers available in the catalog (not connected):\n{available_block}"
+        ),
+        usage=usage,
+        max_tokens=900,
+    )
+
+    log.info(
+        "dispatch_analyzed",
+        mode=(result.get("recommendation") or {}).get("mode"),
+        tokens=usage.as_dict()["total_tokens"],
+    )
+    return result

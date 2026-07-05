@@ -94,8 +94,43 @@ defmodule MokaidWeb.JSON do
       subtask_done_count: Enum.count(subtasks, & &1.done),
       subtasks: Enum.map(subtasks, &subtask/1),
       comments: comments(loaded(task.comments)),
+      attachments: task_attachments(loaded(task.drive_items)),
+      latest_run: latest_run(loaded(task.execution_runs)),
       inserted_at: task.inserted_at,
       updated_at: task.updated_at
+    }
+  end
+
+  # Files linked to a task: user inputs (dropped/attached) vs agent outputs.
+  defp task_attachments(nil), do: []
+
+  defp task_attachments(items) do
+    Enum.map(items, fn item ->
+      %{
+        id: item.id,
+        name: item.name,
+        mime_type: item.mime_type,
+        extension: item.extension,
+        size_bytes: item.size_bytes,
+        source: if(item.created_by_agent_id, do: "output", else: "input"),
+        inserted_at: item.inserted_at
+      }
+    end)
+  end
+
+  defp latest_run(nil), do: nil
+  defp latest_run([]), do: nil
+
+  defp latest_run([run | _rest]) do
+    %{
+      id: run.id,
+      status: run.status,
+      error: run.error,
+      output: run.output,
+      token_usage: run.token_usage,
+      started_at: run.started_at,
+      completed_at: run.completed_at,
+      inserted_at: run.inserted_at
     }
   end
 

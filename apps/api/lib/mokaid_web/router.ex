@@ -51,6 +51,9 @@ defmodule MokaidWeb.Router do
     post "/agents/:id/unlink-user", AgentController, :unlink_user
     post "/agents/:id/assign-task", AgentController, :assign_task
 
+    post "/dispatch/analyze", DispatchController, :analyze
+    post "/dispatch/confirm", DispatchController, :confirm
+
     resources "/tasks", TaskController, only: [:index, :create, :show, :update, :delete]
     patch "/tasks/:task_id/subtasks/:id", TaskController, :update_subtask
     post "/tasks/:id/comments", TaskController, :create_comment
@@ -126,5 +129,6 @@ defmodule MokaidWeb.Router do
     post "/tasks/:id/update", WorkerResourceController, :update_task
     post "/tasks/:id/subtasks", WorkerResourceController, :create_subtasks
     post "/tasks/:id/comment", WorkerResourceController, :create_comment
+    post "/tasks/:id/output", WorkerResourceController, :save_output
   end
 end

@@ -16,6 +16,9 @@ config :mokaid, MokaidWeb.Endpoint,
 
 config :mokaid, Oban, testing: :inline
 
+# No AI worker in tests: the dispatcher always uses its deterministic heuristic.
+config :mokaid, :ai_worker, dispatch: :none, url: nil, token: "test-token"
+
 config :mokaid, :cors_origins, ["http://localhost:5173"]
 
 config :bcrypt_elixir, :log_rounds, 1

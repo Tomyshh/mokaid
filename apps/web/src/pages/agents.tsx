@@ -75,7 +75,7 @@ export function AgentsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex rounded-md border border-border bg-surface p-0.5">
+          <div className="flex rounded-md bg-surface-raised p-0.5">
             {kindFilters.map((f) => (
               <button
                 key={f.value}

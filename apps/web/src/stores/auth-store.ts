@@ -8,7 +8,7 @@ interface AuthUser {
   avatar_url: string | null;
 }
 
-interface WorkspaceSummary {
+export interface WorkspaceSummary {
   id: string;
   name: string;
   slug: string;
@@ -24,6 +24,8 @@ interface AuthState {
   setSession: (token: string, user: AuthUser) => void;
   setWorkspaces: (workspaces: WorkspaceSummary[]) => void;
   selectWorkspace: (id: string) => void;
+  addWorkspace: (workspace: WorkspaceSummary) => void;
+  patchWorkspace: (id: string, patch: Partial<WorkspaceSummary>) => void;
   logout: () => void;
 }
 
@@ -44,6 +46,12 @@ export const useAuthStore = create<AuthState>()(
               : (workspaces[0]?.id ?? null),
         })),
       selectWorkspace: (id) => set({ workspaceId: id }),
+      addWorkspace: (workspace) =>
+        set((state) => ({ workspaces: [...state.workspaces, workspace] })),
+      patchWorkspace: (id, patch) =>
+        set((state) => ({
+          workspaces: state.workspaces.map((w) => (w.id === id ? { ...w, ...patch } : w)),
+        })),
       logout: () => set({ token: null, user: null, workspaceId: null, workspaces: [] }),
     }),
     { name: "mokaid-auth" },

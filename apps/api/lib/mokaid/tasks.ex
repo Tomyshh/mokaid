@@ -28,8 +28,21 @@ defmodule Mokaid.Tasks do
     Repo.one(
       from t in Task,
         where: t.workspace_id == ^workspace_id and t.id == ^id,
-        preload: ^@preloads
+        preload: ^detail_preloads()
     )
+  end
+
+  # Detail view also carries linked drive files (inputs + agent outputs)
+  # and execution runs (latest first) so the UI can show the agent's result.
+  defp detail_preloads do
+    drive_items_query =
+      from d in Mokaid.Drive.DriveItem,
+        where: d.status == "active",
+        order_by: [asc: d.inserted_at]
+
+    runs_query = from r in TaskExecutionRun, order_by: [desc: r.inserted_at]
+
+    [drive_items: drive_items_query, execution_runs: runs_query] ++ @preloads
   end
 
   def list_tasks(workspace_id, filters \\ %{}) do
@@ -62,10 +75,23 @@ defmodule Mokaid.Tasks do
 
     with {:ok, task} <- result do
       record_activity(task, created_by, "task.created")
-      Realtime.broadcast_workspace(workspace_id, "task.created", %{task_id: task.id})
-      {:ok, Repo.preload(task, @preloads)}
+      task = Repo.preload(task, @preloads)
+      agent = loaded_assoc(task.assigned_agent)
+
+      Realtime.broadcast_workspace(workspace_id, "task.created", %{
+        task_id: task.id,
+        title: task.title,
+        project_id: task.project_id,
+        assigned_agent_id: task.assigned_agent_id,
+        assigned_agent_name: agent && agent.display_name
+      })
+
+      {:ok, task}
     end
   end
+
+  defp loaded_assoc(%Ecto.Association.NotLoaded{}), do: nil
+  defp loaded_assoc(other), do: other
 
   def update_task(%Task{} = task, attrs, actor \\ nil) do
     old_status = task.status
@@ -85,14 +111,17 @@ defmodule Mokaid.Tasks do
 
           Realtime.broadcast_workspace(task.workspace_id, "task.status_changed", %{
             task_id: updated.id,
+            title: updated.title,
             status: updated.status,
+            from_status: old_status,
             progress_percent: updated.progress_percent,
             assigned_agent_id: updated.assigned_agent_id
           })
 
           if updated.status == "completed" do
             Realtime.broadcast_workspace(task.workspace_id, "task.completed", %{
-              task_id: updated.id
+              task_id: updated.id,
+              title: updated.title
             })
 
             maybe_celebrate_agent(updated)

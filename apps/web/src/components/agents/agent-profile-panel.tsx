@@ -16,19 +16,21 @@ const tabClass =
 export function AgentProfilePanel({
   agent,
   onClose,
+  overlay,
 }: {
   agent: Agent | null;
   onClose: () => void;
+  overlay?: boolean;
 }) {
   const { data: tasksData } = useTasks(agent ? { agent_id: agent.id } : {});
   const agentTasks = agent ? (tasksData?.data ?? []).filter((t) => t.assigned_agent_id === agent.id) : [];
   const currentTask = agentTasks.find((t) => t.id === agent?.current_task_id) ?? agentTasks.find((t) => t.status === "in_progress");
 
   return (
-    <DetailPanel open={agent != null} onClose={onClose} title="Agent Profile">
+    <DetailPanel open={agent != null} onClose={onClose} title="Agent Profile" overlay={overlay}>
       {agent && (
         <div className="flex flex-col">
-          <div className="flex flex-col items-center gap-3 border-b border-border px-5 py-6">
+          <div className="flex flex-col items-center gap-3 px-5 py-6">
             <Avatar
               name={agent.display_name}
               size="xl"
@@ -63,7 +65,7 @@ export function AgentProfilePanel({
           </div>
 
           <Tabs.Root defaultValue="overview">
-            <Tabs.List className="flex border-b border-border px-3">
+            <Tabs.List className="flex px-3">
               <Tabs.Trigger value="overview" className={tabClass}>
                 Overview
               </Tabs.Trigger>

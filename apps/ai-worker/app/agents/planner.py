@@ -37,8 +37,29 @@ Rules:
 - Only use listed tools. Prefer the minimal plan that completes the task.
 - Start with search_knowledge when workspace context would help.
 - Only include send_email/post_social if the task explicitly asks for it.
-- Connected tools (mcp:*) are real external integrations: use one only when the
-  task genuinely needs that external system, and pass arguments matching its schema.
+- Every plan MUST end with a step that produces a reviewable deliverable:
+  draft_document for written work (briefs, specs, plans, creative direction…)
+  or generate_report for reporting tasks. search_knowledge or summarize alone
+  is never a complete plan — the user must receive a concrete output file.
+
+Prioritization judgment:
+- Urgent/high-priority tasks (or tasks close to their due date): go straight to
+  the deliverable — skip optional research and never pad the plan with
+  nice-to-have steps.
+- Low-priority tasks: it is fine to invest one extra step in context gathering
+  (search_knowledge) if it clearly improves the result.
+- Large or vague tasks: create_subtasks first so humans can follow progress.
+
+MCP judgment (connected external tools, prefixed mcp:*):
+- They are real external integrations with real side effects and latency.
+- Use one ONLY when the task genuinely needs that external system (its data or
+  its actions cannot be replicated with internal tools). If an internal tool
+  achieves the same outcome, always prefer the internal tool.
+- Never call an MCP tool "just in case" or to double-check something you
+  already know. One targeted call beats several exploratory calls.
+- Pass arguments matching the tool schema exactly.
+- Attached files already have download URLs — you do not need a storage MCP to
+  read them.
 """
 
 
@@ -97,6 +118,14 @@ async def plan_steps(
     if not llm.is_configured():
         return deterministic_plan(request)
 
+    files_block = (
+        "\n".join(
+            f"- {f.name} ({f.mime_type or 'unknown type'}, {f.size_bytes or '?'} bytes)"
+            for f in request.attached_files
+        )
+        or "(none)"
+    )
+
     try:
         result = await llm.chat_json(
             system=_PLANNER_SYSTEM
@@ -104,6 +133,9 @@ async def plan_steps(
             user=(
                 f"Task title: {request.task_title or 'Untitled'}\n"
                 f"Task description: {request.task_description or '(none)'}\n"
+                f"Priority: {request.task_priority or 'medium'}\n"
+                f"Due date: {request.task_due_at or '(none)'}\n"
+                f"Attached files:\n{files_block}\n"
                 f"Extra input: {request.input}"
             ),
             usage=usage,

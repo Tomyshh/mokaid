@@ -32,6 +32,16 @@ class McpServerGrant(BaseModel):
     credentials: dict[str, Any] = Field(default_factory=dict)
 
 
+class AttachedFile(BaseModel):
+    """A workspace file linked to the task (dropped on the 3D office)."""
+
+    id: str | None = None
+    name: str
+    mime_type: str | None = None
+    size_bytes: int | None = None
+    download_url: str | None = None
+
+
 class RunRequest(BaseModel):
     run_id: str
     workspace_id: str
@@ -39,7 +49,10 @@ class RunRequest(BaseModel):
     task_id: str
     task_title: str | None = None
     task_description: str | None = None
+    task_priority: str | None = None
+    task_due_at: str | None = None
     input: dict[str, Any] = Field(default_factory=dict)
+    attached_files: list[AttachedFile] = Field(default_factory=list)
     mcp_servers: list[McpServerGrant] = Field(default_factory=list)
 
 

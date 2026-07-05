@@ -173,7 +173,7 @@ export function DrivePage() {
             >
               <Trash2 size={13} /> Trash
             </button>
-            <div className="flex rounded-md border border-border bg-surface p-0.5">
+            <div className="flex rounded-md bg-surface-raised p-0.5">
               <button
                 onClick={() => setView("grid")}
                 aria-label="Grid view"

@@ -1,12 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   BarChart3,
   Bot,
   Calendar,
-  Check,
   CheckSquare,
-  ChevronsUpDown,
   CreditCard,
   FolderKanban,
   FolderOpen,
@@ -16,7 +13,6 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -87,18 +83,10 @@ export function Sidebar() {
   const user = useAuthStore((s) => s.user);
   const workspaces = useAuthStore((s) => s.workspaces);
   const workspaceId = useAuthStore((s) => s.workspaceId);
-  const selectWorkspace = useAuthStore((s) => s.selectWorkspace);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const queryClient = useQueryClient();
 
   const currentWorkspace = workspaces.find((w) => w.id === workspaceId);
   const roleName = currentWorkspace?.role_name ?? "Member";
-
-  const handleSwitchWorkspace = (id: string) => {
-    if (id === workspaceId) return;
-    selectWorkspace(id);
-    queryClient.clear();
-  };
 
   const isActive = (to: string) => pathname.startsWith(to);
 
@@ -114,47 +102,6 @@ export function Sidebar() {
           <Logo collapsed={collapsed} />
         </Link>
       </div>
-
-      {!collapsed && workspaces.length > 0 && (
-        <div className="px-3 pb-2">
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button className="flex w-full items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-2 text-left transition-colors hover:border-border-strong mk-focus-ring">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary-muted text-[10px] font-bold text-primary-light">
-                  {(currentWorkspace?.name ?? "W").slice(0, 1).toUpperCase()}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-semibold text-text">
-                    {currentWorkspace?.name ?? "Workspace"}
-                  </span>
-                </span>
-                <ChevronsUpDown size={13} className="shrink-0 text-text-muted" />
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                align="start"
-                sideOffset={6}
-                className="z-50 w-56 rounded-lg border border-border bg-surface-overlay p-1.5 shadow-lg"
-              >
-                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-                  Workspaces
-                </p>
-                {workspaces.map((w) => (
-                  <DropdownMenu.Item
-                    key={w.id}
-                    onSelect={() => handleSwitchWorkspace(w.id)}
-                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs text-text outline-none data-[highlighted]:bg-surface-hover"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{w.name}</span>
-                    {w.id === workspaceId && <Check size={12} className="text-primary-light" />}
-                  </DropdownMenu.Item>
-                ))}
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-        </div>
-      )}
 
       <div className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
         <div className="space-y-0.5">

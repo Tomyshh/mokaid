@@ -49,6 +49,7 @@ export class OfficeScene {
   private shadowGenerator: ShadowGenerator | null = null;
   private fpsTimer = 0;
   private disposed = false;
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -71,6 +72,7 @@ export class OfficeScene {
 
     this.engine.runRenderLoop(() => {
       if (this.disposed) return;
+      this.syncEngineSize();
       this.animate();
       this.scene.render();
       this.reportOverlay();
@@ -79,6 +81,12 @@ export class OfficeScene {
     const resize = () => this.engine.resize();
     window.addEventListener("resize", resize);
     this.scene.onDisposeObservable.add(() => window.removeEventListener("resize", resize));
+
+    // Layout changes (sidebar collapse, panels) resize the canvas without a
+    // window resize event; observe the element itself so projected overlay
+    // positions stay in sync with the render buffer.
+    this.resizeObserver = new ResizeObserver(resize);
+    this.resizeObserver.observe(canvas);
   }
 
   /* ---------- setup ---------- */
@@ -95,10 +103,21 @@ export class OfficeScene {
     camera.attachControl(this.canvas, true);
     camera.lowerRadiusLimit = 12;
     camera.upperRadiusLimit = 42;
-    camera.lowerBetaLimit = Math.PI / 6;
-    camera.upperBetaLimit = Math.PI / 2.4;
-    camera.wheelDeltaPercentage = 0.01;
+
+    // Lock orbit angle — wheel zoom only, no drag rotation.
+    camera.lowerAlphaLimit = camera.alpha;
+    camera.upperAlphaLimit = camera.alpha;
+    camera.lowerBetaLimit = camera.beta;
+    camera.upperBetaLimit = camera.beta;
+
     camera.panningSensibility = 0;
+    camera.wheelDeltaPercentage = 0.01;
+    // Zoom toward the point under the cursor instead of the scene center.
+    camera.zoomToMouseLocation = true;
+
+    // Remove drag/pinch input entirely — angular sensibility 0 causes division
+    // by zero on drag and corrupts the camera (blank scene until refresh).
+    camera.inputs.removeByType("ArcRotateCameraPointersInput");
   }
 
   private setupLights() {
@@ -394,6 +413,20 @@ export class OfficeScene {
 
   /* ---------- overlay + fps reporting ---------- */
 
+  /** Keep the render buffer aligned with CSS size every frame (sidebar animation). */
+  private syncEngineSize() {
+    const cw = this.canvas.clientWidth;
+    const ch = this.canvas.clientHeight;
+    if (cw === 0 || ch === 0) return;
+
+    const scale = this.engine.getHardwareScalingLevel();
+    const expectedW = Math.floor(cw * scale);
+    const expectedH = Math.floor(ch * scale);
+    if (expectedW !== this.engine.getRenderWidth() || expectedH !== this.engine.getRenderHeight()) {
+      this.engine.resize();
+    }
+  }
+
   private reportOverlay() {
     const now = performance.now();
     if (now - this.fpsTimer > 500) {
@@ -405,18 +438,24 @@ export class OfficeScene {
     const camera = this.scene.activeCamera;
     if (!camera) return;
 
+    const cssW = this.canvas.clientWidth;
+    const cssH = this.canvas.clientHeight;
+    const renderW = this.engine.getRenderWidth();
+    const renderH = this.engine.getRenderHeight();
+    if (cssW === 0 || cssH === 0 || renderW === 0 || renderH === 0) return;
+
     for (const [id, avatar] of this.avatars) {
       const worldPos = avatar.head.getAbsolutePosition().add(new Vector3(0, 0.65, 0));
       const projected = Vector3.Project(
         worldPos,
         Matrix.Identity(),
         this.scene.getTransformMatrix(),
-        camera.viewport.toGlobal(this.engine.getRenderWidth(), this.engine.getRenderHeight()),
+        camera.viewport.toGlobal(renderW, renderH),
       );
 
       positions.set(id, {
-        x: projected.x,
-        y: projected.y,
+        x: (projected.x / renderW) * cssW,
+        y: (projected.y / renderH) * cssH,
         visible: projected.z > 0 && projected.z < 1,
       });
     }
@@ -430,6 +469,8 @@ export class OfficeScene {
 
   dispose() {
     this.disposed = true;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.engine.stopRenderLoop();
     this.scene.dispose();
     this.engine.dispose();

@@ -30,6 +30,7 @@ defmodule Mokaid.Tasks.Task do
     has_many :comments, Mokaid.Tasks.TaskComment
     has_many :approval_requests, Mokaid.Tasks.TaskApprovalRequest
     has_many :execution_runs, Mokaid.Tasks.TaskExecutionRun
+    has_many :drive_items, Mokaid.Drive.DriveItem, foreign_key: :linked_task_id
 
     timestamps()
   end

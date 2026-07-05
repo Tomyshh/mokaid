@@ -58,6 +58,18 @@ class FakePhoenixClient:
         self.calls.append(("comment", {"task_id": task_id, "body": body, "agent_id": agent_id}))
         return True
 
+    async def save_task_output(
+        self,
+        workspace_id: str,
+        task_id: str,
+        filename: str,
+        content: str,
+        mime_type: str | None = None,
+        encoding: str | None = None,
+    ) -> dict:
+        self.calls.append(("output", {"task_id": task_id, "filename": filename}))
+        return {"id": "fake-drive-item", "name": filename, "task_id": task_id}
+
 
 @pytest.fixture
 def phoenix() -> FakePhoenixClient:

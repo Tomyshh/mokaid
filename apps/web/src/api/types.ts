@@ -72,6 +72,39 @@ export interface TaskComment {
   inserted_at: string;
 }
 
+export interface TaskAttachment {
+  id: string;
+  name: string;
+  mime_type: string | null;
+  extension: string | null;
+  size_bytes: number | null;
+  source: "input" | "output";
+  inserted_at: string;
+}
+
+export interface TaskRunToolCall {
+  tool: string;
+  input?: Record<string, unknown>;
+  output?: Record<string, unknown> | null;
+  risk?: string;
+  approved?: boolean | null;
+}
+
+export interface TaskRun {
+  id: string;
+  status: string;
+  error: string | null;
+  output: {
+    steps?: number;
+    tool_calls?: TaskRunToolCall[];
+    artifacts?: string[];
+  } | null;
+  token_usage: Record<string, number> | null;
+  started_at: string | null;
+  completed_at: string | null;
+  inserted_at: string;
+}
+
 export interface Task {
   id: string;
   workspace_id: string;
@@ -95,6 +128,8 @@ export interface Task {
   subtask_done_count: number;
   subtasks: Subtask[];
   comments: TaskComment[];
+  attachments: TaskAttachment[];
+  latest_run: TaskRun | null;
   inserted_at: string;
   updated_at: string;
 }
@@ -379,6 +414,57 @@ export interface Workspace {
   default_landing_page: string;
   feature_toggles: Record<string, boolean>;
   inserted_at: string;
+}
+
+/* ---------- Intelligent dispatch (3D drop / quick task) ---------- */
+
+export interface DispatchFileInput {
+  drive_item_id: string;
+  name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+}
+
+export interface DispatchCustomAgent {
+  display_name: string;
+  role_title: string | null;
+  department: string | null;
+  skills: Array<{ name: string; level: number }>;
+}
+
+export interface DispatchAlternative {
+  agent_id: string;
+  confidence: number;
+  reason: string;
+}
+
+export interface DispatchMcpSuggestion {
+  server_key: string;
+  server_name: string;
+  auth_kind: "oauth2" | "api_key" | "none" | "custom";
+  logo_slug: string | null;
+  reason: string;
+  status: "ready" | "needs_grant" | "not_installed";
+  installation_id: string | null;
+}
+
+export interface DispatchAnalysis {
+  task: { title: string; description: string; priority: TaskPriority };
+  recommendation: {
+    mode: "existing_agent" | "custom_agent" | "user_choice";
+    agent_id: string | null;
+    confidence: number;
+    reason: string;
+    alternatives: DispatchAlternative[];
+    custom_agent: DispatchCustomAgent | null;
+  };
+  mcp_suggestions: DispatchMcpSuggestion[];
+}
+
+export interface DispatchConfirmResult {
+  task: Task;
+  agent: Agent | null;
+  run_id: string | null;
 }
 
 export interface AppNotification {

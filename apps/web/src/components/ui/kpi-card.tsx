@@ -25,7 +25,7 @@ export function KpiCard({ label, value, icon, trend, tone = "default", className
   return (
     <Card
       className={cn(
-        "flex items-center gap-4 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-md",
+        "flex items-center gap-4 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
         className,
       )}
     >

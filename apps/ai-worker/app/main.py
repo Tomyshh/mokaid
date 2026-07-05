@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI, Header, HTTPException
 
-from app.agents import runner
+from app.agents import dispatcher, runner
 from app.config import get_settings
 from app.memory.ingestion import ingest_document
 from app.queue.consumer import consume_forever
@@ -60,6 +60,25 @@ async def start_run(
 
     log.info("run_accepted", run_id=request.run_id)
     return {"accepted": True, "run_id": request.run_id}
+
+
+@app.post("/dispatch/analyze")
+async def dispatch_analyze(
+    payload: dict,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Triage an instruction + files to the best agent. 503 without an LLM
+    key so Phoenix falls back to its deterministic heuristic."""
+    _check_auth(authorization)
+
+    if not dispatcher.is_available():
+        raise HTTPException(status_code=503, detail="llm not configured")
+
+    try:
+        return await dispatcher.analyze(payload)
+    except Exception as exc:  # noqa: BLE001 — Phoenix falls back on any error
+        log.warning("dispatch_analyze_failed", error=str(exc))
+        raise HTTPException(status_code=502, detail="dispatch analysis failed") from exc
 
 
 @app.post("/runs/{run_id}/resume")

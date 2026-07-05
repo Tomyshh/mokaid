@@ -6,6 +6,7 @@ import { useWorkspaceChannel } from "@/realtime/use-workspace-channel";
 import { useProjects } from "@/api/hooks";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { CoachmarkTour } from "@/components/onboarding/coachmark-tour";
+import { Toaster } from "@/components/ui/toaster";
 import { useAuthStore } from "@/stores/auth-store";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 
@@ -40,6 +41,7 @@ export function AppShell() {
       </div>
       <OnboardingGate />
       <CoachmarkTour />
+      <Toaster />
     </div>
   );
 }

@@ -27,6 +27,28 @@ defmodule Mokaid.Storage do
     end
   end
 
+  @doc "Uploads raw content (agent-produced artifacts) without a Plug.Upload."
+  @spec upload_content(String.t(), String.t(), binary(), String.t() | nil) ::
+          {:ok, %{storage_key: String.t(), size_bytes: non_neg_integer(), checksum: String.t()}}
+          | {:error, term()}
+  def upload_content(workspace_id, filename, content, content_type) when is_binary(content) do
+    key = "workspaces/#{workspace_id}/drive/#{Ecto.UUID.generate()}/#{filename}"
+    checksum = :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
+
+    request =
+      ExAws.S3.put_object(uploads_bucket(), key, content,
+        content_type: content_type || "application/octet-stream"
+      )
+
+    case ExAws.request(request) do
+      {:ok, _} ->
+        {:ok, %{storage_key: key, size_bytes: byte_size(content), checksum: checksum}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   @spec download_url(String.t()) :: {:ok, String.t()} | {:error, term()}
   def download_url(storage_key) do
     config = ExAws.Config.new(:s3)

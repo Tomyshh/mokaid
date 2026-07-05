@@ -37,8 +37,8 @@ export function DashboardPage() {
   const selectedAgent = agents.find((a) => a.id === selectedAgentId) ?? null;
 
   return (
-    <div className="flex h-full gap-5">
-      <div className="min-w-0 flex-1 space-y-5">
+    <div className="relative h-full">
+      <div className="min-w-0 space-y-5">
         {/* KPI row */}
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <KpiCard
@@ -72,7 +72,11 @@ export function DashboardPage() {
           <Card className="overflow-hidden">
             <div className="relative h-[420px]">
               <Suspense fallback={<Skeleton className="h-full w-full rounded-none" />}>
-                <OfficeCanvas agents={agents} onSelectAgent={selectAgent} />
+                <OfficeCanvas
+                  agents={agents}
+                  selectedAgentId={selectedAgentId}
+                  onSelectAgent={selectAgent}
+                />
               </Suspense>
             </div>
           </Card>
@@ -181,8 +185,8 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Agent profile panel */}
-      <AgentProfilePanel agent={selectedAgent} onClose={() => selectAgent(null)} />
+      {/* Agent profile panel — floats above the content so the 3D view keeps its size */}
+      <AgentProfilePanel agent={selectedAgent} onClose={() => selectAgent(null)} overlay />
     </div>
   );
 }

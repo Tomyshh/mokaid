@@ -7,7 +7,9 @@ defmodule MokaidWeb.WorkerResourceController do
   use MokaidWeb, :controller
 
   alias Mokaid.Agents
+  alias Mokaid.Drive
   alias Mokaid.Knowledge
+  alias Mokaid.Realtime
   alias Mokaid.Tasks
 
   def search_knowledge(conn, %{"workspace_id" => workspace_id, "embedding" => embedding} = params) do
@@ -100,6 +102,81 @@ defmodule MokaidWeb.WorkerResourceController do
         conn
         |> put_status(:not_found)
         |> json(%{error: %{code: "not_found", message: "task not found"}})
+    end
+  end
+
+  @doc """
+  Saves a file produced by an agent (draft, report, transformed asset…) into
+  the Drive, linked to the task, so users can see and download the output.
+  Content is plain text by default; pass "encoding": "base64" for binaries.
+  """
+  def save_output(
+        conn,
+        %{"id" => id, "workspace_id" => workspace_id, "filename" => filename, "content" => content} =
+          params
+      ) do
+    with %{} = task <- Tasks.get_task(workspace_id, id),
+         {:ok, binary} <- decode_content(content, params["encoding"]),
+         {:ok, stored} <- Mokaid.Storage.upload_content(workspace_id, filename, binary, params["mime_type"]) do
+      agent = task.assigned_agent_id && Agents.get_agent(workspace_id, task.assigned_agent_id)
+      outputs_folder = Drive.ensure_system_folder(workspace_id, "Agent Outputs")
+
+      case Drive.create_file(
+             workspace_id,
+             %{
+               "name" => filename,
+               "parent_id" => outputs_folder.id,
+               "mime_type" => params["mime_type"],
+               "extension" => file_extension(filename),
+               "size_bytes" => stored.size_bytes,
+               "storage_key" => stored.storage_key,
+               "checksum" => stored.checksum,
+               "linked_task_id" => task.id,
+               "linked_project_id" => task.project_id,
+               "is_ai_readable" => true
+             },
+             agent
+           ) do
+        {:ok, item} ->
+          Realtime.broadcast_workspace(workspace_id, "task.updated", %{task_id: task.id})
+
+          conn
+          |> put_status(:created)
+          |> json(%{data: %{id: item.id, name: item.name, task_id: task.id}})
+
+        error ->
+          error
+      end
+    else
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "task not found"}})
+
+      {:error, :invalid_encoding} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: %{code: "invalid_encoding", message: "content could not be decoded"}})
+
+      error ->
+        error
+    end
+  end
+
+  defp decode_content(content, "base64") when is_binary(content) do
+    case Base.decode64(content) do
+      {:ok, binary} -> {:ok, binary}
+      :error -> {:error, :invalid_encoding}
+    end
+  end
+
+  defp decode_content(content, _encoding) when is_binary(content), do: {:ok, content}
+  defp decode_content(_content, _encoding), do: {:error, :invalid_encoding}
+
+  defp file_extension(filename) do
+    case Path.extname(filename) do
+      "." <> ext -> String.downcase(ext)
+      _ -> nil
     end
   end
 

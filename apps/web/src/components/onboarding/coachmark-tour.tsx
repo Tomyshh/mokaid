@@ -29,7 +29,7 @@ const tourSteps: TourStep[] = [
   {
     target: "nav-agents",
     title: "Your AI agents",
-    body: "Hire, configure and monitor agents. Open a task and hit “Run with AI” to put them to work.",
+    body: "Hire, configure and monitor agents. Assign them a task and they start working right away.",
   },
   {
     target: "nav-integrations",

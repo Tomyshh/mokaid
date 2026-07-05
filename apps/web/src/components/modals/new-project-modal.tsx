@@ -5,6 +5,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PROJECT_COVERS } from "@/lib/project-covers";
 import { cn } from "@/lib/cn";
 
 interface NewProjectModalProps {
@@ -18,14 +19,6 @@ const priorityOptions = [
   { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
   { value: "urgent", label: "Urgent" },
-];
-
-const covers: Array<{ kind: string; gradient: string; label: string }> = [
-  { kind: "meeting", gradient: "from-[#5936d1] to-[#8f72ff]", label: "Violet" },
-  { kind: "coding", gradient: "from-[#1d4ed8] to-[#60a5fa]", label: "Blue" },
-  { kind: "design", gradient: "from-[#be185d] to-[#f472b6]", label: "Pink" },
-  { kind: "whiteboard", gradient: "from-[#047857] to-[#34d399]", label: "Green" },
-  { kind: "office", gradient: "from-[#b45309] to-[#fbbf24]", label: "Amber" },
 ];
 
 export function NewProjectModal({ open, onOpenChange, onCreated }: NewProjectModalProps) {
@@ -112,22 +105,29 @@ export function NewProjectModal({ open, onOpenChange, onCreated }: NewProjectMod
             />
           </Field>
         </div>
-        <Field label="Cover">
-          <div className="flex gap-2">
-            {covers.map((c) => (
-              <button
-                key={c.kind}
-                type="button"
-                onClick={() => setCover(c.kind)}
-                aria-label={c.label}
-                className={cn(
-                  "h-9 w-14 rounded-md bg-gradient-to-br transition-transform",
-                  c.gradient,
-                  cover === c.kind &&
-                    "scale-105 ring-2 ring-white/70 ring-offset-2 ring-offset-surface",
-                )}
-              />
-            ))}
+        <Field label="Icon">
+          <div className="flex gap-1">
+            {PROJECT_COVERS.map((c) => {
+              const { Icon } = c;
+              const isSelected = cover === c.kind;
+              return (
+                <button
+                  key={c.kind}
+                  type="button"
+                  onClick={() => setCover(c.kind)}
+                  aria-label={c.label}
+                  title={c.label}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                    isSelected
+                      ? "bg-surface-overlay text-primary-light"
+                      : "text-text-muted hover:bg-surface-overlay hover:text-text-secondary",
+                  )}
+                >
+                  <Icon size={15} strokeWidth={1.5} />
+                </button>
+              );
+            })}
           </div>
         </Field>
       </div>
