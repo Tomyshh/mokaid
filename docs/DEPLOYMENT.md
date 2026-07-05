@@ -79,8 +79,8 @@ aws cloudfront create-invalidation --distribution-id <id> --paths "/*"
 cd infra/terraform/bootstrap
 terraform init && terraform apply   # creates GitHub OIDC role
 # copy output github_deploy_role_arn into GitHub:
-gh secret set AWS_DEPLOY_ROLE_ARN --repo Tomyshh/mokaid
-gh variable set AWS_DEPLOY_ENABLED --repo Tomyshh/mokaid --body true
+gh secret set AWS_DEPLOY_ROLE_ARN --repo Yapio-Ltd/mokaid
+gh variable set AWS_DEPLOY_ENABLED --repo Yapio-Ltd/mokaid --body true
 ```
 
 Then re-run **Deploy to AWS** from the Actions tab (or push to `main`).

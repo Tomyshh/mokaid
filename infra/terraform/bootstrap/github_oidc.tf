@@ -17,7 +17,7 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
 variable "github_repository" {
   description = "GitHub repository allowed to assume the deploy role (org/repo)"
   type        = string
-  default     = "Tomyshh/mokaid"
+  default     = "Yapio-Ltd/mokaid"
 }
 
 resource "aws_iam_role" "github_deploy" {
