@@ -19,7 +19,7 @@ provider "aws" {
 
 variable "aws_region" {
   type    = string
-  default = "eu-west-1"
+  default = "il-central-1"
 }
 
 resource "aws_s3_bucket" "state" {

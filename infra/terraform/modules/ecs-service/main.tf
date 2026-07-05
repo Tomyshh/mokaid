@@ -82,6 +82,12 @@ variable "task_policy_json" {
   default     = ""
 }
 
+variable "enable_task_policy" {
+  description = "Attach task_policy_json to the task role (set true when policy references resources created in the same apply)"
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -170,7 +176,7 @@ resource "aws_iam_role" "task" {
 }
 
 resource "aws_iam_role_policy" "task_custom" {
-  count = var.task_policy_json != "" ? 1 : 0
+  count = var.enable_task_policy ? 1 : 0
 
   name_prefix = "${var.name}-custom-"
   role        = aws_iam_role.task.id
@@ -187,6 +193,11 @@ resource "aws_ecs_task_definition" "this" {
   memory                   = var.memory
   execution_role_arn       = aws_iam_role.execution.arn
   task_role_arn            = aws_iam_role.task.arn
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "ARM64"
+  }
 
   container_definitions = jsonencode([
     {

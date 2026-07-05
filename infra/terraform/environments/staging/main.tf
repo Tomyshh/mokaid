@@ -15,7 +15,7 @@ terraform {
   backend "s3" {
     bucket         = "mokaid-terraform-state"
     key            = "staging/terraform.tfstate"
-    region         = "eu-west-1"
+    region         = "il-central-1"
     dynamodb_table = "mokaid-terraform-locks"
     encrypt        = true
   }
@@ -35,7 +35,7 @@ provider "aws" {
 
 variable "aws_region" {
   type    = string
-  default = "eu-west-1"
+  default = "il-central-1"
 }
 
 variable "alarm_email" {

@@ -15,7 +15,7 @@ terraform {
   backend "s3" {
     bucket         = "mokaid-terraform-state"
     key            = "dev/terraform.tfstate"
-    region         = "eu-west-1"
+    region         = "il-central-1"
     dynamodb_table = "mokaid-terraform-locks"
     encrypt        = true
   }
@@ -35,7 +35,7 @@ provider "aws" {
 
 variable "aws_region" {
   type    = string
-  default = "eu-west-1"
+  default = "il-central-1"
 }
 
 variable "alarm_email" {
@@ -49,8 +49,6 @@ module "stack" {
   environment = "dev"
   aws_region  = var.aws_region
   vpc_cidr    = "10.10.0.0/16"
-
-  # Cost-optimized development environment
   single_nat_gateway = true
   api_cpu            = 256
   api_memory         = 512
@@ -63,6 +61,8 @@ module "stack" {
   db_multi_az            = false
   db_deletion_protection = false
 
+  auth_mode          = "dev_fallback"
+  api_image_tag      = "v2"
   alarm_email        = var.alarm_email
   monthly_budget_usd = 100
 }

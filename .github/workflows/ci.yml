@@ -173,5 +173,5 @@ jobs:
       # - uses: aws-actions/configure-aws-credentials@v4
       #   with:
       #     role-to-assume: arn:aws:iam::<account>:role/mokaid-ci
-      #     aws-region: eu-west-1
+      #     aws-region: il-central-1
       # - uses: aws-actions/amazon-ecr-login@v2

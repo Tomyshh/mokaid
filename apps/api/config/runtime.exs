@@ -30,9 +30,15 @@ if config_env() == :prod do
 
   config :mokaid, :cors_origins, String.split(System.get_env("CORS_ORIGINS", ""), ",", trim: true)
 
+  auth_mode =
+    case System.get_env("AUTH_MODE", "cognito") do
+      "dev_fallback" -> :dev_fallback
+      _ -> :cognito
+    end
+
   config :mokaid, :auth,
-    mode: :cognito,
-    cognito_region: System.get_env("COGNITO_REGION") || "eu-west-1",
+    mode: auth_mode,
+    cognito_region: System.get_env("COGNITO_REGION") || "il-central-1",
     cognito_user_pool_id: System.fetch_env!("COGNITO_USER_POOL_ID"),
     cognito_client_id: System.fetch_env!("COGNITO_CLIENT_ID")
 
@@ -50,5 +56,5 @@ if config_env() == :prod do
     token: System.fetch_env!("AI_WORKER_TOKEN")
 
   config :ex_aws,
-    region: System.get_env("AWS_REGION", "eu-west-1")
+    region: System.get_env("AWS_REGION", "il-central-1")
 end

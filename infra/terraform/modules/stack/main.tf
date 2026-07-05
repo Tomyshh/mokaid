@@ -104,6 +104,18 @@ variable "monthly_budget_usd" {
   default = 200
 }
 
+variable "enable_cloudfront" {
+  description = "Create CloudFront distribution (requires verified AWS account)"
+  type        = bool
+  default     = false
+}
+
+variable "auth_mode" {
+  description = "cognito | dev_fallback (dev only)"
+  type        = string
+  default     = "cognito"
+}
+
 data "aws_caller_identity" "current" {}
 
 locals {
@@ -118,7 +130,7 @@ locals {
 
   bucket_suffix = "${var.environment}-${data.aws_caller_identity.current.account_id}"
 
-  app_origin = var.app_domain != "" ? "https://${var.app_domain}" : "http://localhost:3000"
+  app_origin = var.app_domain != "" ? "https://${var.app_domain}" : "http://localhost:3000,http://localhost:5173"
 }
 
 # ---------- Networking ----------
@@ -201,6 +213,7 @@ module "s3_backups" {
 }
 
 module "cloudfront" {
+  count  = var.enable_cloudfront ? 1 : 0
   source = "../cloudfront"
 
   name                      = local.name
@@ -349,28 +362,30 @@ module "api_service" {
   alb_security_group_id = module.alb.alb_security_group_id
 
   environment = {
-    MIX_ENV              = "prod"
-    PHX_HOST             = var.app_domain != "" ? "api.${var.app_domain}" : module.alb.alb_dns_name
-    PORT                 = "4000"
-    AWS_REGION           = var.aws_region
-    AUTH_MODE            = "cognito"
-    COGNITO_USER_POOL_ID = module.cognito.user_pool_id
-    COGNITO_CLIENT_ID    = module.cognito.web_client_id
-    S3_FILES_BUCKET      = module.s3_files.bucket_id
-    S3_UPLOADS_BUCKET    = module.s3_uploads.bucket_id
-    S3_EXPORTS_BUCKET    = module.s3_exports.bucket_id
-    AI_RUNS_QUEUE_URL    = module.sqs_ai_runs.queue_url
-    CORS_ORIGINS         = local.app_origin
+    MIX_ENV                = "prod"
+    PHX_HOST               = var.app_domain != "" ? "api.${var.app_domain}" : module.alb.alb_dns_name
+    PORT                   = "4000"
+    AWS_REGION             = var.aws_region
+    AUTH_MODE              = var.auth_mode
+    COGNITO_USER_POOL_ID   = module.cognito.user_pool_id
+    COGNITO_CLIENT_ID      = module.cognito.web_client_id
+    S3_BUCKET_UPLOADS      = module.s3_uploads.bucket_id
+    S3_BUCKET_PRIVATE      = module.s3_files.bucket_id
+    S3_BUCKET_OUTPUTS      = module.s3_exports.bucket_id
+    S3_BUCKET_EXPORTS      = module.s3_exports.bucket_id
+    AI_DISPATCH_QUEUE_URL  = module.sqs_ai_runs.queue_url
+    CORS_ORIGINS           = local.app_origin
   }
 
   secrets = {
-    DATABASE_URL      = module.rds.database_url_secret_arn
-    SECRET_KEY_BASE   = module.secrets.secret_arns["secret_key_base"]
-    WORKER_AUTH_TOKEN = module.secrets.secret_arns["worker_auth_token"]
+    DATABASE_URL    = module.rds.database_url_secret_arn
+    SECRET_KEY_BASE = module.secrets.secret_arns["secret_key_base"]
+    AI_WORKER_TOKEN = module.secrets.secret_arns["worker_auth_token"]
   }
 
-  task_policy_json = data.aws_iam_policy_document.api_task.json
-  tags             = local.tags
+  task_policy_json   = data.aws_iam_policy_document.api_task.json
+  enable_task_policy = true
+  tags               = local.tags
 }
 
 data "aws_iam_policy_document" "worker_task" {
@@ -417,8 +432,9 @@ module "worker_service" {
     OPENAI_API_KEY    = module.secrets.secret_arns["openai_api_key"]
   }
 
-  task_policy_json = data.aws_iam_policy_document.worker_task.json
-  tags             = local.tags
+  task_policy_json   = data.aws_iam_policy_document.worker_task.json
+  enable_task_policy = true
+  tags               = local.tags
 }
 
 # ---------- Monitoring ----------
@@ -438,7 +454,7 @@ module "monitoring" {
 # ---------- Outputs ----------
 
 output "cloudfront_domain" {
-  value = module.cloudfront.distribution_domain_name
+  value = var.enable_cloudfront ? module.cloudfront[0].distribution_domain_name : ""
 }
 
 output "alb_dns_name" {
