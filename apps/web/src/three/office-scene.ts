@@ -27,7 +27,8 @@ import {
 import { statusColors } from "@mokaid/design-tokens";
 import type { SceneAgent, SceneCallbacks } from "./types";
 
-const SEATS_PER_ROW = 5;
+const FRONT_ROW_SEATS = 5;
+const BACK_ROW_SEATS = 4;
 const DESK_SPACING_X = 4.2;
 
 interface AvatarNode {
@@ -179,16 +180,21 @@ export class OfficeScene {
     windowMat.alpha = 0.9;
     windowStrip.material = windowMat;
 
-    // Desk grid: 2 rows of 5
+    // Desk grid: front row of 5, back row of 4 = 9 seats
     let slot = 0;
-    for (let row = 0; row < 2; row++) {
-      for (let col = 0; col < SEATS_PER_ROW; col++) {
-        const x = (col - (SEATS_PER_ROW - 1) / 2) * DESK_SPACING_X;
-        const z = row === 0 ? -4.5 : 1.5;
-        this.buildDesk(x, z, slot);
-        this.deskSlots.push(new Vector3(x, 0, z + 1.15));
-        slot += 1;
-      }
+    for (let col = 0; col < FRONT_ROW_SEATS; col++) {
+      const x = (col - (FRONT_ROW_SEATS - 1) / 2) * DESK_SPACING_X;
+      const z = -4.5;
+      this.buildDesk(x, z, slot);
+      this.deskSlots.push(new Vector3(x, 0, z + 1.15));
+      slot += 1;
+    }
+    for (let col = 0; col < BACK_ROW_SEATS; col++) {
+      const x = (col - (BACK_ROW_SEATS - 1) / 2) * DESK_SPACING_X;
+      const z = 1.5;
+      this.buildDesk(x, z, slot);
+      this.deskSlots.push(new Vector3(x, 0, z + 1.15));
+      slot += 1;
     }
 
     // Plants in corners

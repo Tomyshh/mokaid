@@ -106,17 +106,27 @@ defmodule Mokaid.AI do
       task = Tasks.get_task(run.workspace_id, run.task_id)
 
       if task do
-        Tasks.update_task(task, %{"status" => "in_review", "progress_percent" => 100})
+        # Only transition to "in_review" when the run actually produced artifacts
+        # (the output map carries an "artifacts" list from the Python worker).
+        # Otherwise the agent completed but had nothing useful — keep it in_progress.
+        artifacts = (output || %{})["artifacts"] || []
+        has_output = length(List.wrap(artifacts)) > 0
 
-        Notifications.notify_member(
-          run.workspace_id,
-          task.created_by_member_id,
-          "ai_run_completed",
-          "Ready for review: #{task.title}",
-          body: "The agent finished its work. Review the output and approve or request changes.",
-          resource_type: "task",
-          resource_id: task.id
-        )
+        new_status = if has_output, do: "in_review", else: task.status
+        Tasks.update_task(task, %{"status" => new_status, "progress_percent" => 100})
+
+        if has_output do
+          Notifications.notify_member(
+            run.workspace_id,
+            task.created_by_member_id,
+            "ai_run_completed",
+            "Ready for review: #{task.title}",
+            body:
+              "The agent finished its work. Review the output and approve or request changes.",
+            resource_type: "task",
+            resource_id: task.id
+          )
+        end
       end
 
       Realtime.broadcast_workspace(run.workspace_id, "task.progress_changed", %{
@@ -146,6 +156,10 @@ defmodule Mokaid.AI do
       task = Tasks.get_task(run.workspace_id, run.task_id)
 
       if task do
+        # Keep the task in its current status — but store that the latest run failed.
+        # The frontend reads latest_run.status == "failed" to show a red error banner.
+        Tasks.update_task(task, %{"progress_percent" => 0})
+
         Notifications.notify_member(
           run.workspace_id,
           task.created_by_member_id,
@@ -161,6 +175,7 @@ defmodule Mokaid.AI do
         task_id: run.task_id,
         run_id: run.id,
         status: "failed",
+        error: error_message,
         title: task && task.title,
         agent_id: run.agent_id
       })

@@ -45,6 +45,7 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
         task_title=request.task_title,
         task_description=request.task_description,
         phoenix=phoenix,
+        attached_files=[f.model_dump() for f in request.attached_files],
     )
 
     await phoenix.update_run_status(request.run_id, RunStatus.RUNNING.value)
@@ -94,7 +95,8 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
                 fn = get_tool(tool_name)
                 if fn is None:
                     raise ValueError(f"unknown tool: {tool_name}")
-                call.output = await fn(call.input, ctx)
+                enriched_input = {**call.input, "_attached_files": [f.model_dump() for f in request.attached_files]}
+                call.output = await fn(enriched_input, ctx)
 
             state.tool_calls.append(call)
             state.steps.append({"tool": tool_name, "ok": True})
@@ -172,6 +174,22 @@ async def _save_artifacts(request: RunRequest, state: RunState, phoenix: Phoenix
                     filename,
                     json.dumps(output["report"], indent=2, ensure_ascii=False),
                     mime_type="application/json",
+                )
+                if saved:
+                    artifacts.append(filename)
+            elif call.tool == "transform_image" and output.get("filename"):
+                artifacts.append(output["filename"])
+            elif call.tool == "transcribe_audio" and output.get("transcript"):
+                clean = _safe_filename(request.task_title or "transcript")
+                artifacts.append(f"{clean}-transcript.txt")
+            elif call.tool == "analyze_file" and output.get("analysis"):
+                filename = f"{_safe_filename(request.task_title or 'analysis')}.md"
+                saved = await saver(
+                    request.workspace_id,
+                    request.task_id,
+                    filename,
+                    f"# Analysis\n\n{output['analysis']}",
+                    mime_type="text/markdown",
                 )
                 if saved:
                     artifacts.append(filename)

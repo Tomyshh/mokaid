@@ -223,7 +223,7 @@ export function TasksPage() {
           <div className="mk-card overflow-hidden">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-border text-[11px] uppercase tracking-wide text-text-muted">
+                <tr className="text-[11px] uppercase tracking-wide text-text-muted">
                   <th className="px-5 py-3 font-medium">Task</th>
                   <th className="px-3 py-3 font-medium">Project</th>
                   <th className="px-3 py-3 font-medium">Agent</th>
@@ -237,7 +237,7 @@ export function TasksPage() {
                   <tr
                     key={task.id}
                     onClick={() => setSelectedId(task.id)}
-                    className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-surface-hover"
+                    className="cursor-pointer transition-colors hover:bg-surface-hover"
                   >
                     <td className="max-w-[280px] truncate px-5 py-3 font-medium text-text">
                       {task.title}

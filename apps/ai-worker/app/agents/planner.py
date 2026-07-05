@@ -31,12 +31,32 @@ Available tools:
 - create_subtasks {subtasks: [string]}: break the task into subtasks
 - send_email {to, subject, body}: send an email (requires human approval)
 - post_social {network, content}: publish a social post (requires human approval)
+- analyze_file {file_url, question}: analyze any file (image, document) using AI vision — describe, explain, extract info
+- transform_image {file_url, instruction, original_filename}: modify an image (color changes, filters, resize, rotate, flip, or creative edits via DALL-E)
+- transcribe_audio {file_url, original_filename}: transcribe audio/video to text using Whisper
+- extract_document_text {file_url, original_filename}: extract text from PDFs and documents
 %(mcp_tools)s
 Rules:
 - 1 to %(max_steps)d steps, ordered.
 - Only use listed tools. Prefer the minimal plan that completes the task.
 - Start with search_knowledge when workspace context would help.
 - Only include send_email/post_social if the task explicitly asks for it.
+
+File processing (HIGHEST PRIORITY):
+- When the task involves modifying, analyzing, or processing an attached file,
+  ALWAYS use the appropriate file tool (transform_image, analyze_file, transcribe_audio, extract_document_text).
+- Pass the file's download_url as file_url and the file's name as original_filename.
+- For image modifications (color change, resize, filter, edit, transform, etc.), use transform_image.
+  transform_image IS the deliverable — do NOT add draft_document after it.
+- For understanding/describing an image or document, use analyze_file.
+  analyze_file IS the deliverable — do NOT add draft_document after it.
+- For audio/video, use transcribe_audio. This IS the deliverable.
+- Never skip file processing — if files are attached, they MUST be processed.
+- File tool outputs (transformed images, transcripts, analyses) are complete
+  deliverables on their own. Do NOT append draft_document or generate_report
+  after a file processing tool.
+
+Text-only tasks (no attached files, or files already processed):
 - Every plan MUST end with a step that produces a reviewable deliverable:
   draft_document for written work (briefs, specs, plans, creative direction…)
   or generate_report for reporting tasks. search_knowledge or summarize alone
@@ -77,6 +97,32 @@ def _mcp_tools_block(mcp_tools: list[dict[str, Any]]) -> str:
 
 def deterministic_plan(request: RunRequest) -> list[dict[str, Any]]:
     """Fixed plans keyed on the requested action (offline fallback)."""
+
+    has_images = any(
+        (f.mime_type or "").startswith("image/") for f in request.attached_files
+    )
+    has_audio = any(
+        (f.mime_type or "").startswith("audio/") for f in request.attached_files
+    )
+
+    if has_images:
+        file = next(f for f in request.attached_files if (f.mime_type or "").startswith("image/"))
+        return [
+            {"tool": "transform_image", "input": {
+                "file_url": file.download_url,
+                "instruction": request.task_description or request.task_title or "",
+                "original_filename": file.name,
+            }},
+        ]
+    if has_audio:
+        file = next(f for f in request.attached_files if (f.mime_type or "").startswith("audio/"))
+        return [
+            {"tool": "transcribe_audio", "input": {
+                "file_url": file.download_url,
+                "original_filename": file.name,
+            }},
+        ]
+
     action = request.input.get("action", "summarize")
 
     if action == "send_campaign":
@@ -121,6 +167,7 @@ async def plan_steps(
     files_block = (
         "\n".join(
             f"- {f.name} ({f.mime_type or 'unknown type'}, {f.size_bytes or '?'} bytes)"
+            + (f"  download_url: {f.download_url}" if f.download_url else "")
             for f in request.attached_files
         )
         or "(none)"

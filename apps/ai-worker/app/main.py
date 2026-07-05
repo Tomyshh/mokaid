@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI, Header, HTTPException
 
+import app.tools.files  # noqa: F401 — registers file-processing tools
 from app.agents import dispatcher, runner
 from app.config import get_settings
 from app.memory.ingestion import ingest_document

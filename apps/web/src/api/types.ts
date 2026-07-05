@@ -413,7 +413,15 @@ export interface Workspace {
   language: string;
   default_landing_page: string;
   feature_toggles: Record<string, boolean>;
+  settings: Record<string, unknown> | null;
   inserted_at: string;
+}
+
+/** Onboarding progress persisted in workspace.settings.onboarding */
+export interface OnboardingSettings {
+  wizard_done?: boolean;
+  tour_done?: boolean;
+  checklist_dismissed?: boolean;
 }
 
 /* ---------- Intelligent dispatch (3D drop / quick task) ---------- */

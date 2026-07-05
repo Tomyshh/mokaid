@@ -364,20 +364,20 @@ module "api_service" {
   alb_security_group_id = module.alb.alb_security_group_id
 
   environment = {
-    MIX_ENV                = "prod"
-    PHX_HOST               = var.app_domain != "" ? "api.${var.app_domain}" : module.alb.alb_dns_name
-    PORT                   = "4000"
-    AWS_REGION             = var.aws_region
-    AUTH_MODE              = var.auth_mode
-    COGNITO_USER_POOL_ID   = module.cognito.user_pool_id
-    COGNITO_CLIENT_ID      = module.cognito.web_client_id
-    S3_BUCKET_UPLOADS      = module.s3_uploads.bucket_id
-    S3_BUCKET_PRIVATE      = module.s3_files.bucket_id
-    S3_BUCKET_OUTPUTS      = module.s3_exports.bucket_id
-    S3_BUCKET_EXPORTS      = module.s3_exports.bucket_id
-    AI_DISPATCH_QUEUE_URL  = module.sqs_ai_runs.queue_url
-    CORS_ORIGINS           = local.app_origin
-    FIGMA_REDIRECT_URI     = var.app_domain != "" ? "https://${var.app_domain}/oauth/figma/callback" : "https://mokaid.com/oauth/figma/callback"
+    MIX_ENV               = "prod"
+    PHX_HOST              = var.app_domain != "" ? "api.${var.app_domain}" : module.alb.alb_dns_name
+    PORT                  = "4000"
+    AWS_REGION            = var.aws_region
+    AUTH_MODE             = var.auth_mode
+    COGNITO_USER_POOL_ID  = module.cognito.user_pool_id
+    COGNITO_CLIENT_ID     = module.cognito.web_client_id
+    S3_BUCKET_UPLOADS     = module.s3_uploads.bucket_id
+    S3_BUCKET_PRIVATE     = module.s3_files.bucket_id
+    S3_BUCKET_OUTPUTS     = module.s3_exports.bucket_id
+    S3_BUCKET_EXPORTS     = module.s3_exports.bucket_id
+    AI_DISPATCH_QUEUE_URL = module.sqs_ai_runs.queue_url
+    CORS_ORIGINS          = local.app_origin
+    FIGMA_REDIRECT_URI    = var.app_domain != "" ? "https://${var.app_domain}/oauth/figma/callback" : "https://mokaid.com/oauth/figma/callback"
   }
 
   secrets = {

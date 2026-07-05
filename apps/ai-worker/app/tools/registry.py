@@ -26,6 +26,7 @@ class RunContext:
     task_description: str | None = None
     phoenix: Any = None  # PhoenixClient (Any to allow fakes in tests)
     usage: llm.UsageTracker = field(default_factory=llm.UsageTracker)
+    attached_files: list = field(default_factory=list)
 
 
 ToolFn = Callable[[dict[str, Any], RunContext], Awaitable[Any]]

@@ -1,7 +1,17 @@
+import { useCallback, useRef, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Link2, Sparkles } from "lucide-react";
+import {
+  Check,
+  FileUp,
+  Link2,
+  Pencil,
+  Sparkles,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import type { Agent } from "@/api/types";
-import { useTasks } from "@/api/hooks";
+import { useTasks, useUpdateAgent, useUploadAgentFiles, useDeleteAgent } from "@/api/hooks";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { AgentStatusBadge, TaskStatusBadge } from "@/components/ui/status";
@@ -9,9 +19,196 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { Badge } from "@/components/ui/badge";
 import { AgentMcpMatrix } from "@/components/mcp/agent-mcp-matrix";
 import { formatRelative } from "@/lib/format";
+import { cn } from "@/lib/cn";
 
 const tabClass =
-  "flex-1 border-b-2 border-transparent px-2 py-2 text-xs font-medium text-text-muted transition-colors data-[state=active]:border-primary data-[state=active]:text-text";
+  "flex-1 px-2 py-2.5 text-xs font-medium text-text-muted transition-colors rounded-md hover:text-text hover:bg-surface-hover data-[state=active]:bg-primary-muted data-[state=active]:text-primary-light";
+
+function EditableName({
+  value,
+  onSave,
+}: {
+  value: string;
+  onSave: (name: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startEditing = () => {
+    setDraft(value);
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const save = () => {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== value) onSave(trimmed);
+    setEditing(false);
+  };
+
+  const cancel = () => {
+    setDraft(value);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") cancel();
+          }}
+          className="min-w-0 flex-1 rounded-md border border-primary/50 bg-surface-raised px-2 py-1 text-sm font-bold text-text outline-none focus:border-primary"
+        />
+        <button onClick={save} className="rounded p-1 text-success hover:bg-surface-hover">
+          <Check size={14} />
+        </button>
+        <button onClick={cancel} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={startEditing}
+      className="group flex items-center gap-1.5 rounded-md px-1 py-0.5 transition-colors hover:bg-surface-hover"
+    >
+      <span className="text-base font-bold text-text">{value}</span>
+      <Pencil
+        size={12}
+        className="text-text-muted opacity-0 transition-opacity group-hover:opacity-100"
+      />
+    </button>
+  );
+}
+
+function FileDropZone({
+  agentId,
+  agentName,
+}: {
+  agentId: string;
+  agentName: string;
+}) {
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadMutation = useUploadAgentFiles();
+
+  const handleFiles = useCallback(
+    (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      if (fileArray.length === 0) return;
+
+      uploadMutation.mutate(
+        { agentId, files: fileArray },
+        {
+          onSuccess: () => {
+            setUploadedFiles((prev) => [
+              ...prev,
+              ...fileArray.map((f) => f.name),
+            ]);
+          },
+        },
+      );
+    },
+    [agentId, uploadMutation],
+  );
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+        Feed Data to {agentName.split(" ")[0]}
+      </p>
+
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragActive(true);
+        }}
+        onDragLeave={() => setDragActive(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragActive(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        onClick={() => fileInputRef.current?.click()}
+        className={cn(
+          "flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-5 transition-all",
+          dragActive
+            ? "border-primary bg-primary-muted/30"
+            : "border-border/60 hover:border-primary/40 hover:bg-surface-hover/50",
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-full transition-colors",
+            dragActive ? "bg-primary/20 text-primary-light" : "bg-surface-raised text-text-muted",
+          )}
+        >
+          <Upload size={18} />
+        </div>
+        <div className="text-center">
+          <p className="text-xs font-medium text-text">
+            Drop files or click to browse
+          </p>
+          <p className="mt-0.5 text-[11px] text-text-muted">
+            PDF, DOC, CSV, TXT, JSON...
+          </p>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files) handleFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
+      {uploadMutation.isPending && (
+        <div className="flex items-center gap-2 rounded-lg bg-primary-muted/30 px-3 py-2">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span className="text-[11px] text-primary-light">Uploading...</span>
+        </div>
+      )}
+
+      {uploadedFiles.length > 0 && (
+        <div className="space-y-1.5">
+          {uploadedFiles.map((name, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 rounded-lg bg-success/10 px-3 py-2"
+            >
+              <FileUp size={12} className="text-success" />
+              <span className="min-w-0 flex-1 truncate text-[11px] text-text">
+                {name}
+              </span>
+              <Check size={12} className="text-success" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-[11px] text-text-muted">{label}</span>
+      <span className="text-xs font-medium text-text">{value}</span>
+    </div>
+  );
+}
 
 export function AgentProfilePanel({
   agent,
@@ -23,26 +220,53 @@ export function AgentProfilePanel({
   overlay?: boolean;
 }) {
   const { data: tasksData } = useTasks(agent ? { agent_id: agent.id } : {});
-  const agentTasks = agent ? (tasksData?.data ?? []).filter((t) => t.assigned_agent_id === agent.id) : [];
-  const currentTask = agentTasks.find((t) => t.id === agent?.current_task_id) ?? agentTasks.find((t) => t.status === "in_progress");
+  const updateAgent = useUpdateAgent();
+  const deleteAgent = useDeleteAgent();
+  const agentTasks = agent
+    ? (tasksData?.data ?? []).filter((t) => t.assigned_agent_id === agent.id)
+    : [];
+  const currentTask =
+    agentTasks.find((t) => t.id === agent?.current_task_id) ??
+    agentTasks.find((t) => t.status === "in_progress");
+
+  const handleRename = useCallback(
+    (name: string) => {
+      if (!agent) return;
+      updateAgent.mutate({ id: agent.id, display_name: name });
+    },
+    [agent, updateAgent],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (!agent) return;
+    if (!window.confirm(`Delete agent "${agent.display_name}"? This cannot be undone.`)) return;
+    deleteAgent.mutate(agent.id, { onSuccess: onClose });
+  }, [agent, deleteAgent, onClose]);
 
   return (
     <DetailPanel open={agent != null} onClose={onClose} title="Agent Profile" overlay={overlay}>
       {agent && (
-        <div className="flex flex-col">
-          <div className="flex flex-col items-center gap-3 px-5 py-6">
-            <Avatar
-              name={agent.display_name}
-              size="xl"
-              isAi={agent.kind === "ai"}
-              color={agent.avatar_config?.primary_color}
-            />
-            <div className="text-center">
-              <h3 className="text-base font-bold text-text">{agent.display_name}</h3>
+        <div className="flex flex-col gap-0">
+          {/* Header */}
+          <div className="flex flex-col items-center gap-3 px-6 pb-5 pt-4">
+            <div className="relative">
+              <Avatar
+                name={agent.display_name}
+                size="xl"
+                isAi={agent.kind === "ai"}
+                color={agent.avatar_config?.primary_color}
+              />
+              <div className="absolute -bottom-0.5 -right-0.5">
+                <AgentStatusBadge status={agent.status} />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <EditableName value={agent.display_name} onSave={handleRename} />
               <p className="text-xs text-text-muted">{agent.role_title ?? "Agent"}</p>
             </div>
+
             <div className="flex items-center gap-2">
-              <AgentStatusBadge status={agent.status} />
               {agent.kind === "ai" ? (
                 <Badge tone="primary">
                   <Sparkles size={10} /> AI Agent
@@ -53,24 +277,26 @@ export function AgentProfilePanel({
                 </Badge>
               )}
             </div>
+
             {agent.performance_score != null && (
-              <div className="w-full">
-                <div className="mb-1 flex justify-between text-[11px] text-text-muted">
-                  <span>Performance</span>
-                  <span className="font-semibold text-text">{agent.performance_score}%</span>
+              <div className="w-full rounded-lg bg-surface-raised/50 p-3">
+                <div className="mb-1.5 flex justify-between text-[11px]">
+                  <span className="text-text-muted">Performance</span>
+                  <span className="font-bold text-text">{agent.performance_score}%</span>
                 </div>
                 <ProgressBar value={agent.performance_score} tone="success" />
               </div>
             )}
           </div>
 
+          {/* Tabs */}
           <Tabs.Root defaultValue="overview">
-            <Tabs.List className="flex px-3">
+            <Tabs.List className="mx-4 mb-1 flex gap-1 rounded-lg bg-surface-raised/50 p-1">
               <Tabs.Trigger value="overview" className={tabClass}>
                 Overview
               </Tabs.Trigger>
-              <Tabs.Trigger value="skills" className={tabClass}>
-                Skills
+              <Tabs.Trigger value="data" className={tabClass}>
+                Data
               </Tabs.Trigger>
               <Tabs.Trigger value="tasks" className={tabClass}>
                 Tasks
@@ -80,78 +306,78 @@ export function AgentProfilePanel({
               </Tabs.Trigger>
             </Tabs.List>
 
-            <Tabs.Content value="overview" className="space-y-4 px-5 py-4">
-              {currentTask ? (
+            <Tabs.Content value="overview" className="space-y-5 px-5 py-4">
+              {currentTask && (
                 <div>
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
                     Current Task
                   </p>
-                  <div className="mk-card-raised space-y-2 p-3">
+                  <div className="space-y-2.5 rounded-xl bg-surface-raised/60 p-4">
                     <p className="text-xs font-semibold text-text">{currentTask.title}</p>
                     <div className="flex items-center justify-between">
                       <TaskStatusBadge status={currentTask.status} />
-                      <span className="text-[11px] text-text-muted">
+                      <span className="text-[11px] font-medium text-text-muted">
                         {currentTask.progress_percent}%
                       </span>
                     </div>
                     <ProgressBar value={currentTask.progress_percent} />
                   </div>
                 </div>
-              ) : (
-                <p className="text-xs text-text-muted">No task in progress.</p>
               )}
 
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="mk-card-raised p-3">
-                  <p className="text-lg font-bold text-text">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-surface-raised/60 p-4 text-center">
+                  <p className="text-xl font-bold text-text">
                     {agentTasks.filter((t) => t.status === "in_progress").length}
                   </p>
-                  <p className="text-[11px] text-text-muted">In progress</p>
+                  <p className="mt-0.5 text-[11px] text-text-muted">In progress</p>
                 </div>
-                <div className="mk-card-raised p-3">
-                  <p className="text-lg font-bold text-text">
+                <div className="rounded-xl bg-surface-raised/60 p-4 text-center">
+                  <p className="text-xl font-bold text-text">
                     {agentTasks.filter((t) => t.status === "completed").length}
                   </p>
-                  <p className="text-[11px] text-text-muted">Completed</p>
+                  <p className="mt-0.5 text-[11px] text-text-muted">Completed</p>
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Department</span>
-                  <span className="text-text">{agent.department ?? "·"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Last active</span>
-                  <span className="text-text">{formatRelative(agent.last_active_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">AI enabled</span>
-                  <span className="text-text">{agent.ai_enabled ? "Yes" : "No"}</span>
-                </div>
+              <div className="rounded-xl bg-surface-raised/40 px-4 py-2">
+                <InfoRow label="Department" value={agent.department ?? "—"} />
+                <InfoRow label="Last active" value={formatRelative(agent.last_active_at)} />
+                <InfoRow label="AI enabled" value={agent.ai_enabled ? "Yes" : "No"} />
               </div>
+
+              {/* Skills */}
+              {agent.skills.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                    Skills
+                  </p>
+                  <div className="space-y-2.5 rounded-xl bg-surface-raised/40 p-4">
+                    {agent.skills.map((skill) => (
+                      <div key={skill.name}>
+                        <div className="mb-1 flex justify-between text-[11px]">
+                          <span className="font-medium text-text">{skill.name}</span>
+                          <span className="text-text-muted">{skill.level}%</span>
+                        </div>
+                        <ProgressBar value={skill.level ?? 0} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </Tabs.Content>
 
-            <Tabs.Content value="skills" className="space-y-3 px-5 py-4">
-              {agent.skills.length ? (
-                agent.skills.map((skill) => (
-                  <div key={skill.name}>
-                    <div className="mb-1 flex justify-between text-[11px]">
-                      <span className="font-medium text-text">{skill.name}</span>
-                      <span className="text-text-muted">{skill.level}%</span>
-                    </div>
-                    <ProgressBar value={skill.level ?? 0} />
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-text-muted">No skills recorded.</p>
-              )}
+            <Tabs.Content value="data" className="space-y-5 px-5 py-4">
+              <FileDropZone agentId={agent.id} agentName={agent.display_name} />
             </Tabs.Content>
 
             <Tabs.Content value="tasks" className="space-y-2 px-5 py-4">
               {agentTasks.length ? (
                 agentTasks.slice(0, 8).map((task) => (
-                  <div key={task.id} className="mk-card-raised flex items-center justify-between gap-2 p-3">
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between gap-2 rounded-xl bg-surface-raised/60 p-3.5"
+                  >
                     <p className="min-w-0 flex-1 truncate text-xs font-medium text-text">
                       {task.title}
                     </p>
@@ -159,7 +385,9 @@ export function AgentProfilePanel({
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-text-muted">No tasks assigned.</p>
+                <div className="flex flex-col items-center gap-2 py-8 text-center">
+                  <p className="text-xs text-text-muted">No tasks assigned.</p>
+                </div>
               )}
             </Tabs.Content>
 
@@ -167,6 +395,17 @@ export function AgentProfilePanel({
               <AgentMcpMatrix agentId={agent.id} />
             </Tabs.Content>
           </Tabs.Root>
+
+          {/* Delete action */}
+          <div className="mt-auto px-5 pb-5 pt-3">
+            <button
+              onClick={handleDelete}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 py-2.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/10"
+            >
+              <Trash2 size={13} />
+              Delete Agent
+            </button>
+          </div>
         </div>
       )}
     </DetailPanel>

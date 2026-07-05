@@ -20,14 +20,13 @@ export function DetailPanel({ open, onClose, title, children, className, overlay
   return (
     <aside
       className={cn(
-        "flex w-[360px] shrink-0 flex-col overflow-hidden rounded-lg bg-surface shadow-lg",
+        "flex w-[440px] shrink-0 flex-col overflow-hidden rounded-2xl bg-surface shadow-[0_8px_40px_rgba(0,0,0,0.3)]",
         "mk-panel-in",
-        // Overlay mode floats above the scrollable content area (60px topbar + 20px main padding).
         overlay && "fixed bottom-5 right-5 top-[80px] z-30",
         className,
       )}
     >
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-5 py-3.5">
         <h2 className="text-sm font-semibold text-text">{title}</h2>
         <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close panel">
           <X size={16} />

@@ -258,7 +258,9 @@ defmodule Mokaid.AI.Dispatcher do
         is_map(s) and is_binary(s["server_key"]) and MapSet.member?(server_keys, s["server_key"])
       end)
       |> Enum.take(3)
-      |> Enum.map(fn s -> %{server_key: s["server_key"], reason: to_string(s["reason"] || "")} end)
+      |> Enum.map(fn s ->
+        %{server_key: s["server_key"], reason: to_string(s["reason"] || "")}
+      end)
 
     %{
       task: %{
@@ -302,11 +304,18 @@ defmodule Mokaid.AI.Dispatcher do
 
   @custom_templates %{
     "design" => {"Design Assistant", "Design Specialist", "Design", ~w(figma ui-design branding)},
-    "data" => {"Data Analyst", "Data Analysis Specialist", "Data", ~w(data-analysis spreadsheets reporting)},
-    "document" => {"Writing Assistant", "Content Specialist", "Content", ~w(writing editing research)},
-    "media" => {"Media Assistant", "Media Specialist", "Marketing", ~w(image-editing video content)},
-    "code" => {"Dev Assistant", "Software Specialist", "Engineering", ~w(coding code-review debugging)},
-    "slides" => {"Presentation Assistant", "Presentation Specialist", "Content", ~w(presentations storytelling design)}
+    "data" =>
+      {"Data Analyst", "Data Analysis Specialist", "Data",
+       ~w(data-analysis spreadsheets reporting)},
+    "document" =>
+      {"Writing Assistant", "Content Specialist", "Content", ~w(writing editing research)},
+    "media" =>
+      {"Media Assistant", "Media Specialist", "Marketing", ~w(image-editing video content)},
+    "code" =>
+      {"Dev Assistant", "Software Specialist", "Engineering", ~w(coding code-review debugging)},
+    "slides" =>
+      {"Presentation Assistant", "Presentation Specialist", "Content",
+       ~w(presentations storytelling design)}
   }
 
   defp heuristic_analysis(instruction, files, roster, servers) do
@@ -368,7 +377,9 @@ defmodule Mokaid.AI.Dispatcher do
   defp detect_categories(instruction, files) do
     extension_categories =
       files
-      |> Enum.map(fn f -> f["name"] |> to_string() |> Path.extname() |> String.trim_leading(".") end)
+      |> Enum.map(fn f ->
+        f["name"] |> to_string() |> Path.extname() |> String.trim_leading(".")
+      end)
       |> Enum.flat_map(fn ext ->
         for {category, exts} <- @file_categories, ext in exts, do: category
       end)
@@ -519,7 +530,8 @@ defmodule Mokaid.AI.Dispatcher do
 
   ## ---------- Confirm helpers ----------
 
-  defp resolve_agent(workspace_id, _member, %{"agent_id" => id}) when is_binary(id) and id != "" do
+  defp resolve_agent(workspace_id, _member, %{"agent_id" => id})
+       when is_binary(id) and id != "" do
     case Agents.get_agent(workspace_id, id) do
       nil -> {:error, :agent_not_found}
       agent -> {:ok, agent}

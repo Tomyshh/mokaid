@@ -3,25 +3,19 @@ import { Outlet } from "@tanstack/react-router";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { useWorkspaceChannel } from "@/realtime/use-workspace-channel";
-import { useProjects } from "@/api/hooks";
+import { useOnboardingSettings } from "@/api/hooks";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
+import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist";
 import { CoachmarkTour } from "@/components/onboarding/coachmark-tour";
 import { Toaster } from "@/components/ui/toaster";
-import { useAuthStore } from "@/stores/auth-store";
-import { useOnboardingStore } from "@/stores/onboarding-store";
 
 function OnboardingGate() {
-  const workspaceId = useAuthStore((s) => s.workspaceId);
-  const wizardDone = useOnboardingStore((s) => s.wizardDone);
   const [dismissed, setDismissed] = useState(false);
-  const { data: projects, isSuccess } = useProjects();
+  const { onboarding, loaded } = useOnboardingSettings();
 
-  const shouldShow =
-    !dismissed &&
-    workspaceId != null &&
-    !wizardDone[workspaceId] &&
-    isSuccess &&
-    (projects?.data.length ?? 0) === 0;
+  // Show the wizard exactly once per workspace: the flag lives in the DB
+  // (workspace.settings.onboarding.wizard_done), not in this browser.
+  const shouldShow = !dismissed && loaded && onboarding.wizard_done !== true;
 
   if (!shouldShow) return null;
   return <OnboardingWizard onFinish={() => setDismissed(true)} />;
@@ -40,6 +34,7 @@ export function AppShell() {
         </main>
       </div>
       <OnboardingGate />
+      <OnboardingChecklist />
       <CoachmarkTour />
       <Toaster />
     </div>

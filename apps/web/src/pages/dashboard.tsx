@@ -98,7 +98,7 @@ export function DashboardPage() {
               ) : (
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-border text-[11px] uppercase tracking-wide text-text-muted">
+                    <tr className="text-[11px] uppercase tracking-wide text-text-muted">
                       <th className="px-5 py-2 font-medium">Task</th>
                       <th className="px-3 py-2 font-medium">Agent</th>
                       <th className="px-3 py-2 font-medium">Status</th>
@@ -110,7 +110,7 @@ export function DashboardPage() {
                     {activeTasks.map((task) => (
                       <tr
                         key={task.id}
-                        className="border-b border-border/50 transition-colors last:border-0 hover:bg-surface-hover"
+                        className="transition-colors hover:bg-surface-hover"
                       >
                         <td className="max-w-[220px] truncate px-5 py-2.5 font-medium text-text">
                           {task.title}
@@ -156,7 +156,7 @@ export function DashboardPage() {
             <CardBody className="space-y-1 px-2 pb-3">
               {agentsLoading
                 ? [1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12" />)
-                : agents.slice(0, 7).map((agent) => (
+                : agents.slice(0, 9).map((agent) => (
                     <button
                       key={agent.id}
                       onClick={() => selectAgent(agent.id)}

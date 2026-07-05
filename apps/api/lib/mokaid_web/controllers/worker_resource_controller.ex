@@ -112,12 +112,18 @@ defmodule MokaidWeb.WorkerResourceController do
   """
   def save_output(
         conn,
-        %{"id" => id, "workspace_id" => workspace_id, "filename" => filename, "content" => content} =
+        %{
+          "id" => id,
+          "workspace_id" => workspace_id,
+          "filename" => filename,
+          "content" => content
+        } =
           params
       ) do
     with %{} = task <- Tasks.get_task(workspace_id, id),
          {:ok, binary} <- decode_content(content, params["encoding"]),
-         {:ok, stored} <- Mokaid.Storage.upload_content(workspace_id, filename, binary, params["mime_type"]) do
+         {:ok, stored} <-
+           Mokaid.Storage.upload_content(workspace_id, filename, binary, params["mime_type"]) do
       agent = task.assigned_agent_id && Agents.get_agent(workspace_id, task.assigned_agent_id)
       outputs_folder = Drive.ensure_system_folder(workspace_id, "Agent Outputs")
 

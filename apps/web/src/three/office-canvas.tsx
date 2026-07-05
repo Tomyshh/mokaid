@@ -26,9 +26,12 @@ interface BubblePosition {
   visible: boolean;
 }
 
+const MAX_OFFICE_SEATS = 9;
+
 function toSceneAgents(agents: Agent[]): SceneAgent[] {
   return agents
     .filter((a) => a.status !== "archived")
+    .slice(0, MAX_OFFICE_SEATS)
     .map((agent, index) => ({
       id: agent.id,
       name: agent.display_name,

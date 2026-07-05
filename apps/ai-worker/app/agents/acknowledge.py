@@ -47,6 +47,10 @@ _NATIVE_CAPABILITIES = [
     "break the task into subtasks",
     "send emails (with human approval)",
     "publish social posts (with human approval)",
+    "analyze and describe images and documents (AI Vision)",
+    "modify images: color changes, filters, resize, rotate, creative edits",
+    "transcribe audio and video files (Whisper)",
+    "extract text from PDFs and documents",
 ]
 
 

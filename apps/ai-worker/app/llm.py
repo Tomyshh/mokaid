@@ -22,6 +22,7 @@ _PRICES: dict[str, dict[str, float]] = {
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4o": {"input": 2.50, "output": 10.00},
     "gpt-4.1-mini": {"input": 0.40, "output": 1.60},
+    "dall-e-3": {"input": 0.0, "output": 0.0},
     EMBEDDING_MODEL: {"input": 0.02, "output": 0.0},
 }
 
@@ -113,6 +114,66 @@ async def chat_json(
     except json.JSONDecodeError:
         log.warning("llm_json_parse_failed", content=content[:200])
         return {}
+
+
+async def vision(
+    system: str,
+    user_text: str,
+    image_url: str,
+    usage: UsageTracker | None = None,
+    max_tokens: int = 1500,
+) -> str:
+    """GPT-4o vision: analyze an image with a text prompt."""
+    model = "gpt-4o"
+    response = await _get_client().chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": [
+                {"type": "text", "text": user_text},
+                {"type": "image_url", "image_url": {"url": image_url, "detail": "high"}},
+            ]},
+        ],
+        max_tokens=max_tokens,
+    )
+    if usage and response.usage:
+        usage.add(model, response.usage.prompt_tokens, response.usage.completion_tokens)
+    return response.choices[0].message.content or ""
+
+
+async def generate_image(
+    prompt: str,
+    usage: UsageTracker | None = None,
+    size: str = "1024x1024",
+) -> str | None:
+    """DALL-E 3 image generation. Returns the image URL or None."""
+    try:
+        response = await _get_client().images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            n=1,
+            size=size,
+            response_format="url",
+        )
+        return response.data[0].url
+    except Exception as exc:
+        log.warning("dalle_generation_failed", error=str(exc))
+        return None
+
+
+async def transcribe_audio_data(
+    audio_bytes: bytes,
+    filename: str = "audio.mp3",
+    usage: UsageTracker | None = None,
+) -> str:
+    """Whisper transcription from raw audio bytes."""
+    import io
+
+    response = await _get_client().audio.transcriptions.create(
+        model="whisper-1",
+        file=(filename, io.BytesIO(audio_bytes)),
+    )
+    return response.text
 
 
 async def embed(texts: list[str], usage: UsageTracker | None = None) -> list[list[float]]:

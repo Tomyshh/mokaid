@@ -1,27 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   ArrowRight,
   Bot,
   Building2,
+  Check,
   CheckCircle2,
   FolderKanban,
-  MessageSquareText,
+  Loader2,
+  Mail,
+  PartyPopper,
   Plug,
+  Plus,
   Sparkles,
+  Users,
   X,
 } from "lucide-react";
-import { apiFetch } from "@/api/client";
 import {
+  useConnectIntegration,
   useCreateAgent,
   useCreateProject,
-  useCreateTask,
-  useExecuteAi,
+  useIntegrations,
+  useInviteMember,
+  useUpdateOnboarding,
   useUpdateWorkspace,
   useWorkspace,
 } from "@/api/hooks";
-import type { Envelope, Task } from "@/api/types";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -30,12 +35,15 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { cn } from "@/lib/cn";
 
+/* ─── Steps config ─── */
+
 const steps = [
-  { key: "welcome", label: "Welcome", icon: Building2 },
-  { key: "project", label: "First project", icon: FolderKanban },
+  { key: "welcome", label: "Welcome", icon: Sparkles },
+  { key: "workspace", label: "Workspace", icon: Building2 },
+  { key: "integrations", label: "Tools", icon: Plug },
   { key: "agent", label: "First agent", icon: Bot },
-  { key: "task", label: "First task", icon: MessageSquareText },
-  { key: "mcp", label: "Connect tools", icon: Plug },
+  { key: "project", label: "First project", icon: FolderKanban },
+  { key: "done", label: "Ready", icon: PartyPopper },
 ] as const;
 
 const industries = [
@@ -49,90 +57,180 @@ const industries = [
   "Other",
 ];
 
-const skillPresets = ["Research", "Copywriting", "Reporting", "Planning", "Data analysis", "Support"];
+const agentColors = ["#7c5cff", "#60a5fa", "#f472b6", "#34d399", "#fbbf24", "#22d3ee"];
+
+const skillPresets = [
+  "Research",
+  "Copywriting",
+  "Reporting",
+  "Planning",
+  "Data analysis",
+  "Support",
+];
+
+const featuredIntegrations = ["github", "slack", "google_drive", "gmail", "notion", "linear"];
+
+/* ─── Small pieces ─── */
+
+function StepDots({ current }: { current: number }) {
+  return (
+    <div className="mb-8 flex items-center gap-2">
+      {steps.map((s, i) => {
+        const Icon = s.icon;
+        return (
+          <div key={s.key} className="flex flex-1 items-center gap-2">
+            <div className="flex flex-col items-center gap-1.5">
+              <span
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300",
+                  i < current
+                    ? "bg-success-muted text-success"
+                    : i === current
+                      ? "bg-primary text-white shadow-[0_0_20px_rgba(124,92,255,0.4)]"
+                      : "bg-surface-raised text-text-muted",
+                )}
+              >
+                {i < current ? <CheckCircle2 size={16} /> : <Icon size={15} />}
+              </span>
+              <span
+                className={cn(
+                  "text-[9px] font-medium",
+                  i === current ? "text-primary-light" : "text-text-muted",
+                )}
+              >
+                {s.label}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <span
+                className={cn(
+                  "mb-4 h-0.5 flex-1 rounded-full transition-colors duration-500",
+                  i < current ? "bg-success/40" : "bg-surface-raised",
+                )}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  body,
+  delay,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  delay: string;
+}) {
+  return (
+    <div
+      className="mk-fade-up rounded-xl bg-surface-raised/60 p-4 text-left"
+      style={{ animationDelay: delay }}
+    >
+      <span className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-lg bg-primary-muted text-primary-light">
+        {icon}
+      </span>
+      <p className="text-xs font-semibold text-text">{title}</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-text-muted">{body}</p>
+    </div>
+  );
+}
+
+/* ═══════════════ Wizard ═══════════════ */
 
 export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
-  const workspaceId = useAuthStore((s) => s.workspaceId);
   const user = useAuthStore((s) => s.user);
-  const markWizardDone = useOnboardingStore((s) => s.markWizardDone);
-  const startTour = useOnboardingStore((s) => s.startTour);
   const navigate = useNavigate();
+  const startTour = useOnboardingStore((s) => s.startTour);
 
   const { data: workspaceData } = useWorkspace();
   const updateWorkspace = useUpdateWorkspace();
+  const updateOnboarding = useUpdateOnboarding();
   const createProject = useCreateProject();
   const createAgent = useCreateAgent();
-  const createTask = useCreateTask();
-  const executeAi = useExecuteAi();
+  const inviteMember = useInviteMember();
+  const { data: integrationsData } = useIntegrations();
+  const connectIntegration = useConnectIntegration();
 
   const [step, setStep] = useState(0);
+
+  // Workspace step
+  const [companyName, setCompanyName] = useState(workspaceData?.data.name ?? "");
+  const [logoUrl, setLogoUrl] = useState("");
   const [industry, setIndustry] = useState("");
-  const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [inviteEmails, setInviteEmails] = useState<string[]>([]);
+  const [emailDraft, setEmailDraft] = useState("");
+
+  // Integrations step
+  const [connecting, setConnecting] = useState<string | null>(null);
+
+  // Agent step
   const [agentName, setAgentName] = useState("Nova");
   const [agentRole, setAgentRole] = useState("");
+  const [agentColor, setAgentColor] = useState(agentColors[0]);
   const [agentSkills, setAgentSkills] = useState<string[]>(["Research", "Planning"]);
-  const [agentId, setAgentId] = useState<string | null>(null);
-  const [taskText, setTaskText] = useState("");
-  const [taskId, setTaskId] = useState<string | null>(null);
+  const [agentCreated, setAgentCreated] = useState(false);
 
-  const workspaceName = workspaceData?.data.name ?? "your workspace";
+  // Project step
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectCreated, setProjectCreated] = useState(false);
+
   const firstName = user?.full_name?.split(" ")[0] ?? "there";
+  const providers = integrationsData?.data.providers ?? [];
+  const connections = integrationsData?.data.connections ?? [];
+  const connectedKeys = new Set(
+    connections.filter((c) => c.status === "connected").map((c) => c.provider_key),
+  );
 
-  // Live agent reply: poll the created task until the agent posts its
-  // acknowledgement comment (delivered by the AI worker).
-  const { data: taskDetail } = useQuery({
-    queryKey: ["onboarding-task", taskId],
-    enabled: taskId != null && step === 3,
-    refetchInterval: 2000,
-    queryFn: () => apiFetch<Envelope<Task>>(`/api/tasks/${taskId}`),
-  });
-
-  const agentReply = useMemo(() => {
-    const comments = taskDetail?.data.comments ?? [];
-    return comments.find((c) => c.author_kind === "agent") ?? null;
-  }, [taskDetail]);
-
-  const [waitingSeconds, setWaitingSeconds] = useState(0);
-  useEffect(() => {
-    if (!taskId || agentReply || step !== 3) return;
-    const timer = setInterval(() => setWaitingSeconds((s) => s + 1), 1000);
-    return () => clearInterval(timer);
-  }, [taskId, agentReply, step]);
-
-  const finish = (goToMcpHub = false) => {
-    if (workspaceId) markWizardDone(workspaceId);
+  const finish = (withTour: boolean) => {
+    updateOnboarding.mutate({ wizard_done: true });
     onFinish();
-    if (goToMcpHub) {
-      navigate({ to: "/integrations" });
-    } else {
-      startTour();
-    }
+    if (withTour) startTour();
   };
 
-  const submitWelcome = async () => {
-    if (industry) {
-      await updateWorkspace.mutateAsync({ industry });
-    }
-    setStep(1);
+  const addEmail = () => {
+    const email = emailDraft.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    if (!inviteEmails.includes(email)) setInviteEmails((prev) => [...prev, email]);
+    setEmailDraft("");
   };
 
-  const submitProject = async () => {
-    if (!projectName.trim()) return;
-    const created = await createProject.mutateAsync({
-      name: projectName.trim(),
-      description: projectDescription.trim() || undefined,
-      status: "active",
-      cover_kind: "meeting",
-    });
-    setProjectId(created.data.id);
+  const submitWorkspace = async () => {
+    const updates: Record<string, string> = {};
+    if (companyName.trim() && companyName.trim() !== workspaceData?.data.name)
+      updates.name = companyName.trim();
+    if (logoUrl.trim()) updates.logo_url = logoUrl.trim();
+    if (industry) updates.industry = industry;
+    if (Object.keys(updates).length > 0) await updateWorkspace.mutateAsync(updates);
+    for (const email of inviteEmails) {
+      try {
+        await inviteMember.mutateAsync({ email });
+      } catch {
+        // Invite failures shouldn't block onboarding.
+      }
+    }
     setStep(2);
+  };
+
+  const toggleConnect = async (key: string) => {
+    if (connectedKeys.has(key)) return;
+    setConnecting(key);
+    try {
+      await connectIntegration.mutateAsync(key);
+    } finally {
+      setConnecting(null);
+    }
   };
 
   const submitAgent = async () => {
     if (!agentName.trim()) return;
-    const created = await createAgent.mutateAsync({
+    await createAgent.mutateAsync({
       display_name: agentName.trim(),
       role_title: agentRole.trim() || "Generalist",
       kind: "ai",
@@ -140,99 +238,142 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
       status: "active",
       presence_status: "online",
       skills: agentSkills.map((s) => ({ name: s, level: 80 })),
-      avatar_config: { primary_color: "#7c5cff" },
+      avatar_config: { primary_color: agentColor, seat_index: 0 },
     });
-    setAgentId(created.data.id);
-    setStep(3);
+    setAgentCreated(true);
+    setTimeout(() => setStep(4), 700);
   };
 
-  const submitTask = async () => {
-    if (!taskText.trim() || !agentId) return;
-    const [title, ...rest] = taskText.trim().split("\n");
-    const created = await createTask.mutateAsync({
-      title: title.slice(0, 120),
-      description: taskText.trim(),
-      project_id: projectId ?? undefined,
-      assigned_agent_id: agentId,
+  const submitProject = async () => {
+    if (!projectName.trim()) return;
+    await createProject.mutateAsync({
+      name: projectName.trim(),
+      description: projectDescription.trim() || undefined,
+      status: "active",
+      cover_kind: "meeting",
     });
-    setTaskId(created.data.id);
-    setWaitingSeconds(0);
-    executeAi.mutate({ taskId: created.data.id });
-    void rest;
+    setProjectCreated(true);
+    setTimeout(() => setStep(5), 700);
   };
 
   const busy =
-    updateWorkspace.isPending ||
-    createProject.isPending ||
-    createAgent.isPending ||
-    createTask.isPending;
+    updateWorkspace.isPending || createProject.isPending || createAgent.isPending;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-bg-deep/95 backdrop-blur-sm">
-      <div className="relative w-full max-w-xl px-6">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-bg-deep/95 backdrop-blur-md">
+      <div className="relative my-8 w-full max-w-2xl px-6">
         <button
-          onClick={() => finish()}
-          className="absolute -top-10 right-6 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
+          onClick={() => finish(false)}
+          className="absolute -top-1 right-6 z-10 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
         >
           Skip for now <X size={13} />
         </button>
 
-        {/* Progress */}
-        <div className="mb-8 flex items-center gap-2">
-          {steps.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <div key={s.key} className="flex flex-1 items-center gap-2">
-                <span
-                  className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors",
-                    i < step
-                      ? "border-success/50 bg-success-muted text-success"
-                      : i === step
-                        ? "border-primary/60 bg-primary-muted text-primary-light"
-                        : "border-border bg-surface text-text-muted",
-                  )}
-                >
-                  {i < step ? <CheckCircle2 size={15} /> : <Icon size={14} />}
-                </span>
-                {i < steps.length - 1 && (
-                  <span
-                    className={cn(
-                      "h-px flex-1 transition-colors",
-                      i < step ? "bg-success/40" : "bg-border",
-                    )}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <StepDots current={step} />
 
-        <div className="mk-card-raised p-8 mk-fade-up" key={step}>
+        <div
+          key={step}
+          className="mk-fade-up rounded-2xl bg-surface p-8 shadow-[0_16px_60px_rgba(0,0,0,0.4)]"
+        >
+          {/* ── Step 0 : Welcome ── */}
           {step === 0 && (
-            <div className="space-y-5">
+            <div className="space-y-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 shadow-[0_8px_32px_rgba(124,92,255,0.4)] mk-float">
+                <Sparkles size={28} className="text-white" />
+              </div>
               <div>
-                <h2 className="text-xl font-bold text-text">
-                  Welcome, {firstName} 👋
+                <h2 className="text-2xl font-bold text-text">
+                  Welcome to mokaid, {firstName}
                 </h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  <span className="font-semibold text-text">{workspaceName}</span> is ready. In the
-                  next 2 minutes you'll create a project, meet your first AI agent and give it a
-                  task — in plain language. You can skip any step.
+                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-secondary">
+                  Your AI Workforce OS. Build a team of AI agents that work alongside you —
+                  they take tasks, produce real deliverables and ask for approval when it
+                  matters.
                 </p>
               </div>
-              <Field label="What does your company do?" hint="Helps your agents understand context.">
+              <div className="grid grid-cols-3 gap-3">
+                <FeatureCard
+                  icon={<Bot size={17} />}
+                  title="AI Agents"
+                  body="Hire agents with skills. They work autonomously on your tasks."
+                  delay="0.05s"
+                />
+                <FeatureCard
+                  icon={<FolderKanban size={17} />}
+                  title="Projects & Tasks"
+                  body="Brief in plain language. Track progress on a live kanban."
+                  delay="0.15s"
+                />
+                <FeatureCard
+                  icon={<Plug size={17} />}
+                  title="Your Tools"
+                  body="Slack, GitHub, Google… decide which agent uses which tool."
+                  delay="0.25s"
+                />
+              </div>
+              <Button size="lg" className="w-full" onClick={() => setStep(1)}>
+                Set up my workspace <ArrowRight size={15} />
+              </Button>
+              <p className="text-[11px] text-text-muted">Takes about 2 minutes · every step is skippable</p>
+            </div>
+          )}
+
+          {/* ── Step 1 : Workspace setup ── */}
+          {step === 1 && (
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-xl font-bold text-text">Set up your workspace</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
+                  Tell us about your company — this gives your agents context to work with.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-raised shadow-[0_2px_12px_rgba(0,0,0,0.15)]">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="Logo preview"
+                      className="h-full w-full object-cover"
+                      onError={() => setLogoUrl("")}
+                    />
+                  ) : (
+                    <Building2 size={24} className="text-text-muted" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-3">
+                  <Field label="Company name" required>
+                    <input
+                      className="mk-input"
+                      placeholder="Acme Inc."
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      autoFocus
+                    />
+                  </Field>
+                  <Field label="Logo URL" hint="Optional — paste an image link">
+                    <input
+                      className="mk-input"
+                      placeholder="https://…/logo.png"
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <Field label="What does your company do?">
                 <div className="flex flex-wrap gap-2">
                   {industries.map((ind) => (
                     <button
                       key={ind}
                       type="button"
-                      onClick={() => setIndustry(ind)}
+                      onClick={() => setIndustry(industry === ind ? "" : ind)}
                       className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                        "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all",
                         industry === ind
-                          ? "border-primary/50 bg-primary-muted text-primary-light"
-                          : "border-border text-text-muted hover:text-text",
+                          ? "bg-primary text-white shadow-[0_2px_12px_rgba(124,92,255,0.35)]"
+                          : "bg-surface-raised text-text-muted hover:text-text",
                       )}
                     >
                       {ind}
@@ -240,19 +381,255 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                   ))}
                 </div>
               </Field>
-              <Button className="w-full" loading={busy} onClick={submitWelcome}>
-                Let's go <ArrowRight size={14} />
-              </Button>
+
+              <Field label="Invite your team" hint="They'll get an email invite — you can also do this later.">
+                <div className="flex gap-2">
+                  <input
+                    className="mk-input flex-1"
+                    placeholder="colleague@company.com"
+                    value={emailDraft}
+                    onChange={(e) => setEmailDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addEmail())}
+                  />
+                  <Button variant="secondary" size="icon" onClick={addEmail} aria-label="Add email">
+                    <Plus size={14} />
+                  </Button>
+                </div>
+                {inviteEmails.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {inviteEmails.map((email) => (
+                      <span
+                        key={email}
+                        className="flex items-center gap-1.5 rounded-full bg-primary-muted px-2.5 py-1 text-[11px] text-primary-light"
+                      >
+                        <Mail size={10} /> {email}
+                        <button
+                          onClick={() =>
+                            setInviteEmails((prev) => prev.filter((e) => e !== email))
+                          }
+                          className="hover:text-text"
+                        >
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </Field>
+
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setStep(0)}>
+                  <ArrowLeft size={14} />
+                </Button>
+                <Button variant="ghost" onClick={() => setStep(2)}>
+                  Skip
+                </Button>
+                <Button
+                  className="flex-1"
+                  loading={busy || inviteMember.isPending}
+                  disabled={!companyName.trim()}
+                  onClick={submitWorkspace}
+                >
+                  Continue <ArrowRight size={14} />
+                </Button>
+              </div>
             </div>
           )}
 
-          {step === 1 && (
+          {/* ── Step 2 : Integrations ── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-xl font-bold text-text">Connect your tools</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
+                  Plug in the tools your team already uses. Agents will be able to work with
+                  them — with your permission.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {featuredIntegrations.map((key) => {
+                  const provider = providers.find((p) => p.key === key);
+                  if (!provider) return null;
+                  const connected = connectedKeys.has(key);
+                  const isConnecting = connecting === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={connected || isConnecting}
+                      onClick={() => toggleConnect(key)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl p-3.5 text-left transition-all",
+                        connected
+                          ? "bg-success-muted/40"
+                          : "bg-surface-raised/60 hover:bg-surface-hover hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)]",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
+                          connected ? "bg-success/20 text-success" : "bg-surface-overlay text-text",
+                        )}
+                      >
+                        {provider.name.slice(0, 2)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-semibold text-text">
+                          {provider.name}
+                        </span>
+                        <span className="block truncate text-[10px] text-text-muted">
+                          {provider.category}
+                        </span>
+                      </span>
+                      {isConnecting ? (
+                        <Loader2 size={14} className="animate-spin text-text-muted" />
+                      ) : connected ? (
+                        <Check size={14} className="text-success" />
+                      ) : (
+                        <Plus size={14} className="text-text-muted" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {providers.length === 0 && (
+                <p className="rounded-xl bg-surface-raised/60 px-4 py-3 text-center text-xs text-text-muted">
+                  Integrations catalog is loading… you can also connect tools later from the
+                  MCP Hub.
+                </p>
+              )}
+
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setStep(1)}>
+                  <ArrowLeft size={14} />
+                </Button>
+                <Button className="flex-1" onClick={() => setStep(3)}>
+                  {connectedKeys.size > 0 ? "Continue" : "Skip for now"} <ArrowRight size={14} />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3 : First agent ── */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-xl font-bold text-text">Create your first AI agent</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
+                  Agents are AI teammates with a name, a role and skills. Yours will appear at
+                  a desk in your 3D office.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-5 rounded-xl bg-surface-raised/50 p-4">
+                <div className="relative">
+                  <Avatar name={agentName || "?"} size="xl" isAi color={agentColor} />
+                  {agentCreated && (
+                    <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white mk-fade-up">
+                      <Check size={13} />
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 space-y-3">
+                  <Field label="Name" required>
+                    <input
+                      className="mk-input"
+                      value={agentName}
+                      onChange={(e) => setAgentName(e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Role">
+                    <input
+                      className="mk-input"
+                      placeholder="e.g. Marketing assistant"
+                      value={agentRole}
+                      onChange={(e) => setAgentRole(e.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <Field label="Color">
+                <div className="flex gap-2">
+                  {agentColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setAgentColor(color)}
+                      aria-label={`Color ${color}`}
+                      className={cn(
+                        "h-8 w-8 rounded-full transition-transform",
+                        agentColor === color && "scale-110 ring-2 ring-white/60 ring-offset-2 ring-offset-surface",
+                      )}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="Skills">
+                <div className="flex flex-wrap gap-2">
+                  {skillPresets.map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() =>
+                        setAgentSkills((prev) =>
+                          prev.includes(skill)
+                            ? prev.filter((s) => s !== skill)
+                            : [...prev, skill],
+                        )
+                      }
+                      className={cn(
+                        "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all",
+                        agentSkills.includes(skill)
+                          ? "bg-primary text-white shadow-[0_2px_12px_rgba(124,92,255,0.35)]"
+                          : "bg-surface-raised text-text-muted hover:text-text",
+                      )}
+                    >
+                      {skill}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setStep(2)}>
+                  <ArrowLeft size={14} />
+                </Button>
+                <Button variant="ghost" onClick={() => setStep(4)}>
+                  Skip
+                </Button>
+                <Button
+                  className="flex-1"
+                  loading={busy}
+                  disabled={!agentName.trim() || agentCreated}
+                  onClick={submitAgent}
+                >
+                  {agentCreated ? (
+                    <>
+                      <Check size={14} /> Created!
+                    </>
+                  ) : (
+                    <>
+                      <Bot size={14} /> Create {agentName || "agent"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 4 : First project ── */}
+          {step === 4 && (
             <div className="space-y-5">
               <div>
                 <h2 className="text-xl font-bold text-text">Create your first project</h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  Projects keep tasks, agents and files organized around one goal. Don't overthink
-                  it — you can rename it later.
+                  Projects group tasks, agents and files around one goal. Don't overthink it —
+                  you can rename it anytime.
                 </p>
               </div>
               <Field label="Project name" required>
@@ -273,191 +650,89 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                 />
               </Field>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => setStep(2)}>
+                <Button variant="ghost" onClick={() => setStep(3)}>
+                  <ArrowLeft size={14} />
+                </Button>
+                <Button variant="ghost" onClick={() => setStep(5)}>
                   Skip
                 </Button>
                 <Button
                   className="flex-1"
                   loading={busy}
-                  disabled={!projectName.trim()}
+                  disabled={!projectName.trim() || projectCreated}
                   onClick={submitProject}
                 >
-                  Create project <ArrowRight size={14} />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-5">
-              <div>
-                <h2 className="text-xl font-bold text-text">Meet your first AI agent</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  Agents are AI teammates. Give yours a name and a role — it will introduce itself
-                  in a moment.
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Avatar name={agentName || "?"} size="lg" isAi color="#7c5cff" />
-                <div className="flex-1 space-y-3">
-                  <Field label="Name" required>
-                    <input
-                      className="mk-input"
-                      value={agentName}
-                      onChange={(e) => setAgentName(e.target.value)}
-                    />
-                  </Field>
-                  <Field label="Role">
-                    <input
-                      className="mk-input"
-                      placeholder="e.g. Marketing assistant"
-                      value={agentRole}
-                      onChange={(e) => setAgentRole(e.target.value)}
-                    />
-                  </Field>
-                </div>
-              </div>
-              <Field label="Skills">
-                <div className="flex flex-wrap gap-2">
-                  {skillPresets.map((skill) => (
-                    <button
-                      key={skill}
-                      type="button"
-                      onClick={() =>
-                        setAgentSkills((prev) =>
-                          prev.includes(skill)
-                            ? prev.filter((s) => s !== skill)
-                            : [...prev, skill],
-                        )
-                      }
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                        agentSkills.includes(skill)
-                          ? "border-primary/50 bg-primary-muted text-primary-light"
-                          : "border-border text-text-muted hover:text-text",
-                      )}
-                    >
-                      {skill}
-                    </button>
-                  ))}
-                </div>
-              </Field>
-              <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => setStep(3)}>
-                  Skip
-                </Button>
-                <Button
-                  className="flex-1"
-                  loading={busy}
-                  disabled={!agentName.trim()}
-                  onClick={submitAgent}
-                >
-                  Create agent <ArrowRight size={14} />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-5">
-              <div>
-                <h2 className="text-xl font-bold text-text">Give {agentName || "your agent"} a task</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  Write it like you'd brief a colleague — plain language works best.
-                </p>
-              </div>
-
-              {!taskId ? (
-                <>
-                  <Textarea
-                    className="min-h-[96px]"
-                    placeholder={"e.g. Research our 3 main competitors and summarize their pricing in a short report"}
-                    value={taskText}
-                    onChange={(e) => setTaskText(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="flex gap-2">
-                    <Button variant="ghost" onClick={() => setStep(4)}>
-                      Skip
-                    </Button>
-                    <Button
-                      className="flex-1"
-                      loading={busy || executeAi.isPending}
-                      disabled={!taskText.trim() || !agentId}
-                      onClick={submitTask}
-                    >
-                      <Sparkles size={14} /> Send to {agentName || "agent"}
-                    </Button>
-                  </div>
-                  {!agentId && (
-                    <p className="text-center text-[11px] text-text-muted">
-                      You skipped agent creation — go back one step to create an agent first, or
-                      skip this step.
-                    </p>
-                  )}
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-end">
-                    <div className="max-w-[85%] rounded-lg rounded-br-sm bg-primary-muted px-3.5 py-2.5 text-xs leading-relaxed text-text">
-                      {taskText}
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <Avatar name={agentName} size="sm" isAi color="#7c5cff" />
-                    {agentReply ? (
-                      <div className="max-w-[85%] rounded-lg rounded-tl-sm bg-surface-overlay px-3.5 py-2.5 text-xs leading-relaxed text-text mk-fade-up">
-                        {agentReply.body}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 rounded-lg rounded-tl-sm bg-surface-overlay px-3.5 py-3">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted animation-delay-150" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted animation-delay-300" />
-                      </div>
-                    )}
-                  </div>
-                  {agentReply || waitingSeconds > 12 ? (
-                    <Button className="w-full" onClick={() => setStep(4)}>
-                      {agentReply ? "Amazing — continue" : "Continue"} <ArrowRight size={14} />
-                    </Button>
+                  {projectCreated ? (
+                    <>
+                      <Check size={14} /> Created!
+                    </>
                   ) : (
-                    <p className="text-center text-[11px] text-text-muted">
-                      {agentName} is reading your task…
-                    </p>
+                    <>
+                      <FolderKanban size={14} /> Create project
+                    </>
                   )}
-                </div>
-              )}
+                </Button>
+              </div>
             </div>
           )}
 
-          {step === 4 && (
-            <div className="space-y-5">
+          {/* ── Step 5 : Done ── */}
+          {step === 5 && (
+            <div className="space-y-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-muted mk-float">
+                <PartyPopper size={28} className="text-success" />
+              </div>
               <div>
-                <h2 className="text-xl font-bold text-text">Connect your tools (optional)</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  The MCP Hub lets you plug tools like Figma, GitHub, Slack or Notion into your
-                  workspace — and decide exactly which agent can use which tool.
+                <h2 className="text-2xl font-bold text-text">You're all set!</h2>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-secondary">
+                  Your workspace is ready. Take a quick interactive tour to discover the
+                  interface, or dive right in.
                 </p>
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {["Figma", "GitHub", "Slack", "Notion", "Gmail", "Stripe", "Linear", "AWS"].map(
-                  (tool) => (
-                    <div
-                      key={tool}
-                      className="rounded-md border border-border bg-surface px-2 py-2.5 text-center text-[11px] font-medium text-text-secondary"
-                    >
-                      {tool}
-                    </div>
-                  ),
-                )}
+
+              <div className="grid grid-cols-3 gap-3 text-left">
+                <div className="rounded-xl bg-surface-raised/60 p-3.5">
+                  <Bot size={15} className="mb-2 text-primary-light" />
+                  <p className="text-[11px] font-semibold text-text">
+                    {agentCreated ? `${agentName} is ready` : "No agent yet"}
+                  </p>
+                  <p className="text-[10px] text-text-muted">
+                    {agentCreated ? "Waiting at their desk" : "Create one anytime"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-surface-raised/60 p-3.5">
+                  <FolderKanban size={15} className="mb-2 text-primary-light" />
+                  <p className="text-[11px] font-semibold text-text">
+                    {projectCreated ? projectName : "No project yet"}
+                  </p>
+                  <p className="text-[10px] text-text-muted">
+                    {projectCreated ? "Ready for tasks" : "Create one anytime"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-surface-raised/60 p-3.5">
+                  <Users size={15} className="mb-2 text-primary-light" />
+                  <p className="text-[11px] font-semibold text-text">
+                    {inviteEmails.length > 0
+                      ? `${inviteEmails.length} invite${inviteEmails.length > 1 ? "s" : ""} sent`
+                      : "Solo for now"}
+                  </p>
+                  <p className="text-[10px] text-text-muted">Invite more from Members</p>
+                </div>
               </div>
+
               <div className="flex gap-2">
-                <Button variant="ghost" className="flex-1" onClick={() => finish()}>
-                  Finish — take the tour
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => {
+                    finish(false);
+                    navigate({ to: "/dashboard" });
+                  }}
+                >
+                  Go to dashboard
                 </Button>
                 <Button className="flex-1" onClick={() => finish(true)}>
-                  <Plug size={14} /> Open MCP Hub
+                  <Sparkles size={14} /> Take the tour
                 </Button>
               </div>
             </div>
@@ -465,7 +740,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
         </div>
 
         <p className="mt-4 text-center text-[11px] text-text-muted">
-          Step {step + 1} of {steps.length} · You can re-run the tour anytime from Settings
+          Step {step + 1} of {steps.length} · Replay anytime from Workspace Settings
         </p>
       </div>
     </div>

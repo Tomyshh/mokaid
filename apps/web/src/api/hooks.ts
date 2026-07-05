@@ -23,6 +23,7 @@ import type {
   McpInstallation,
   McpServer,
   Member,
+  OnboardingSettings,
   Project,
   ProjectActivity,
   Task,
@@ -73,6 +74,30 @@ export function useUpdateAgent() {
     mutationFn: ({ id, ...body }: Partial<Agent> & { id: string }) =>
       apiFetch<Envelope<Agent>>(`/api/agents/${id}`, { method: "PATCH", body }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["agents"] }),
+  });
+}
+
+export function useDeleteAgent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<void>(`/api/agents/${id}`, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["agents"] }),
+  });
+}
+
+export function useUploadAgentFiles() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ agentId, files }: { agentId: string; files: File[] }) => {
+      const formData = new FormData();
+      for (const file of files) formData.append("files", file);
+      return apiUpload<Envelope<{ count: number }>>(`/api/agents/${agentId}/files`, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+      queryClient.invalidateQueries({ queryKey: ["drive"] });
+    },
   });
 }
 
@@ -644,6 +669,36 @@ export function useUpdateWorkspace() {
   return useMutation({
     mutationFn: (body: Partial<Workspace>) =>
       apiFetch<Envelope<Workspace>>(`/api/workspaces/${workspaceId}`, { method: "PATCH", body }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace"] }),
+  });
+}
+
+/* ---------- Onboarding (persisted in workspace.settings.onboarding) ---------- */
+
+export function useOnboardingSettings(): {
+  onboarding: OnboardingSettings;
+  loaded: boolean;
+} {
+  const { data, isSuccess } = useWorkspace();
+  const onboarding = ((data?.data.settings as Record<string, unknown> | null)?.onboarding ??
+    {}) as OnboardingSettings;
+  return { onboarding, loaded: isSuccess };
+}
+
+export function useUpdateOnboarding() {
+  const queryClient = useQueryClient();
+  const workspaceId = useAuthStore((s) => s.workspaceId);
+  return useMutation({
+    mutationFn: async (patch: Partial<OnboardingSettings>) => {
+      // Read the latest settings so the merge never drops other keys.
+      const current = await apiFetch<Envelope<Workspace>>(`/api/workspaces/${workspaceId}`);
+      const settings = (current.data.settings ?? {}) as Record<string, unknown>;
+      const onboarding = (settings.onboarding ?? {}) as OnboardingSettings;
+      return apiFetch<Envelope<Workspace>>(`/api/workspaces/${workspaceId}`, {
+        method: "PATCH",
+        body: { settings: { ...settings, onboarding: { ...onboarding, ...patch } } },
+      });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace"] }),
   });
 }

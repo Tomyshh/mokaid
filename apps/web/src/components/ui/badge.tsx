@@ -9,13 +9,13 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const toneClasses: Record<Tone, string> = {
-  default: "bg-surface-overlay text-text-secondary border-border",
-  primary: "bg-primary-muted text-primary-light border-primary/25",
-  success: "bg-success-muted text-success border-success/25",
-  warning: "bg-warning-muted text-warning border-warning/25",
-  danger: "bg-danger-muted text-danger border-danger/25",
-  info: "bg-info-muted text-info border-info/25",
-  muted: "bg-surface-overlay text-text-muted border-border",
+  default: "bg-surface-overlay text-text-secondary",
+  primary: "bg-primary-muted text-primary-light",
+  success: "bg-success-muted text-success",
+  warning: "bg-warning-muted text-warning",
+  danger: "bg-danger-muted text-danger",
+  info: "bg-info-muted text-info",
+  muted: "bg-surface-overlay text-text-muted",
 };
 
 const dotColor: Record<Tone, string> = {
@@ -32,7 +32,7 @@ export function Badge({ tone = "default", dot, className, children, ...props }: 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap",
         toneClasses[tone],
         className,
       )}

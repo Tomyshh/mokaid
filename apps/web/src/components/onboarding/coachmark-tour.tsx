@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/stores/auth-store";
+import { useUpdateOnboarding } from "@/api/hooks";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 
 interface TourStep {
@@ -51,15 +51,20 @@ interface Rect {
 }
 
 export function CoachmarkTour() {
-  const workspaceId = useAuthStore((s) => s.workspaceId);
   const tourActive = useOnboardingStore((s) => s.tourActive);
   const tourStep = useOnboardingStore((s) => s.tourStep);
   const nextTourStep = useOnboardingStore((s) => s.nextTourStep);
   const prevTourStep = useOnboardingStore((s) => s.prevTourStep);
-  const endTour = useOnboardingStore((s) => s.endTour);
+  const stopTour = useOnboardingStore((s) => s.stopTour);
+  const updateOnboarding = useUpdateOnboarding();
 
   const step = tourSteps[tourStep];
   const [rect, setRect] = useState<Rect | null>(null);
+
+  const endTour = () => {
+    stopTour();
+    updateOnboarding.mutate({ tour_done: true });
+  };
 
   useLayoutEffect(() => {
     if (!tourActive || !step) return;
@@ -87,9 +92,10 @@ export function CoachmarkTour() {
     const el = document.querySelector(`[data-tour="${step.target}"]`);
     if (!el) {
       if (tourStep < tourSteps.length - 1) nextTourStep();
-      else endTour(workspaceId);
+      else endTour();
     }
-  }, [tourActive, tourStep, step, nextTourStep, endTour, workspaceId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourActive, tourStep, step, nextTourStep]);
 
   if (!tourActive || !step || !rect) return null;
 
@@ -102,7 +108,7 @@ export function CoachmarkTour() {
     <div className="fixed inset-0 z-[90]">
       {/* Spotlight: darken everything except the target */}
       <div
-        className="absolute rounded-lg ring-2 ring-primary transition-all duration-300"
+        className="absolute rounded-xl ring-2 ring-primary transition-all duration-300"
         style={{
           top: rect.top - pad,
           left: rect.left - pad,
@@ -113,13 +119,13 @@ export function CoachmarkTour() {
       />
 
       <div
-        className="absolute w-[300px] rounded-lg border border-border bg-surface-overlay p-4 shadow-xl mk-fade-up"
+        className="absolute w-[300px] rounded-2xl bg-surface-overlay p-4 shadow-[0_12px_48px_rgba(0,0,0,0.4)] mk-fade-up"
         style={{ top: tooltipTop, left: tooltipLeft }}
       >
         <button
-          onClick={() => endTour(workspaceId)}
+          onClick={endTour}
           aria-label="Close tour"
-          className="absolute right-2.5 top-2.5 rounded p-1 text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
+          className="absolute right-2.5 top-2.5 rounded-lg p-1 text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
         >
           <X size={13} />
         </button>
@@ -147,10 +153,7 @@ export function CoachmarkTour() {
                 <ArrowLeft size={13} />
               </Button>
             )}
-            <Button
-              size="sm"
-              onClick={() => (isLast ? endTour(workspaceId) : nextTourStep())}
-            >
+            <Button size="sm" onClick={() => (isLast ? endTour() : nextTourStep())}>
               {isLast ? "Done" : "Next"} {!isLast && <ArrowRight size={13} />}
             </Button>
           </div>

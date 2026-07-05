@@ -9,13 +9,13 @@ defmodule Mokaid.Storage do
           | {:error, term()}
   def upload(workspace_id, %Plug.Upload{} = upload) do
     with {:ok, body} <- File.read(upload.path) do
-      key = "workspaces/#{workspace_id}/drive/#{Ecto.UUID.generate()}/#{upload.filename}"
+      # Keep filenames short in the S3 key to stay under MinIO's 2 KB header limit.
+      safe_name = upload.filename |> String.slice(0, 100)
+      key = "workspaces/#{workspace_id}/drive/#{Ecto.UUID.generate()}/#{safe_name}"
       checksum = :crypto.hash(:sha256, body) |> Base.encode16(case: :lower)
+      ct = safe_content_type(upload.content_type)
 
-      request =
-        ExAws.S3.put_object(uploads_bucket(), key, body,
-          content_type: upload.content_type || "application/octet-stream"
-        )
+      request = ExAws.S3.put_object(uploads_bucket(), key, body, content_type: ct)
 
       case ExAws.request(request) do
         {:ok, _} ->
@@ -32,13 +32,12 @@ defmodule Mokaid.Storage do
           {:ok, %{storage_key: String.t(), size_bytes: non_neg_integer(), checksum: String.t()}}
           | {:error, term()}
   def upload_content(workspace_id, filename, content, content_type) when is_binary(content) do
-    key = "workspaces/#{workspace_id}/drive/#{Ecto.UUID.generate()}/#{filename}"
+    safe_name = filename |> String.slice(0, 100)
+    key = "workspaces/#{workspace_id}/drive/#{Ecto.UUID.generate()}/#{safe_name}"
     checksum = :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
+    ct = safe_content_type(content_type)
 
-    request =
-      ExAws.S3.put_object(uploads_bucket(), key, content,
-        content_type: content_type || "application/octet-stream"
-      )
+    request = ExAws.S3.put_object(uploads_bucket(), key, content, content_type: ct)
 
     case ExAws.request(request) do
       {:ok, _} ->
@@ -53,6 +52,15 @@ defmodule Mokaid.Storage do
   def download_url(storage_key) do
     config = ExAws.Config.new(:s3)
     ExAws.S3.presigned_url(config, :get, uploads_bucket(), storage_key, expires_in: 900)
+  end
+
+  # MinIO rejects requests when combined header/metadata exceeds 2 KB.
+  # Clamp content-type to a safe default when it's too long or nil.
+  defp safe_content_type(nil), do: "application/octet-stream"
+
+  defp safe_content_type(ct) when is_binary(ct) do
+    trimmed = ct |> String.split(";") |> List.first() |> String.trim()
+    if byte_size(trimmed) > 200, do: "application/octet-stream", else: trimmed
   end
 
   defp uploads_bucket do

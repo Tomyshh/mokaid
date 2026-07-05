@@ -48,7 +48,7 @@ export function SettingsPage() {
   const { data, isLoading } = useWorkspace();
   const updateWorkspace = useUpdateWorkspace();
   const workspaceId = useAuthStore((s) => s.workspaceId);
-  const resetTour = useOnboardingStore((s) => s.resetTour);
+  const startTour = useOnboardingStore((s) => s.startTour);
 
   const workspace = data?.data;
   const [name, setName] = useState("");
@@ -212,7 +212,7 @@ export function SettingsPage() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => workspaceId && resetTour(workspaceId)}
+            onClick={() => workspaceId && startTour()}
           >
             <Compass size={14} /> Replay tour
           </Button>

@@ -30,6 +30,7 @@ defmodule MokaidWeb.JSON do
       language: workspace.language,
       default_landing_page: workspace.default_landing_page,
       feature_toggles: workspace.feature_toggles,
+      settings: workspace.settings,
       inserted_at: workspace.inserted_at
     }
   end

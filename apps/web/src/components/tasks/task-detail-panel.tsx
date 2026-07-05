@@ -1,16 +1,22 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Circle,
+  Clock,
   Download,
   FileText,
+  Image as ImageIcon,
   Loader2,
+  Music,
   Paperclip,
   Send,
   Sparkles,
   ThumbsUp,
   Undo2,
+  User,
 } from "lucide-react";
 import { apiFetch } from "@/api/client";
 import type { Envelope, TaskAttachment, TaskRunToolCall } from "@/api/types";
@@ -28,7 +34,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { PriorityBadge, TaskStatusBadge } from "@/components/ui/status";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { formatBytes, formatDateTime } from "@/lib/format";
 
 const NO_PROJECT = "__none__";
@@ -36,9 +41,16 @@ const NO_AGENT = "__none__";
 
 function toDatetimeLocal(iso: string | null): string {
   if (!iso) return "";
-  const date = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function fileIcon(mime: string | null) {
+  if (!mime) return <FileText size={14} />;
+  if (mime.startsWith("image/")) return <ImageIcon size={14} />;
+  if (mime.startsWith("audio/")) return <Music size={14} />;
+  return <FileText size={14} />;
 }
 
 interface ProducedDoc {
@@ -50,22 +62,61 @@ function producedDocs(toolCalls: TaskRunToolCall[]): ProducedDoc[] {
   return toolCalls.flatMap((call) => {
     const out = call.output;
     if (!out || typeof out !== "object") return [];
-    if (call.tool === "draft_document" && typeof out.content === "string") {
+    if (call.tool === "draft_document" && typeof out.content === "string")
       return [{ title: typeof out.title === "string" ? out.title : "Document", content: out.content }];
-    }
-    if (call.tool === "summarize" && typeof out.summary === "string" && out.summary) {
+    if (call.tool === "summarize" && typeof out.summary === "string" && out.summary)
       return [{ title: "Summary", content: out.summary }];
-    }
-    if (call.tool === "generate_report" && out.report) {
+    if (call.tool === "generate_report" && out.report)
       return [{ title: "Report", content: JSON.stringify(out.report, null, 2) }];
-    }
+    if (call.tool === "analyze_file" && typeof out.analysis === "string")
+      return [{ title: "Analysis", content: out.analysis }];
     return [];
   });
 }
 
-function AttachmentRow({ file }: { file: TaskAttachment }) {
-  const [busy, setBusy] = useState(false);
+function Section({
+  title,
+  count,
+  icon,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  count?: number;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-1.5 py-1.5 text-left mk-focus-ring"
+      >
+        {open ? (
+          <ChevronDown size={12} className="text-text-muted" />
+        ) : (
+          <ChevronRight size={12} className="text-text-muted" />
+        )}
+        {icon}
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+          {title}
+        </span>
+        {count != null && (
+          <span className="ml-auto rounded-full bg-surface-raised px-1.5 py-0.5 text-[10px] tabular-nums text-text-muted">
+            {count}
+          </span>
+        )}
+      </button>
+      {open && <div className="mt-2">{children}</div>}
+    </div>
+  );
+}
 
+function FileRow({ file }: { file: TaskAttachment }) {
+  const [busy, setBusy] = useState(false);
   const download = async () => {
     setBusy(true);
     try {
@@ -77,25 +128,45 @@ function AttachmentRow({ file }: { file: TaskAttachment }) {
       setBusy(false);
     }
   };
-
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-surface-raised px-2.5 py-2">
-      <FileText size={14} className="shrink-0 text-primary-light" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] font-medium text-text">{file.name}</p>
-        <p className="text-[10px] text-text-muted">
-          {formatBytes(file.size_bytes)} · {formatDateTime(file.inserted_at)}
-        </p>
-      </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={download}
-        loading={busy}
-        aria-label={`Download ${file.name}`}
-      >
-        <Download size={13} />
-      </Button>
+    <button
+      type="button"
+      onClick={download}
+      disabled={busy}
+      className="group flex w-full items-center gap-2.5 rounded-xl bg-surface-raised/60 px-3.5 py-2.5 text-left transition-all hover:bg-surface-hover hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)] mk-focus-ring"
+    >
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-muted/40 text-primary-light">
+        {fileIcon(file.mime_type)}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-text">{file.name}</span>
+        <span className="text-[10px] text-text-muted">
+          {file.size_bytes ? formatBytes(file.size_bytes) : "·"} · {formatDateTime(file.inserted_at)}
+        </span>
+      </span>
+      {busy ? (
+        <Loader2 size={13} className="shrink-0 animate-spin text-text-muted" />
+      ) : (
+        <Download
+          size={13}
+          className="shrink-0 text-text-muted opacity-0 transition-opacity group-hover:opacity-100"
+        />
+      )}
+    </button>
+  );
+}
+
+function MetaRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <span className="shrink-0 text-[11px] text-text-muted">{label}</span>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
@@ -121,7 +192,6 @@ export function TaskDetailPanel({
   const agents = agentsData?.data ?? [];
   const projects = projectsData?.data ?? [];
 
-  // Agent, project and due date stay editable until the task is closed or past due.
   const editable = useMemo(() => {
     if (!task) return false;
     if (["completed", "canceled"].includes(task.status)) return false;
@@ -133,7 +203,9 @@ export function TaskDetailPanel({
   const inputs = task?.attachments.filter((f) => f.source === "input") ?? [];
   const run = task?.latest_run ?? null;
   const docs = useMemo(() => producedDocs(run?.output?.tool_calls ?? []), [run]);
-  const agentWorking = run != null && ["queued", "running", "waiting_for_approval"].includes(run.status);
+  const agentWorking =
+    run != null && ["queued", "running", "waiting_for_approval"].includes(run.status);
+  const runFailed = run?.status === "failed" && task?.status !== "completed";
 
   const submitComment = () => {
     if (!task || !comment.trim()) return;
@@ -151,98 +223,97 @@ export function TaskDetailPanel({
   return (
     <DetailPanel open={taskId != null} onClose={onClose} title="Task Details">
       {isLoading && (
-        <div className="flex items-center justify-center py-12 text-text-muted">
+        <div className="flex items-center justify-center py-16 text-text-muted">
           <Loader2 size={18} className="animate-spin" />
         </div>
       )}
 
       {task && (
-        <div className="space-y-5 px-5 py-4">
+        <div className="flex flex-col gap-5 px-5 pb-5 pt-2">
+          {/* Header */}
           <div>
-            <h3 className="text-sm font-bold leading-snug text-text">{task.title}</h3>
+            <h3 className="text-[15px] font-bold leading-snug text-text">{task.title}</h3>
             {task.description && (
-              <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
+              <p className="mt-1.5 text-[12px] leading-relaxed text-text-secondary">
                 {task.description}
               </p>
             )}
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <TaskStatusBadge status={task.status} />
+              <PriorityBadge priority={task.priority} />
+              {task.tags.map((tag) => (
+                <Badge key={tag} tone="muted">{tag}</Badge>
+              ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <TaskStatusBadge status={task.status} />
-            <PriorityBadge priority={task.priority} />
-            {task.tags.map((tag) => (
-              <Badge key={tag} tone="muted">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Agent working right now */}
+          {/* Status banners */}
           {agentWorking && (
-            <div className="flex items-center gap-2.5 rounded-lg border border-info/30 bg-info/10 px-3 py-2.5">
-              <Loader2 size={14} className="shrink-0 animate-spin text-info" />
-              <p className="text-[11px] leading-snug text-text-secondary">
+            <div className="flex items-center gap-3 rounded-xl bg-info/8 px-4 py-3.5">
+              <div className="relative flex items-center justify-center">
+                <span className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-info/30" />
+                <Loader2 size={16} className="relative animate-spin text-info" />
+              </div>
+              <p className="text-[12px] leading-snug text-text-secondary">
                 <span className="font-semibold text-text">
-                  {task.assigned_agent_name ?? "The agent"}
+                  {task.assigned_agent_name ?? "Agent"}
                 </span>{" "}
-                is working on this task — the output will appear here.
+                is working…
               </p>
             </div>
           )}
 
-          {/* Review gate: the agent finished, a human decides */}
-          {task.status === "in_review" && (
-            <div className="rounded-lg border border-primary/40 bg-primary-muted/30 px-3 py-2.5">
-              <p className="flex items-start gap-2 text-[11px] leading-snug text-text-secondary">
-                <Sparkles size={13} className="mt-0.5 shrink-0 text-primary-light" />
-                <span>
-                  <span className="font-semibold text-text">Waiting for your review.</span>{" "}
-                  {task.assigned_agent_name ?? "The agent"} finished its work. Check the output
-                  below, then approve or send it back.
-                </span>
-              </p>
-              <div className="mt-2.5 flex gap-2">
+          {task.status === "in_review" && !agentWorking && (
+            <div className="rounded-xl bg-primary/8 px-4 py-3.5">
+              <div className="flex items-center gap-2.5">
+                <Sparkles size={15} className="shrink-0 text-primary" />
+                <p className="text-[12px] leading-snug text-text-secondary">
+                  <span className="font-semibold text-text">Ready for review</span> — check the
+                  output below.
+                </p>
+              </div>
+              <div className="mt-3 flex gap-2">
                 <Button
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 gap-1.5"
                   loading={updateTask.isPending}
                   onClick={() => patch({ status: "completed" })}
                 >
-                  <ThumbsUp size={12} /> Approve & complete
+                  <ThumbsUp size={12} /> Approve
                 </Button>
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="flex-1"
+                  className="flex-1 gap-1.5"
                   onClick={() => patch({ status: "in_progress" })}
                 >
-                  <Undo2 size={12} /> Request changes
+                  <Undo2 size={12} /> Revise
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Failed run */}
-          {run?.status === "failed" && task.status !== "completed" && (
-            <div className="flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2.5">
-              <AlertTriangle size={13} className="mt-0.5 shrink-0 text-danger" />
-              <p className="text-[11px] leading-snug text-text-secondary">
-                <span className="font-semibold text-danger">The last run failed.</span>{" "}
-                {run.error ?? "Unknown error."}
-              </p>
+          {runFailed && (
+            <div className="flex items-start gap-2.5 rounded-xl bg-danger/8 px-4 py-3.5">
+              <AlertTriangle size={15} className="mt-0.5 shrink-0 text-danger" />
+              <div>
+                <p className="text-[12px] font-semibold text-danger">Run failed</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-text-secondary">
+                  {run?.error || "An unexpected error occurred."}
+                </p>
+              </div>
             </div>
           )}
 
-          {/* Editable meta */}
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between gap-3">
-              <span className="shrink-0 text-text-muted">Assigned to</span>
+          {/* Metadata */}
+          <div className="rounded-xl bg-surface-raised/40 px-4 py-1">
+            <MetaRow label="Agent">
               {editable ? (
                 <Select
-                  className="h-8 w-44 text-[11px]"
+                  className="h-7 w-full text-[11px]"
                   value={task.assigned_agent_id ?? NO_AGENT}
-                  onValueChange={(value) =>
-                    patch({ assigned_agent_id: value === NO_AGENT ? null : value })
+                  onValueChange={(v) =>
+                    patch({ assigned_agent_id: v === NO_AGENT ? null : v })
                   }
                   options={[
                     { value: NO_AGENT, label: "Unassigned" },
@@ -250,7 +321,7 @@ export function TaskDetailPanel({
                   ]}
                 />
               ) : (
-                <span className="flex items-center gap-1.5 text-text">
+                <span className="flex items-center gap-1.5 text-xs text-text">
                   <Avatar
                     name={task.assigned_agent_name}
                     size="xs"
@@ -259,15 +330,15 @@ export function TaskDetailPanel({
                   {task.assigned_agent_name ?? "Unassigned"}
                 </span>
               )}
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="shrink-0 text-text-muted">Project</span>
+            </MetaRow>
+
+            <MetaRow label="Project">
               {editable ? (
                 <Select
-                  className="h-8 w-44 text-[11px]"
+                  className="h-7 w-full text-[11px]"
                   value={task.project_id ?? NO_PROJECT}
-                  onValueChange={(value) =>
-                    patch({ project_id: value === NO_PROJECT ? null : value })
+                  onValueChange={(v) =>
+                    patch({ project_id: v === NO_PROJECT ? null : v })
                   }
                   options={[
                     { value: NO_PROJECT, label: "No project" },
@@ -275,148 +346,183 @@ export function TaskDetailPanel({
                   ]}
                 />
               ) : (
-                <span className="text-text">{task.project_name ?? "·"}</span>
+                <span className="text-xs text-text">{task.project_name ?? "—"}</span>
               )}
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="shrink-0 text-text-muted">Due</span>
+            </MetaRow>
+
+            <MetaRow label="Due">
               {editable ? (
                 <input
                   type="datetime-local"
-                  className="mk-input h-8 w-44 text-[11px]"
+                  className="mk-input h-7 w-full text-[11px]"
                   value={toDatetimeLocal(task.due_at)}
                   onChange={(e) =>
-                    patch({ due_at: e.target.value ? new Date(e.target.value).toISOString() : null })
+                    patch({
+                      due_at: e.target.value ? new Date(e.target.value).toISOString() : null,
+                    })
                   }
                 />
               ) : (
-                <span className="text-text">{formatDateTime(task.due_at)}</span>
+                <span className="flex items-center gap-1.5 text-xs text-text">
+                  <Clock size={12} className="text-text-muted" />
+                  {task.due_at ? formatDateTime(task.due_at) : "—"}
+                </span>
               )}
-            </div>
+            </MetaRow>
+
+            <MetaRow label="Created">
+              <span className="text-xs text-text-muted">{formatDateTime(task.inserted_at)}</span>
+            </MetaRow>
           </div>
 
-          {task.progress_percent > 0 && (
-            <div>
-              <div className="mb-1 flex justify-between text-[11px] text-text-muted">
-                <span>Progress</span>
-                <span className="font-semibold text-text">{task.progress_percent}%</span>
+          {/* Progress */}
+          {task.progress_percent > 0 && task.status !== "completed" && (
+            <div className="rounded-xl bg-surface-raised/40 px-4 py-3">
+              <div className="mb-2 flex justify-between text-[11px]">
+                <span className="text-text-muted">Progress</span>
+                <span className="font-bold tabular-nums text-text">
+                  {task.progress_percent}%
+                </span>
               </div>
-              <ProgressBar value={task.progress_percent} />
+              <div className="h-1.5 overflow-hidden rounded-full bg-surface-raised">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${task.progress_percent}%` }}
+                />
+              </div>
             </div>
           )}
 
-          {/* Agent output: files + generated content */}
+          {/* Output */}
           {(outputs.length > 0 || docs.length > 0) && (
-            <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                Output · {outputs.length + docs.length}
-              </p>
-              <div className="space-y-1.5">
-                {outputs.map((file) => (
-                  <AttachmentRow key={file.id} file={file} />
+            <Section
+              title="Output"
+              count={outputs.length + docs.length}
+              icon={<Sparkles size={11} className="text-primary" />}
+            >
+              <div className="space-y-2">
+                {outputs.map((f) => (
+                  <FileRow key={f.id} file={f} />
                 ))}
-                {docs.map((doc, index) => (
-                  <div key={index} className="rounded-md border border-border bg-surface-raised">
+                {docs.map((doc, i) => (
+                  <div key={i} className="overflow-hidden rounded-xl bg-surface-raised/60">
                     <button
                       type="button"
-                      onClick={() => setExpandedDoc(expandedDoc === index ? null : index)}
-                      className="flex w-full items-center gap-2 px-2.5 py-2 text-left mk-focus-ring"
+                      onClick={() => setExpandedDoc(expandedDoc === i ? null : i)}
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left transition-colors hover:bg-surface-hover mk-focus-ring"
                     >
-                      <Sparkles size={13} className="shrink-0 text-primary-light" />
-                      <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-text">
+                      <FileText size={13} className="shrink-0 text-primary" />
+                      <span className="min-w-0 flex-1 truncate text-xs font-medium text-text">
                         {doc.title}
                       </span>
-                      <span className="text-[10px] text-text-muted">
-                        {expandedDoc === index ? "Hide" : "View"}
+                      <span className="rounded-md bg-surface-raised px-2 py-0.5 text-[10px] text-text-muted">
+                        {expandedDoc === i ? "Hide" : "View"}
                       </span>
                     </button>
-                    {expandedDoc === index && (
-                      <pre className="max-h-56 overflow-y-auto whitespace-pre-wrap border-t border-border px-2.5 py-2 font-sans text-[11px] leading-relaxed text-text-secondary">
+                    {expandedDoc === i && (
+                      <pre className="max-h-48 overflow-y-auto bg-bg-deep/50 px-3.5 py-3 font-sans text-[11px] leading-relaxed text-text-secondary">
                         {doc.content}
                       </pre>
                     )}
                   </div>
                 ))}
               </div>
-            </div>
+            </Section>
           )}
 
-          {/* User-provided files */}
+          {/* Attachments */}
           {inputs.length > 0 && (
-            <div>
-              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                <Paperclip size={11} /> Attachments · {inputs.length}
-              </p>
-              <div className="space-y-1.5">
-                {inputs.map((file) => (
-                  <AttachmentRow key={file.id} file={file} />
+            <Section
+              title="Attachments"
+              count={inputs.length}
+              icon={<Paperclip size={11} className="text-text-muted" />}
+            >
+              <div className="space-y-2">
+                {inputs.map((f) => (
+                  <FileRow key={f.id} file={f} />
                 ))}
               </div>
-            </div>
+            </Section>
           )}
 
+          {/* Subtasks */}
           {task.subtasks.length > 0 && (
-            <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                Subtasks · {task.subtask_done_count}/{task.subtask_count}
-              </p>
-              <div className="space-y-1.5">
+            <Section
+              title="Subtasks"
+              count={task.subtask_done_count}
+              icon={<CheckCircle2 size={11} className="text-text-muted" />}
+            >
+              <div className="space-y-0.5">
                 {task.subtasks
                   .slice()
                   .sort((a, b) => a.position - b.position)
-                  .map((subtask) => (
+                  .map((st) => (
                     <button
-                      key={subtask.id}
+                      key={st.id}
                       type="button"
                       onClick={() =>
                         toggleSubtask.mutate({
                           taskId: task.id,
-                          subtaskId: subtask.id,
-                          done: !subtask.done,
+                          subtaskId: st.id,
+                          done: !st.done,
                         })
                       }
-                      className="flex w-full items-center gap-2 rounded px-1 py-0.5 text-left text-xs transition-colors hover:bg-surface-hover mk-focus-ring"
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors hover:bg-surface-hover mk-focus-ring"
                     >
-                      {subtask.done ? (
+                      {st.done ? (
                         <CheckCircle2 size={14} className="shrink-0 text-success" />
                       ) : (
-                        <Circle size={14} className="shrink-0 text-text-muted" />
+                        <Circle size={14} className="shrink-0 text-text-muted/50" />
                       )}
-                      <span className={subtask.done ? "text-text-muted line-through" : "text-text"}>
-                        {subtask.title}
+                      <span className={st.done ? "text-text-muted line-through" : "text-text"}>
+                        {st.title}
                       </span>
                     </button>
                   ))}
               </div>
-            </div>
+            </Section>
           )}
 
-          <div>
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-              Comments · {task.comments.length}
-            </p>
-            <div className="space-y-3">
-              {task.comments.map((c) => (
-                <div key={c.id} className="flex gap-2">
-                  <Avatar name={c.author_name} size="xs" isAi={c.author_kind === "agent"} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px]">
-                      <span className="font-semibold text-text">{c.author_name}</span>{" "}
-                      <span className="text-text-muted">{formatDateTime(c.inserted_at)}</span>
-                    </p>
-                    <p className="mt-0.5 text-xs text-text-secondary">{c.body}</p>
+          {/* Activity */}
+          <Section
+            title="Activity"
+            count={task.comments.length || undefined}
+            icon={<User size={11} className="text-text-muted" />}
+          >
+            {task.comments.length > 0 && (
+              <div className="mb-3 space-y-3">
+                {task.comments.map((c) => (
+                  <div key={c.id} className="flex gap-2.5">
+                    <Avatar
+                      name={c.author_name}
+                      size="xs"
+                      isAi={c.author_kind === "agent"}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px]">
+                        <span className="font-semibold text-text">
+                          {c.author_name ?? "Unknown"}
+                        </span>
+                        <span className="ml-1.5 text-text-muted">
+                          {formatDateTime(c.inserted_at)}
+                        </span>
+                      </p>
+                      <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-text-secondary">
+                        {c.body}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
-            <div className="mt-3 flex gap-2">
+            <div className="flex gap-2">
               <input
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitComment()}
-                placeholder="Add a comment…"
-                className="mk-input flex-1"
+                placeholder="Write a comment…"
+                className="mk-input flex-1 text-xs"
               />
               <Button
                 size="icon"
@@ -425,10 +531,10 @@ export function TaskDetailPanel({
                 loading={createComment.isPending}
                 aria-label="Send comment"
               >
-                <Send size={14} />
+                <Send size={13} />
               </Button>
             </div>
-          </div>
+          </Section>
         </div>
       )}
     </DetailPanel>
