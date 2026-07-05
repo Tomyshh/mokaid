@@ -1,13 +1,26 @@
 import Config
 
-config :mokaid, Mokaid.Repo,
-  username: System.get_env("PGUSER", "mokaid"),
-  password: System.get_env("PGPASSWORD", "mokaid_dev_password"),
-  hostname: System.get_env("PGHOST", "localhost"),
-  database: "mokaid_test#{System.get_env("MIX_TEST_PARTITION")}",
+repo_config = [
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2,
   types: Mokaid.PostgrexTypes
+]
+
+repo_config =
+  case System.get_env("DATABASE_URL") do
+    nil ->
+      Keyword.merge(repo_config,
+        username: System.get_env("PGUSER", "mokaid"),
+        password: System.get_env("PGPASSWORD", "mokaid_dev_password"),
+        hostname: System.get_env("PGHOST", "localhost"),
+        database: "mokaid_test#{System.get_env("MIX_TEST_PARTITION")}"
+      )
+
+    database_url ->
+      Keyword.put(repo_config, :url, database_url)
+  end
+
+config :mokaid, Mokaid.Repo, repo_config
 
 config :mokaid, MokaidWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
