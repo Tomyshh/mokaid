@@ -36,6 +36,11 @@ aws ecs update-service \
   --query 'service.serviceName' \
   --output text
 
-aws ecs wait services-stable --cluster "${CLUSTER}" --services "${SERVICE}"
+echo "Waiting for ${SERVICE} to stabilize (up to 20 minutes)..."
+aws ecs wait services-stable \
+  --cluster "${CLUSTER}" \
+  --services "${SERVICE}" \
+  --cli-read-timeout 1200 \
+  --cli-connect-timeout 60
 
 echo "Deployed ${SERVICE} with ${IMAGE}"
