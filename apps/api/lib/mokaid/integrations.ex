@@ -4,7 +4,7 @@ defmodule Mokaid.Integrations do
   import Ecto.Query
 
   alias Mokaid.Audit
-  alias Mokaid.Integrations.{GoogleOAuth, IntegrationConnection, IntegrationProvider}
+  alias Mokaid.Integrations.{GitHubOAuth, GoogleOAuth, IntegrationConnection, IntegrationProvider}
   alias Mokaid.MCP
   alias Mokaid.Repo
   alias Mokaid.Vault
@@ -33,10 +33,44 @@ defmodule Mokaid.Integrations do
 
   @doc "Connects a provider (mock connector — OAuth flow to be wired per provider)."
   def connect(workspace_id, provider_key, member) do
-    if GoogleOAuth.google_provider?(provider_key) do
-      {:error, :oauth_required}
+    cond do
+      GoogleOAuth.google_provider?(provider_key) -> {:error, :oauth_required}
+      GitHubOAuth.github_provider?(provider_key) -> {:error, :oauth_required}
+      true -> connect_mock(workspace_id, provider_key, member)
+    end
+  end
+
+  @doc "Stores GitHub OAuth credentials on the workspace GitHub integration."
+  def connect_github_provider(workspace_id, member, credentials, account) do
+    member = Repo.preload(member, :user)
+
+    case connect_with_credentials(
+           workspace_id,
+           GitHubOAuth.provider_key(),
+           member,
+           credentials,
+           account,
+           "github_oauth"
+         ) do
+      {:ok, connection} -> {:ok, connection}
+      error -> error
+    end
+  end
+
+  @doc "Mirrors GitHub OAuth credentials into the MCP Hub GitHub installation."
+  def sync_github_mcp_installation(workspace_id, member, credentials, account) do
+    mcp_credentials =
+      Map.merge(credentials, %{
+        "api_key" => credentials["access_token"],
+        "token" => credentials["access_token"]
+      })
+
+    with {:ok, installation} <- MCP.install(workspace_id, GitHubOAuth.provider_key(), member, %{}),
+         {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
+      {:ok, :synced}
     else
-      connect_mock(workspace_id, provider_key, member)
+      {:error, :server_not_found} -> {:ok, :synced}
+      other -> other
     end
   end
 
@@ -77,7 +111,7 @@ defmodule Mokaid.Integrations do
     {:ok, :synced}
   end
 
-  defp connect_with_credentials(workspace_id, provider_key, member, credentials, account) do
+  defp connect_with_credentials(workspace_id, provider_key, member, credentials, account, via \\ "google_oauth") do
     with %IntegrationProvider{} = provider <- get_provider_by_key(provider_key) do
       attrs = %{
         "workspace_id" => workspace_id,
@@ -100,7 +134,7 @@ defmodule Mokaid.Integrations do
            {:ok, updated} <- store_credentials(connection, credentials, account) do
         Audit.log(workspace_id, member, "integration.connect", "integration", updated.id, %{
           provider: provider_key,
-          via: "google_oauth"
+          via: via
         })
 
         {:ok, Repo.preload(updated, :provider)}

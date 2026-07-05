@@ -23,6 +23,7 @@ import { MembersPage } from "@/pages/members";
 import { McpHubPage } from "@/pages/mcp-hub";
 import { FigmaCallbackPage } from "@/pages/figma-callback";
 import { GoogleCallbackPage } from "@/pages/google-callback";
+import { GithubCallbackPage } from "@/pages/github-callback";
 import { BillingPage } from "@/pages/billing";
 
 const rootRoute = createRootRoute({
@@ -99,12 +100,19 @@ const googleCallbackRoute = createRoute({
   component: GoogleCallbackPage,
 });
 
+const githubCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/oauth/github/callback",
+  component: GithubCallbackPage,
+});
+
 const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   signupRoute,
   figmaCallbackRoute,
   googleCallbackRoute,
+  githubCallbackRoute,
   appRoute.addChildren(pageRoutes),
 ]);
 

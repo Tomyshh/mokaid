@@ -12,6 +12,7 @@ defmodule Mokaid.Integrations.IntegrationProvider do
     field :category, :string
     field :description, :string
     field :icon_slug, :string
+    field :logo_storage_key, :string
     field :auth_kind, :string, default: "oauth2"
     field :capabilities, :map, default: %{}
     field :enabled, :boolean, default: true
@@ -27,6 +28,7 @@ defmodule Mokaid.Integrations.IntegrationProvider do
       :category,
       :description,
       :icon_slug,
+      :logo_storage_key,
       :auth_kind,
       :capabilities,
       :enabled

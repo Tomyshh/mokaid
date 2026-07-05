@@ -13,6 +13,17 @@ defmodule Mokaid.Release do
     for repo <- repos() do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
     end
+
+    seed_integration_logos()
+  end
+
+  def seed_integration_logos do
+    load_app()
+
+    {:ok, _, _} =
+      Ecto.Migrator.with_repo(Mokaid.Repo, fn _repo ->
+        Mokaid.Integrations.LogoAssets.seed_all()
+      end)
   end
 
   def rollback(repo, version) do

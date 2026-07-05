@@ -620,6 +620,37 @@ export function useGoogleOauthCallback() {
   });
 }
 
+export function useGithubOauthStart() {
+  return useMutation({
+    mutationFn: (redirectUri: string) =>
+      apiFetch<Envelope<{ authorize_url: string }>>("/api/integrations/github/oauth/start", {
+        method: "POST",
+        body: { redirect_uri: redirectUri },
+      }),
+  });
+}
+
+export function useGithubOauthCallback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { code: string; state: string; redirect_uri: string }) =>
+      apiFetch<
+        Envelope<{
+          connection: IntegrationConnection;
+          connected_account?: string;
+          provider_key: string;
+        }>
+      >("/api/integrations/github/oauth/callback", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+      queryClient.invalidateQueries({ queryKey: ["mcp"] });
+    },
+  });
+}
+
 /* ---------- Billing & analytics ---------- */
 
 export function useBillingOverview() {

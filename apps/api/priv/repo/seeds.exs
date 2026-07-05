@@ -93,32 +93,50 @@ end
 ## ---------- Integrations ----------
 
 provider_specs = [
-  {"slack", "Slack", "Communication", "Send messages, alerts and notifications."},
-  {"google_drive", "Google Drive", "Storage", "Store, access and share files."},
-  {"gmail", "Gmail", "Communication", "Send and receive email."},
-  {"notion", "Notion", "Productivity", "Sync pages and databases."},
-  {"trello", "Trello", "Project Management", "Manage tasks and boards."},
-  {"github", "GitHub", "Developer", "Sync repositories, issues and PRs."},
-  {"zapier", "Zapier", "Automation", "Automate workflows between apps."},
-  {"hubspot", "HubSpot", "CRM", "CRM, contacts and marketing."},
+  {"slack", "Slack", "Communication", "Send messages, alerts and notifications.", "slack"},
+  {"google_drive", "Google Drive", "Storage", "Store, access and share files.", "googledrive"},
+  {"gmail", "Gmail", "Communication", "Send and receive email.", "gmail"},
+  {"notion", "Notion", "Productivity", "Sync pages and databases.", "notion"},
+  {"trello", "Trello", "Project Management", "Manage tasks and boards.", "trello"},
+  {"github", "GitHub", "Developer", "Sync repositories, issues and PRs.", "github"},
+  {"zapier", "Zapier", "Automation", "Automate workflows between apps.", "zapier"},
+  {"hubspot", "HubSpot", "CRM", "CRM, contacts and marketing.", "hubspot"},
   {"microsoft_teams", "Microsoft Teams", "Communication",
-   "Notifications and team collaboration."},
-  {"dropbox", "Dropbox", "Storage", "Cloud storage and file sharing."},
-  {"stripe", "Stripe", "Finance", "Payments and billing."},
-  {"jira", "Jira", "Project Management", "Issue tracking and agile boards."},
-  {"linear", "Linear", "Project Management", "Modern issue tracking."},
-  {"google_calendar", "Google Calendar", "Productivity", "Sync events and schedules."},
-  {"google_docs", "Google Docs", "Productivity", "Create and edit documents."},
-  {"google_sheets", "Google Sheets", "Productivity", "Read and write spreadsheets."},
-  {"google_meet", "Google Meet", "Communication", "Schedule and manage video meetings."}
+   "Notifications and team collaboration.", "microsoftteams"},
+  {"dropbox", "Dropbox", "Storage", "Cloud storage and file sharing.", "dropbox"},
+  {"stripe", "Stripe", "Finance", "Payments and billing.", "stripe"},
+  {"jira", "Jira", "Project Management", "Issue tracking and agile boards.", "jira"},
+  {"linear", "Linear", "Project Management", "Modern issue tracking.", "linear"},
+  {"google_calendar", "Google Calendar", "Productivity", "Sync events and schedules.",
+   "googlecalendar"},
+  {"google_docs", "Google Docs", "Productivity", "Create and edit documents.", "googledocs"},
+  {"google_sheets", "Google Sheets", "Productivity", "Read and write spreadsheets.",
+   "googlesheets"},
+  {"google_meet", "Google Meet", "Communication", "Schedule and manage video meetings.",
+   "googlemeet"}
 ]
 
-for {key, name, category, description} <- provider_specs do
+for {key, name, category, description, icon_slug} <- provider_specs do
   Repo.insert!(
-    %IntegrationProvider{key: key, name: name, category: category, description: description},
-    on_conflict: :nothing
+    %IntegrationProvider{
+      key: key,
+      name: name,
+      category: category,
+      description: description,
+      icon_slug: icon_slug
+    },
+    on_conflict: {:replace, [:name, :category, :description, :icon_slug, :updated_at]},
+    conflict_target: :key
   )
 end
+
+if github = Repo.get_by(IntegrationProvider, key: "github") do
+  github
+  |> Ecto.Changeset.change(auth_kind: "oauth2")
+  |> Repo.update!()
+end
+
+Mokaid.Integrations.LogoAssets.seed_all()
 
 ## ---------- Billing ----------
 

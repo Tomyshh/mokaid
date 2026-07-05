@@ -26,6 +26,16 @@ config :mokaid, :google_oauth,
       "http://localhost:5173/oauth/google/callback"
     ])
 
+config :mokaid, :github_oauth,
+  client_id: System.get_env("GITHUB_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+  redirect_uris:
+    Enum.uniq([
+      System.get_env("GITHUB_REDIRECT_URI") || "https://mokaid.com/oauth/github/callback",
+      "https://mokaid.com/oauth/github/callback",
+      "http://localhost:5173/oauth/github/callback"
+    ])
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

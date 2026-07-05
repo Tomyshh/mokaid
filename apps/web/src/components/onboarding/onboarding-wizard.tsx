@@ -22,6 +22,7 @@ import {
   useConnectIntegration,
   useCreateAgent,
   useCreateProject,
+  useGithubOauthStart,
   useGoogleOauthStart,
   useIntegrations,
   useInviteMember,
@@ -37,6 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/auth-store";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { fetchWorkspaceLogoBlob } from "@/api/client";
+import { IntegrationLogo } from "@/components/integrations/integration-logo";
 import { cn } from "@/lib/cn";
 
 /* ─── Steps config ─── */
@@ -82,6 +84,8 @@ const googleProviderKeys = new Set([
   "google_sheets",
   "google_meet",
 ]);
+
+const githubProviderKey = "github";
 
 /* ─── Small pieces ─── */
 
@@ -249,6 +253,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const { data: integrationsData } = useIntegrations();
   const connectIntegration = useConnectIntegration();
   const googleOauthStart = useGoogleOauthStart();
+  const githubOauthStart = useGithubOauthStart();
 
   const [step, setStep] = useState(0);
 
@@ -315,6 +320,13 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
     if (connectedKeys.has(key)) return;
     setConnecting(key);
     try {
+      if (key === githubProviderKey) {
+        const result = await githubOauthStart.mutateAsync(
+          `${window.location.origin}/oauth/github/callback`,
+        );
+        window.location.href = result.data.authorize_url;
+        return;
+      }
       if (googleProviderKeys.has(key)) {
         const result = await googleOauthStart.mutateAsync({
           redirect_uri: `${window.location.origin}/oauth/google/callback`,
@@ -621,14 +633,12 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                           : "bg-surface-raised/60 hover:bg-surface-hover hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)]",
                       )}
                     >
-                      <span
-                        className={cn(
-                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
-                          connected ? "bg-success/20 text-success" : "bg-surface-overlay text-text",
-                        )}
-                      >
-                        {provider.name.slice(0, 2)}
-                      </span>
+                      <IntegrationLogo
+                        providerKey={provider.key}
+                        logoUrl={provider.logo_url}
+                        name={provider.name}
+                        size="sm"
+                      />
                       <span className="min-w-0 flex-1">
                         <span className="block text-xs font-semibold text-text">
                           {provider.name}

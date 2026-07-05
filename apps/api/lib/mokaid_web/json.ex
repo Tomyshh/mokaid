@@ -427,9 +427,18 @@ defmodule MokaidWeb.JSON do
       name: provider.name,
       category: provider.category,
       description: provider.description,
-      auth_kind: provider.auth_kind
+      auth_kind: provider.auth_kind,
+      icon_slug: provider.icon_slug,
+      logo_url: integration_logo_url(provider)
     }
   end
+
+  defp integration_logo_url(%{logo_storage_key: key, key: provider_key})
+       when is_binary(key) and key != "" do
+    "/api/integrations/logos/#{provider_key}"
+  end
+
+  defp integration_logo_url(_), do: nil
 
   def invoice(invoice) do
     %{

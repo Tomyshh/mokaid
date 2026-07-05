@@ -25,6 +25,7 @@ defmodule MokaidWeb.Router do
     pipe_through :api
 
     get "/health", HealthController, :show
+    get "/integrations/logos/:key", IntegrationController, :logo
 
     post "/auth/login", AuthController, :login
     post "/auth/register", AuthController, :register
@@ -93,6 +94,8 @@ defmodule MokaidWeb.Router do
     post "/integrations/:id/disconnect", IntegrationController, :disconnect
     post "/integrations/google/oauth/start", IntegrationOAuthController, :google_start
     post "/integrations/google/oauth/callback", IntegrationOAuthController, :google_callback
+    post "/integrations/github/oauth/start", IntegrationOAuthController, :github_start
+    post "/integrations/github/oauth/callback", IntegrationOAuthController, :github_callback
 
     get "/mcp", MCPController, :index
     post "/mcp/:server/install", MCPController, :install

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, ExternalLink, Plug, Star, Trash2 } from "lucide-react";
 import {
   useFigmaOauthStart,
+  useGithubOauthStart,
   useGoogleOauthStart,
   useInstallMcp,
   useMcpHub,
@@ -42,6 +43,10 @@ function figmaRedirectUri(): string {
 
 function googleRedirectUri(): string {
   return `${window.location.origin}/oauth/google/callback`;
+}
+
+function githubRedirectUri(): string {
+  return `${window.location.origin}/oauth/github/callback`;
 }
 
 const googleServerKeys = new Set([
@@ -110,6 +115,7 @@ function InstallPanel({
   const uninstall = useUninstallMcp();
   const figmaStart = useFigmaOauthStart();
   const googleStart = useGoogleOauthStart();
+  const githubStart = useGithubOauthStart();
   const [apiKey, setApiKey] = useState("");
   const [serverUrl, setServerUrl] = useState("");
   const [token, setToken] = useState("");
@@ -118,6 +124,7 @@ function InstallPanel({
   const isConnected = installation?.status === "connected";
   const isFigma = server.key === "figma";
   const isGoogle = googleServerKeys.has(server.key);
+  const isGithub = server.key === "github";
 
   const startFigmaOauth = async () => {
     setError(null);
@@ -139,6 +146,16 @@ function InstallPanel({
       window.location.href = result.data.authorize_url;
     } catch {
       setError("Google OAuth is not configured on this environment.");
+    }
+  };
+
+  const startGithubOauth = async () => {
+    setError(null);
+    try {
+      const result = await githubStart.mutateAsync(githubRedirectUri());
+      window.location.href = result.data.authorize_url;
+    } catch {
+      setError("GitHub OAuth is not configured on this environment.");
     }
   };
 
@@ -250,6 +267,15 @@ function InstallPanel({
         >
           <Plug size={13} /> Connect with Google
         </Button>
+      ) : isGithub ? (
+        <Button
+          size="sm"
+          className="w-full"
+          loading={githubStart.isPending}
+          onClick={startGithubOauth}
+        >
+          <Plug size={13} /> Connect with GitHub
+        </Button>
       ) : server.auth_kind === "api_key" ? (
         <div className="space-y-3">
           <Field label="API key" hint="Stored encrypted. Only used by agents you authorize.">
@@ -305,7 +331,7 @@ function InstallPanel({
         </div>
       )}
 
-      {server.auth_kind === "oauth2" && !isFigma && !isGoogle && !isConnected && (
+      {server.auth_kind === "oauth2" && !isFigma && !isGoogle && !isGithub && !isConnected && (
         <p className="text-center text-[10px] text-text-muted">
           Native OAuth for {server.name} is coming soon. You can connect it today through a custom
           MCP server URL above.

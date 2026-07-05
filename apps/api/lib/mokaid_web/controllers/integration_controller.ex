@@ -32,7 +32,7 @@ defmodule MokaidWeb.IntegrationController do
         |> json(%{
           error: %{
             code: "oauth_required",
-            message: "This integration requires Google OAuth. Use /integrations/google/oauth/start."
+            message: "This integration requires OAuth. Use /integrations/google/oauth/start or /integrations/github/oauth/start."
           }
         })
     end
@@ -45,6 +45,25 @@ defmodule MokaidWeb.IntegrationController do
       json(conn, %{
         data: Serializer.integration_connection(Mokaid.Repo.preload(updated, :provider))
       })
+    end
+  end
+
+  @doc """
+  Serves the official integration logo from S3. Public catalog asset (no auth).
+  """
+  def logo(conn, %{"key" => key}) do
+    with %{} = provider <- Integrations.get_provider_by_key(key),
+         sk when is_binary(sk) and sk != "" <- provider.logo_storage_key,
+         {:ok, body, content_type} <- Mokaid.Storage.get_object(sk) do
+      conn
+      |> put_resp_content_type(content_type)
+      |> put_resp_header("cache-control", "public, max-age=86400, immutable")
+      |> send_resp(200, body)
+    else
+      _ ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "Logo not found"}})
     end
   end
 end

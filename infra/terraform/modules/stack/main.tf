@@ -262,6 +262,8 @@ module "secrets" {
     figma_client_secret = "CHANGE_ME"
     google_client_id    = "CHANGE_ME"
     google_client_secret = "CHANGE_ME"
+    github_client_id    = "CHANGE_ME"
+    github_client_secret = "CHANGE_ME"
   }
   parameters = {
     cognito_user_pool_id = module.cognito.user_pool_id
@@ -390,6 +392,8 @@ module "api_service" {
     FIGMA_CLIENT_SECRET = module.secrets.secret_arns["figma_client_secret"]
     GOOGLE_CLIENT_ID    = module.secrets.secret_arns["google_client_id"]
     GOOGLE_CLIENT_SECRET = module.secrets.secret_arns["google_client_secret"]
+    GITHUB_CLIENT_ID    = module.secrets.secret_arns["github_client_id"]
+    GITHUB_CLIENT_SECRET = module.secrets.secret_arns["github_client_secret"]
   }
 
   task_policy_json   = data.aws_iam_policy_document.api_task.json

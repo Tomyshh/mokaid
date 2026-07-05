@@ -64,6 +64,14 @@ defmodule Mokaid.Storage do
     end
   end
 
+  @doc "Uploads a platform-wide static asset (integration logos, etc.)."
+  @spec upload_platform_asset(String.t(), binary(), String.t() | nil) ::
+          {:ok, %{storage_key: String.t(), size_bytes: non_neg_integer(), checksum: String.t()}}
+          | {:error, term()}
+  def upload_platform_asset(storage_key, content, content_type) when is_binary(content) do
+    put_object(uploads_bucket(), storage_key, content, content_type)
+  end
+
   @spec download_url(String.t()) :: {:ok, String.t()} | {:error, term()}
   def download_url(storage_key) do
     config = ExAws.Config.new(:s3)

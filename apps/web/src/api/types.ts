@@ -285,6 +285,8 @@ export interface IntegrationProvider {
   category: string;
   description: string | null;
   auth_kind: string;
+  icon_slug: string | null;
+  logo_url: string | null;
 }
 
 export interface IntegrationConnection {
