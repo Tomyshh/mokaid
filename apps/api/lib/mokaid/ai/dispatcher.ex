@@ -184,6 +184,8 @@ defmodule Mokaid.AI.Dispatcher do
   end
 
   defp roster_entry(%{agent: agent, open_tasks: open_tasks}) do
+    learning = get_in(agent.capabilities, ["learning"]) || %{}
+
     %{
       id: agent.id,
       name: agent.display_name,
@@ -191,7 +193,9 @@ defmodule Mokaid.AI.Dispatcher do
       department: agent.department,
       status: agent.status,
       skills: agent.skills,
-      open_tasks: open_tasks
+      open_tasks: open_tasks,
+      specialty: learning["specialty"],
+      missions_total: learning["missions_total"] || 0
     }
   end
 
@@ -331,17 +335,12 @@ defmodule Mokaid.AI.Dispatcher do
       end)
       |> Enum.sort_by(fn {_entry, score} -> -score end)
 
-    {best, best_score} = List.first(scored) || {nil, 0}
+    {best_entry, best_score} = List.first(scored) || {nil, 0}
     confidence = if best_score > 0, do: min(30 + best_score * 6, 92), else: 15
 
-    mode =
-      cond do
-        best != nil and confidence >= 60 -> "existing_agent"
-        best != nil and confidence >= 40 -> "user_choice"
-        true -> "custom_agent"
-      end
-
-    custom_agent = if mode in ~w(custom_agent user_choice), do: custom_proposal(categories)
+    # Detect out-of-scope: the best agent is specialised in a different domain.
+    {mode, reason, custom_agent} =
+      out_of_scope_check(best_entry, confidence, categories, roster)
 
     alternatives =
       scored
@@ -364,14 +363,66 @@ defmodule Mokaid.AI.Dispatcher do
       },
       recommendation: %{
         mode: mode,
-        agent_id: if(mode == "custom_agent", do: nil, else: best && best.agent.id),
+        agent_id: if(mode == "custom_agent", do: nil, else: best_entry && best_entry.agent.id),
         confidence: confidence,
-        reason: heuristic_reason(mode, best && best.agent, categories),
+        reason: reason,
         alternatives: alternatives,
         custom_agent: custom_agent
       },
       mcp_suggestions: heuristic_mcp_suggestions(instruction, categories, servers)
     }
+  end
+
+  # Returns `{mode, reason, custom_agent}` with out-of-scope logic applied.
+  defp out_of_scope_check(nil, _confidence, categories, _roster) do
+    {"custom_agent", heuristic_reason("custom_agent", nil, categories),
+     custom_proposal(categories)}
+  end
+
+  defp out_of_scope_check(best_entry, confidence, categories, roster) when confidence >= 60 do
+    specialty = get_in(best_entry.agent.capabilities, ["learning", "specialty"])
+
+    if specialty != nil and categories != [] and specialty not in categories and
+         all_agents_lack_domain?(roster, categories) do
+      # The best agent is specialised but not in the right domain — propose a new one.
+      reason =
+        "#{best_entry.agent.display_name} specialises in #{specialty}; " <>
+          "this mission is about #{Enum.join(categories, ", ")}. " <>
+          "A dedicated agent would be more efficient."
+
+      {"user_choice", reason, custom_proposal(categories)}
+    else
+      {"existing_agent", heuristic_reason("existing_agent", best_entry.agent, categories), nil}
+    end
+  end
+
+  defp out_of_scope_check(best_entry, confidence, categories, _roster) when confidence >= 40 do
+    {"user_choice",
+     heuristic_reason("user_choice", best_entry.agent, categories),
+     custom_proposal(categories)}
+  end
+
+  defp out_of_scope_check(_best_entry, _confidence, categories, _roster) do
+    {"custom_agent", heuristic_reason("custom_agent", nil, categories),
+     custom_proposal(categories)}
+  end
+
+  # True when no agent in the roster has meaningful skills in any of the given domains.
+  defp all_agents_lack_domain?(roster, domains) do
+    domain_keywords =
+      domains
+      |> Enum.flat_map(fn d -> Map.get(@category_keywords, d, []) end)
+      |> MapSet.new()
+
+    Enum.all?(roster, fn entry ->
+      specialty = get_in(entry.agent.capabilities, ["learning", "specialty"])
+      skill_names = Enum.map(entry.agent.skills || [], fn s -> s["name"] || s[:name] || "" end)
+
+      not (specialty in domains) and
+        not Enum.any?(skill_names, fn name ->
+          MapSet.member?(domain_keywords, String.downcase(to_string(name)))
+        end)
+    end)
   end
 
   defp detect_categories(instruction, files) do
@@ -438,6 +489,13 @@ defmodule Mokaid.AI.Dispatcher do
   defp heuristic_reason("user_choice", agent, _categories),
     do:
       "#{agent.display_name} can handle it, but a dedicated agent may fit this kind of request even better."
+
+  defp heuristic_reason("custom_agent", nil, []),
+    do: "No existing agent covers this request well — a purpose-built agent is recommended."
+
+  defp heuristic_reason("custom_agent", nil, categories),
+    do:
+      "No existing agent covers #{Enum.join(categories, ", ")} work well — a purpose-built agent is recommended."
 
   defp heuristic_reason("custom_agent", _agent, []),
     do: "No existing agent covers this request well — a purpose-built agent is recommended."

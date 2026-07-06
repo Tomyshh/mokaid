@@ -28,6 +28,31 @@ variable "worker_image_tag" {
   default = "latest"
 }
 
+variable "web_image_tag" {
+  type    = string
+  default = "latest"
+}
+
+variable "web_cpu" {
+  type    = number
+  default = 256
+}
+
+variable "web_memory" {
+  type    = number
+  default = 512
+}
+
+variable "web_desired_count" {
+  type    = number
+  default = 1
+}
+
+variable "web_max_count" {
+  type    = number
+  default = 2
+}
+
 variable "api_cpu" {
   type    = number
   default = 512
@@ -130,7 +155,18 @@ locals {
 
   bucket_suffix = "${var.environment}-${data.aws_caller_identity.current.account_id}"
 
-  app_origin = var.app_domain != "" ? "https://${var.app_domain}" : "http://localhost:3000,http://localhost:5173"
+  app_origins = var.app_domain != "" ? ["https://${var.app_domain}"] : [
+    "http://localhost:3000",
+    "http://localhost:5173",
+  ]
+
+  # Cognito requires HTTPS for non-localhost callbacks; ALB HTTP origin is API CORS/S3 only.
+  cors_origins = concat(
+    local.app_origins,
+    var.app_domain == "" ? ["http://${module.alb.alb_dns_name}"] : [],
+  )
+
+  app_origin = join(",", local.cors_origins)
 }
 
 # ---------- Networking ----------
@@ -183,7 +219,7 @@ module "s3_files" {
   source = "../s3-bucket"
 
   bucket_name          = "mokaid-files-${local.bucket_suffix}"
-  cors_allowed_origins = [local.app_origin]
+  cors_allowed_origins = local.cors_origins
   tags                 = local.tags
 }
 
@@ -191,7 +227,7 @@ module "s3_uploads" {
   source = "../s3-bucket"
 
   bucket_name            = "mokaid-uploads-${local.bucket_suffix}"
-  cors_allowed_origins   = [local.app_origin]
+  cors_allowed_origins   = local.cors_origins
   expire_noncurrent_days = 14
   tags                   = local.tags
 }
@@ -234,8 +270,8 @@ module "cognito" {
   source = "../cognito"
 
   name          = local.name
-  callback_urls = ["${local.app_origin}/auth/callback"]
-  logout_urls   = [local.app_origin]
+  callback_urls = [for origin in local.app_origins : "${origin}/auth/callback"]
+  logout_urls   = local.app_origins
   tags          = local.tags
 }
 
@@ -264,6 +300,15 @@ module "secrets" {
     google_client_secret = "CHANGE_ME"
     github_client_id    = "CHANGE_ME"
     github_client_secret = "CHANGE_ME"
+    linear_client_id    = "CHANGE_ME"
+    linear_client_secret = "CHANGE_ME"
+    slack_client_id     = "CHANGE_ME"
+    slack_client_secret = "CHANGE_ME"
+    slack_signing_secret = "CHANGE_ME"
+    slack_app_id = "CHANGE_ME"
+    slack_verification_token = "CHANGE_ME"
+    notion_client_id    = "CHANGE_ME"
+    notion_client_secret = "CHANGE_ME"
   }
   parameters = {
     cognito_user_pool_id = module.cognito.user_pool_id
@@ -369,7 +414,7 @@ module "api_service" {
 
   environment = {
     MIX_ENV               = "prod"
-    PHX_HOST              = var.app_domain != "" ? "api.${var.app_domain}" : module.alb.alb_dns_name
+    PHX_HOST              = var.app_domain != "" ? var.app_domain : module.alb.alb_dns_name
     PORT                  = "4000"
     AWS_REGION            = var.aws_region
     AUTH_MODE             = var.auth_mode
@@ -384,6 +429,9 @@ module "api_service" {
     FIGMA_REDIRECT_URI    = var.app_domain != "" ? "https://${var.app_domain}/oauth/figma/callback" : "https://mokaid.com/oauth/figma/callback"
     GOOGLE_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/oauth/google/callback" : "https://mokaid.com/oauth/google/callback"
     GITHUB_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/oauth/github/callback" : "https://mokaid.com/oauth/github/callback"
+    LINEAR_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/oauth/linear/callback" : "https://mokaid.com/oauth/linear/callback"
+    SLACK_REDIRECT_URI    = var.app_domain != "" ? "https://${var.app_domain}/oauth/slack/callback" : "https://mokaid.com/oauth/slack/callback"
+    NOTION_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/auth/notion/callback" : "https://mokaid.com/auth/notion/callback"
   }
 
   secrets = {
@@ -396,11 +444,41 @@ module "api_service" {
     GOOGLE_CLIENT_SECRET = module.secrets.secret_arns["google_client_secret"]
     GITHUB_CLIENT_ID    = module.secrets.secret_arns["github_client_id"]
     GITHUB_CLIENT_SECRET = module.secrets.secret_arns["github_client_secret"]
+    LINEAR_CLIENT_ID    = module.secrets.secret_arns["linear_client_id"]
+    LINEAR_CLIENT_SECRET = module.secrets.secret_arns["linear_client_secret"]
+    SLACK_CLIENT_ID     = module.secrets.secret_arns["slack_client_id"]
+    SLACK_CLIENT_SECRET = module.secrets.secret_arns["slack_client_secret"]
+    SLACK_SIGNING_SECRET = module.secrets.secret_arns["slack_signing_secret"]
+    SLACK_APP_ID        = module.secrets.secret_arns["slack_app_id"]
+    SLACK_VERIFICATION_TOKEN = module.secrets.secret_arns["slack_verification_token"]
+    NOTION_CLIENT_ID    = module.secrets.secret_arns["notion_client_id"]
+    NOTION_CLIENT_SECRET = module.secrets.secret_arns["notion_client_secret"]
   }
 
   task_policy_json   = data.aws_iam_policy_document.api_task.json
   enable_task_policy = true
   tags               = local.tags
+}
+
+module "web_service" {
+  source = "../ecs-service"
+
+  name               = "${local.name}-web"
+  cluster_arn        = aws_ecs_cluster.this.arn
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+
+  container_image = "${module.ecr.repository_urls["mokaid-web"]}:${var.web_image_tag}"
+  container_port  = 80
+  cpu             = var.web_cpu
+  memory          = var.web_memory
+  desired_count   = var.web_desired_count
+  max_count       = var.web_max_count
+
+  target_group_arn      = module.alb.web_target_group_arn
+  alb_security_group_id = module.alb.alb_security_group_id
+
+  tags = local.tags
 }
 
 data "aws_iam_policy_document" "worker_task" {
@@ -474,6 +552,10 @@ output "cloudfront_domain" {
 
 output "alb_dns_name" {
   value = module.alb.alb_dns_name
+}
+
+output "web_service_name" {
+  value = module.web_service.service_name
 }
 
 output "cognito_user_pool_id" {

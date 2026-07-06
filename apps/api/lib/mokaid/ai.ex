@@ -5,6 +5,7 @@ defmodule Mokaid.AI do
   """
 
   alias Mokaid.Agents
+  alias Mokaid.Agents.SkillLearning
   alias Mokaid.Billing
   alias Mokaid.Notifications
   alias Mokaid.Realtime
@@ -19,6 +20,11 @@ defmodule Mokaid.AI do
 
       if agent do
         Agents.change_status(agent, "busy", current_task_id: task.id, reason: "ai_run")
+      end
+
+      # Move the task to in_progress immediately so the dashboard shows it.
+      if task.status in ["to_do"] do
+        Tasks.update_task(task, %{"status" => "in_progress"})
       end
 
       Realtime.broadcast_workspace(task.workspace_id, "task.run_started", %{
@@ -51,8 +57,18 @@ defmodule Mokaid.AI do
 
   @doc "Handles a progress callback from the AI worker."
   def handle_progress(run_id, attrs) do
-    with %{} = run <- Tasks.get_run(run_id) do
-      Tasks.update_run_progress(run, attrs)
+    with %{} = run <- Tasks.get_run(run_id),
+         {:ok, updated_run} <- Tasks.update_run_progress(run, attrs) do
+      # Sync task status when the worker signals it has actually started running.
+      if attrs["status"] == "running" do
+        task = Tasks.get_task(run.workspace_id, run.task_id)
+
+        if task && task.status in ["to_do", "queued"] do
+          Tasks.update_task(task, %{"status" => "in_progress"})
+        end
+      end
+
+      {:ok, updated_run}
     else
       nil -> {:error, :run_not_found}
     end
@@ -114,6 +130,14 @@ defmodule Mokaid.AI do
 
         new_status = if has_output, do: "in_review", else: task.status
         Tasks.update_task(task, %{"status" => new_status, "progress_percent" => 100})
+
+        # Skill learning — fire-and-forget (does not block the response).
+        if run.agent_id do
+          case Agents.get_agent(run.workspace_id, run.agent_id) do
+            nil -> :ok
+            agent -> SkillLearning.record_mission(agent, task, output || %{})
+          end
+        end
 
         if has_output do
           Notifications.notify_member(

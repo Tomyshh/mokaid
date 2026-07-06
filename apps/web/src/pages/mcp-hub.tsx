@@ -4,6 +4,9 @@ import {
   useFigmaOauthStart,
   useGithubOauthStart,
   useGoogleOauthStart,
+  useLinearOauthStart,
+  useNotionOauthStart,
+  useSlackOauthStart,
   useInstallMcp,
   useMcpHub,
   useUninstallMcp,
@@ -47,6 +50,18 @@ function googleRedirectUri(): string {
 
 function githubRedirectUri(): string {
   return `${window.location.origin}/oauth/github/callback`;
+}
+
+function linearRedirectUri(): string {
+  return `${window.location.origin}/oauth/linear/callback`;
+}
+
+function slackRedirectUri(): string {
+  return `${window.location.origin}/oauth/slack/callback`;
+}
+
+function notionRedirectUri(): string {
+  return `${window.location.origin}/auth/notion/callback`;
 }
 
 const googleServerKeys = new Set([
@@ -116,6 +131,9 @@ function InstallPanel({
   const figmaStart = useFigmaOauthStart();
   const googleStart = useGoogleOauthStart();
   const githubStart = useGithubOauthStart();
+  const linearStart = useLinearOauthStart();
+  const slackStart = useSlackOauthStart();
+  const notionStart = useNotionOauthStart();
   const [apiKey, setApiKey] = useState("");
   const [serverUrl, setServerUrl] = useState("");
   const [token, setToken] = useState("");
@@ -125,6 +143,9 @@ function InstallPanel({
   const isFigma = server.key === "figma";
   const isGoogle = googleServerKeys.has(server.key);
   const isGithub = server.key === "github";
+  const isLinear = server.key === "linear";
+  const isSlack = server.key === "slack";
+  const isNotion = server.key === "notion";
 
   const startFigmaOauth = async () => {
     setError(null);
@@ -156,6 +177,36 @@ function InstallPanel({
       window.location.href = result.data.authorize_url;
     } catch {
       setError("GitHub OAuth is not configured on this environment.");
+    }
+  };
+
+  const startLinearOauth = async () => {
+    setError(null);
+    try {
+      const result = await linearStart.mutateAsync(linearRedirectUri());
+      window.location.href = result.data.authorize_url;
+    } catch {
+      setError("Linear OAuth is not configured on this environment.");
+    }
+  };
+
+  const startSlackOauth = async () => {
+    setError(null);
+    try {
+      const result = await slackStart.mutateAsync(slackRedirectUri());
+      window.location.href = result.data.authorize_url;
+    } catch {
+      setError("Slack OAuth is not configured on this environment.");
+    }
+  };
+
+  const startNotionOauth = async () => {
+    setError(null);
+    try {
+      const result = await notionStart.mutateAsync(notionRedirectUri());
+      window.location.href = result.data.authorize_url;
+    } catch {
+      setError("Notion OAuth is not configured on this environment.");
     }
   };
 
@@ -276,6 +327,33 @@ function InstallPanel({
         >
           <Plug size={13} /> Connect with GitHub
         </Button>
+      ) : isLinear ? (
+        <Button
+          size="sm"
+          className="w-full"
+          loading={linearStart.isPending}
+          onClick={startLinearOauth}
+        >
+          <Plug size={13} /> Connect with Linear
+        </Button>
+      ) : isSlack ? (
+        <Button
+          size="sm"
+          className="w-full"
+          loading={slackStart.isPending}
+          onClick={startSlackOauth}
+        >
+          <Plug size={13} /> Connect with Slack
+        </Button>
+      ) : isNotion ? (
+        <Button
+          size="sm"
+          className="w-full"
+          loading={notionStart.isPending}
+          onClick={startNotionOauth}
+        >
+          <Plug size={13} /> Connect with Notion
+        </Button>
       ) : server.auth_kind === "api_key" ? (
         <div className="space-y-3">
           <Field label="API key" hint="Stored encrypted. Only used by agents you authorize.">
@@ -331,7 +409,14 @@ function InstallPanel({
         </div>
       )}
 
-      {server.auth_kind === "oauth2" && !isFigma && !isGoogle && !isGithub && !isConnected && (
+      {server.auth_kind === "oauth2" &&
+        !isFigma &&
+        !isGoogle &&
+        !isGithub &&
+        !isLinear &&
+        !isSlack &&
+        !isNotion &&
+        !isConnected && (
         <p className="text-center text-[10px] text-text-muted">
           Native OAuth for {server.name} is coming soon. You can connect it today through a custom
           MCP server URL above.

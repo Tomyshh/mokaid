@@ -15,7 +15,7 @@ const agentStatusTone: Record<string, "success" | "warning" | "primary" | "dange
 const agentStatusLabel: Record<string, string> = {
   active: "Active",
   busy: "Busy",
-  idle: "Idle",
+  idle: "Waiting",
   waiting: "Waiting",
   blocked: "Blocked",
   away: "Away",

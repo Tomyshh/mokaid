@@ -6,7 +6,7 @@ defmodule MokaidWeb.IntegrationOAuthController do
   use MokaidWeb, :controller
 
   alias Mokaid.Integrations
-  alias Mokaid.Integrations.{GitHubOAuth, GoogleOAuth}
+  alias Mokaid.Integrations.{GitHubOAuth, GoogleOAuth, LinearOAuth, NotionOAuth, SlackOAuth}
   alias MokaidWeb.JSON, as: Serializer
 
   def google_start(conn, params) do
@@ -123,6 +123,180 @@ defmodule MokaidWeb.IntegrationOAuthController do
     end
   end
 
+  def linear_start(conn, params) do
+    redirect_uri = params["redirect_uri"] || default_linear_redirect_uri()
+
+    with :ok <- Permissions.authorize(current_member(conn), "integrations.connect"),
+         {:ok, url} <-
+           LinearOAuth.authorize_url(
+             workspace_id(conn),
+             current_member(conn).id,
+             redirect_uri
+           ) do
+      json(conn, %{data: %{authorize_url: url}})
+    else
+      {:error, :oauth_not_configured} ->
+        oauth_not_configured(conn, "Linear")
+
+      {:error, :invalid_redirect_uri} ->
+        invalid_redirect_uri(conn)
+
+      other ->
+        other
+    end
+  end
+
+  def linear_callback(conn, %{"code" => code, "state" => state} = params) do
+    redirect_uri = params["redirect_uri"] || default_linear_redirect_uri()
+
+    with :ok <- Permissions.authorize(current_member(conn), "integrations.connect"),
+         {:ok, result} <- LinearOAuth.exchange_code(code, state, redirect_uri),
+         :ok <- ensure_same_workspace(conn, result.workspace_id),
+         {:ok, connection} <-
+           Integrations.connect_linear_provider(
+             result.workspace_id,
+             current_member(conn),
+             result.credentials,
+             result.account
+           ),
+         {:ok, _} <-
+           Integrations.sync_linear_mcp_installation(
+             result.workspace_id,
+             current_member(conn),
+             result.credentials,
+             result.account
+           ) do
+      json(conn, %{
+        data: %{
+          connection: Serializer.integration_connection(connection),
+          connected_account: result.account,
+          provider_key: LinearOAuth.provider_key()
+        }
+      })
+    else
+      {:error, :invalid_state} -> invalid_state(conn)
+      {:error, {:token_exchange_failed, _, _}} -> token_exchange_failed(conn, "Linear")
+      {:error, :forbidden} -> forbidden(conn)
+      other -> other
+    end
+  end
+
+  def slack_start(conn, params) do
+    redirect_uri = params["redirect_uri"] || default_slack_redirect_uri()
+
+    with :ok <- Permissions.authorize(current_member(conn), "integrations.connect"),
+         {:ok, url} <-
+           SlackOAuth.authorize_url(
+             workspace_id(conn),
+             current_member(conn).id,
+             redirect_uri
+           ) do
+      json(conn, %{data: %{authorize_url: url}})
+    else
+      {:error, :oauth_not_configured} ->
+        oauth_not_configured(conn, "Slack")
+
+      {:error, :invalid_redirect_uri} ->
+        invalid_redirect_uri(conn)
+
+      other ->
+        other
+    end
+  end
+
+  def slack_callback(conn, %{"code" => code, "state" => state} = params) do
+    redirect_uri = params["redirect_uri"] || default_slack_redirect_uri()
+
+    with :ok <- Permissions.authorize(current_member(conn), "integrations.connect"),
+         {:ok, result} <- SlackOAuth.exchange_code(code, state, redirect_uri),
+         :ok <- ensure_same_workspace(conn, result.workspace_id),
+         {:ok, connection} <-
+           Integrations.connect_slack_provider(
+             result.workspace_id,
+             current_member(conn),
+             result.credentials,
+             result.account
+           ),
+         {:ok, _} <-
+           Integrations.sync_slack_mcp_installation(
+             result.workspace_id,
+             current_member(conn),
+             result.credentials,
+             result.account
+           ) do
+      json(conn, %{
+        data: %{
+          connection: Serializer.integration_connection(connection),
+          connected_account: result.account,
+          provider_key: SlackOAuth.provider_key()
+        }
+      })
+    else
+      {:error, :invalid_state} -> invalid_state(conn)
+      {:error, {:token_exchange_failed, _, _}} -> token_exchange_failed(conn, "Slack")
+      {:error, :forbidden} -> forbidden(conn)
+      other -> other
+    end
+  end
+
+  def notion_start(conn, params) do
+    redirect_uri = params["redirect_uri"] || default_notion_redirect_uri()
+
+    with :ok <- Permissions.authorize(current_member(conn), "integrations.connect"),
+         {:ok, url} <-
+           NotionOAuth.authorize_url(
+             workspace_id(conn),
+             current_member(conn).id,
+             redirect_uri
+           ) do
+      json(conn, %{data: %{authorize_url: url}})
+    else
+      {:error, :oauth_not_configured} ->
+        oauth_not_configured(conn, "Notion")
+
+      {:error, :invalid_redirect_uri} ->
+        invalid_redirect_uri(conn)
+
+      other ->
+        other
+    end
+  end
+
+  def notion_callback(conn, %{"code" => code, "state" => state} = params) do
+    redirect_uri = params["redirect_uri"] || default_notion_redirect_uri()
+
+    with :ok <- Permissions.authorize(current_member(conn), "integrations.connect"),
+         {:ok, result} <- NotionOAuth.exchange_code(code, state, redirect_uri),
+         :ok <- ensure_same_workspace(conn, result.workspace_id),
+         {:ok, connection} <-
+           Integrations.connect_notion_provider(
+             result.workspace_id,
+             current_member(conn),
+             result.credentials,
+             result.account
+           ),
+         {:ok, _} <-
+           Integrations.sync_notion_mcp_installation(
+             result.workspace_id,
+             current_member(conn),
+             result.credentials,
+             result.account
+           ) do
+      json(conn, %{
+        data: %{
+          connection: Serializer.integration_connection(connection),
+          connected_account: result.account,
+          provider_key: NotionOAuth.provider_key()
+        }
+      })
+    else
+      {:error, :invalid_state} -> invalid_state(conn)
+      {:error, {:token_exchange_failed, _, _}} -> token_exchange_failed(conn, "Notion")
+      {:error, :forbidden} -> forbidden(conn)
+      other -> other
+    end
+  end
+
   defp ensure_same_workspace(conn, state_workspace_id) do
     if workspace_id(conn) == state_workspace_id, do: :ok, else: {:error, :forbidden}
   end
@@ -141,6 +315,24 @@ defmodule MokaidWeb.IntegrationOAuthController do
 
   defp default_github_redirect_uri do
     Application.get_env(:mokaid, :github_oauth, [])
+    |> Keyword.get(:redirect_uris, [])
+    |> List.first()
+  end
+
+  defp default_linear_redirect_uri do
+    Application.get_env(:mokaid, :linear_oauth, [])
+    |> Keyword.get(:redirect_uris, [])
+    |> List.first()
+  end
+
+  defp default_slack_redirect_uri do
+    Application.get_env(:mokaid, :slack_oauth, [])
+    |> Keyword.get(:redirect_uris, [])
+    |> List.first()
+  end
+
+  defp default_notion_redirect_uri do
+    Application.get_env(:mokaid, :notion_oauth, [])
     |> Keyword.get(:redirect_uris, [])
     |> List.first()
   end

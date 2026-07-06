@@ -1,5 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+
+const AgentPreview3D = lazy(() =>
+  import("@/three/agent-preview").then((m) => ({ default: m.AgentPreview3D })),
+);
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +28,9 @@ import {
   useCreateProject,
   useGithubOauthStart,
   useGoogleOauthStart,
+  useLinearOauthStart,
+  useNotionOauthStart,
+  useSlackOauthStart,
   useIntegrations,
   useInviteMember,
   useUpdateOnboarding,
@@ -40,7 +47,8 @@ import { useOnboardingStore } from "@/stores/onboarding-store";
 import { ApiError, fetchWorkspaceLogoBlob } from "@/api/client";
 import { IntegrationLogo } from "@/components/integrations/integration-logo";
 import { cn } from "@/lib/cn";
-import { consumeOnboardingRestoreStep, setOauthReturn } from "@/lib/oauth-callback";
+import { consumeOnboardingRestoreStep, navigateOauthPopup, openOauthPopup } from "@/lib/oauth-callback";
+import { useOauthPopupListener } from "@/lib/use-oauth-popup-listener";
 import { toast } from "@/stores/toast-store";
 
 /* ─── Steps config ─── */
@@ -67,15 +75,6 @@ const industries = [
 
 const agentColors = ["#7c5cff", "#60a5fa", "#f472b6", "#34d399", "#fbbf24", "#22d3ee"];
 
-const skillPresets = [
-  "Research",
-  "Copywriting",
-  "Reporting",
-  "Planning",
-  "Data analysis",
-  "Support",
-];
-
 const featuredIntegrations = ["github", "slack", "google_drive", "gmail", "notion", "linear"];
 
 const googleProviderKeys = new Set([
@@ -88,6 +87,9 @@ const googleProviderKeys = new Set([
 ]);
 
 const githubProviderKey = "github";
+const linearProviderKey = "linear";
+const notionProviderKey = "notion";
+const slackProviderKey = "slack";
 
 /* ─── Small pieces ─── */
 
@@ -256,6 +258,9 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const connectIntegration = useConnectIntegration();
   const googleOauthStart = useGoogleOauthStart();
   const githubOauthStart = useGithubOauthStart();
+  const linearOauthStart = useLinearOauthStart();
+  const notionOauthStart = useNotionOauthStart();
+  const slackOauthStart = useSlackOauthStart();
 
   const [step, setStep] = useState(() => consumeOnboardingRestoreStep() ?? 0);
 
@@ -272,11 +277,11 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
 
+  useOauthPopupListener(() => setConnecting(null));
+
   // Agent step
   const [agentName, setAgentName] = useState("Nova");
-  const [agentRole, setAgentRole] = useState("");
   const [agentColor, setAgentColor] = useState(agentColors[0]);
-  const [agentSkills, setAgentSkills] = useState<string[]>(["Research", "Planning"]);
   const [agentCreated, setAgentCreated] = useState(false);
 
   // Project step
@@ -323,36 +328,66 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
     if (connectedKeys.has(key)) return;
     setConnecting(key);
     setConnectError(null);
+    const popup = openOauthPopup();
     try {
       if (key === githubProviderKey) {
-        setOauthReturn("/dashboard", step);
         const result = await githubOauthStart.mutateAsync(
           `${window.location.origin}/oauth/github/callback`,
         );
-        window.location.href = result.data.authorize_url;
+        navigateOauthPopup(popup, result.data.authorize_url, { step });
         return;
       }
       if (googleProviderKeys.has(key)) {
-        setOauthReturn("/dashboard", step);
         const result = await googleOauthStart.mutateAsync({
           redirect_uri: `${window.location.origin}/oauth/google/callback`,
           provider_key: key,
         });
-        window.location.href = result.data.authorize_url;
+        navigateOauthPopup(popup, result.data.authorize_url, { step });
         return;
       }
+      if (key === linearProviderKey) {
+        const result = await linearOauthStart.mutateAsync(
+          `${window.location.origin}/oauth/linear/callback`,
+        );
+        navigateOauthPopup(popup, result.data.authorize_url, { step });
+        return;
+      }
+      if (key === slackProviderKey) {
+        const result = await slackOauthStart.mutateAsync(
+          `${window.location.origin}/oauth/slack/callback`,
+        );
+        navigateOauthPopup(popup, result.data.authorize_url, { step });
+        return;
+      }
+      if (key === notionProviderKey) {
+        const result = await notionOauthStart.mutateAsync(
+          `${window.location.origin}/auth/notion/callback`,
+        );
+        navigateOauthPopup(popup, result.data.authorize_url, { step });
+        return;
+      }
+      popup?.close();
       await connectIntegration.mutateAsync(key);
     } catch (err) {
+      popup?.close();
       const message =
         err instanceof ApiError && err.code === "oauth_not_configured"
-          ? "Google OAuth is not configured on the API. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to apps/api/.env, then restart the API."
+          ? key === slackProviderKey
+            ? "Slack OAuth is not configured on the API. Add SLACK_CLIENT_ID and SLACK_CLIENT_SECRET to apps/api/.env, then restart the API."
+            : key === notionProviderKey
+              ? "Notion OAuth is not configured on the API. Add NOTION_CLIENT_ID and NOTION_CLIENT_SECRET to apps/api/.env, then restart the API."
+            : key === linearProviderKey
+              ? "Linear OAuth is not configured on the API. Add LINEAR_CLIENT_ID and LINEAR_CLIENT_SECRET to apps/api/.env, then restart the API."
+              : "Google OAuth is not configured on the API. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to apps/api/.env, then restart the API."
           : err instanceof ApiError
             ? err.message
             : "Connection failed. Please try again.";
       setConnectError(message);
       toast({ tone: "error", title: "Connection failed", description: message });
     } finally {
-      setConnecting(null);
+      if (!popup || popup.closed) {
+        setConnecting(null);
+      }
     }
   };
 
@@ -360,12 +395,12 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
     if (!agentName.trim()) return;
     await createAgent.mutateAsync({
       display_name: agentName.trim(),
-      role_title: agentRole.trim() || "Generalist",
+      role_title: "Generalist",
       kind: "ai",
       ai_enabled: true,
-      status: "active",
+      status: "idle",
       presence_status: "online",
-      skills: agentSkills.map((s) => ({ name: s, level: 80 })),
+      skills: [],
       avatar_config: { primary_color: agentColor, seat_index: 0 },
     });
     setAgentCreated(true);
@@ -708,23 +743,38 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
           {step === 3 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-xl font-bold text-text">Create your first AI agent</h2>
+                <h2 className="text-xl font-bold text-text">Meet your first AI agent</h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  Agents are AI teammates with a name, a role and skills. Yours will appear at
-                  a desk in your 3D office.
+                  Your agent starts with a clean slate. As you send it missions it will
+                  learn, grow stronger, and gradually specialise — no setup required.
                 </p>
               </div>
 
-              <div className="flex items-center gap-5 rounded-xl bg-surface-raised/50 p-4">
-                <div className="relative">
-                  <Avatar name={agentName || "?"} size="xl" isAi color={agentColor} />
+              {/* 2-column layout: 3D preview left, controls right */}
+              <div className="flex items-start gap-5">
+                {/* 3D character preview */}
+                <div className="relative shrink-0 overflow-hidden rounded-xl border border-border bg-surface-raised/30">
+                  <Suspense
+                    fallback={
+                      <div
+                        className="flex items-center justify-center"
+                        style={{ width: 220, height: 300 }}
+                      >
+                        <Avatar name={agentName || "?"} size="xl" isAi color={agentColor} />
+                      </div>
+                    }
+                  >
+                    <AgentPreview3D color={agentColor} name={agentName || "?"} width={220} height={300} />
+                  </Suspense>
                   {agentCreated && (
-                    <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white mk-fade-up">
-                      <Check size={13} />
+                    <span className="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-success text-white shadow-lg mk-fade-up">
+                      <Check size={14} />
                     </span>
                   )}
                 </div>
-                <div className="flex-1 space-y-3">
+
+                {/* Name + color */}
+                <div className="flex flex-1 flex-col gap-4 pt-1">
                   <Field label="Name" required>
                     <input
                       className="mk-input"
@@ -732,60 +782,32 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                       onChange={(e) => setAgentName(e.target.value)}
                     />
                   </Field>
-                  <Field label="Role">
-                    <input
-                      className="mk-input"
-                      placeholder="e.g. Marketing assistant"
-                      value={agentRole}
-                      onChange={(e) => setAgentRole(e.target.value)}
-                    />
+
+                  <Field label="Color">
+                    <div className="flex flex-wrap gap-2">
+                      {agentColors.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setAgentColor(color)}
+                          aria-label={`Color ${color}`}
+                          className={cn(
+                            "h-8 w-8 rounded-full transition-transform",
+                            agentColor === color &&
+                              "scale-110 ring-2 ring-white/60 ring-offset-2 ring-offset-surface",
+                          )}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
                   </Field>
+
+                  <div className="rounded-lg border border-border bg-surface-raised/40 px-3 py-2.5 text-xs leading-relaxed text-text-muted">
+                    <Sparkles size={11} className="mb-0.5 mr-1 inline text-primary-light" />
+                    Skills and role are assigned automatically as your agent completes missions.
+                  </div>
                 </div>
               </div>
-
-              <Field label="Color">
-                <div className="flex gap-2">
-                  {agentColors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setAgentColor(color)}
-                      aria-label={`Color ${color}`}
-                      className={cn(
-                        "h-8 w-8 rounded-full transition-transform",
-                        agentColor === color && "scale-110 ring-2 ring-white/60 ring-offset-2 ring-offset-surface",
-                      )}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-              </Field>
-
-              <Field label="Skills">
-                <div className="flex flex-wrap gap-2">
-                  {skillPresets.map((skill) => (
-                    <button
-                      key={skill}
-                      type="button"
-                      onClick={() =>
-                        setAgentSkills((prev) =>
-                          prev.includes(skill)
-                            ? prev.filter((s) => s !== skill)
-                            : [...prev, skill],
-                        )
-                      }
-                      className={cn(
-                        "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all",
-                        agentSkills.includes(skill)
-                          ? "bg-primary text-white shadow-[0_2px_12px_rgba(124,92,255,0.35)]"
-                          : "bg-surface-raised text-text-muted hover:text-text",
-                      )}
-                    >
-                      {skill}
-                    </button>
-                  ))}
-                </div>
-              </Field>
 
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => setStep(2)}>

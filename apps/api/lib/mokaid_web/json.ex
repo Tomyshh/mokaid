@@ -433,9 +433,14 @@ defmodule MokaidWeb.JSON do
     }
   end
 
-  defp integration_logo_url(%{logo_storage_key: key, key: provider_key})
+  defp integration_logo_url(%{logo_storage_key: key, key: provider_key} = provider)
        when is_binary(key) and key != "" do
-    "/api/integrations/logos/#{provider_key}"
+    version =
+      provider.updated_at
+      |> DateTime.to_unix()
+      |> Integer.to_string()
+
+    "/api/integrations/logos/#{provider_key}?v=#{version}"
   end
 
   defp integration_logo_url(_), do: nil

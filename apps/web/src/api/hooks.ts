@@ -651,6 +651,99 @@ export function useGithubOauthCallback() {
   });
 }
 
+export function useLinearOauthStart() {
+  return useMutation({
+    mutationFn: (redirectUri: string) =>
+      apiFetch<Envelope<{ authorize_url: string }>>("/api/integrations/linear/oauth/start", {
+        method: "POST",
+        body: { redirect_uri: redirectUri },
+      }),
+  });
+}
+
+export function useLinearOauthCallback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { code: string; state: string; redirect_uri: string }) =>
+      apiFetch<
+        Envelope<{
+          connection: IntegrationConnection;
+          connected_account?: string;
+          provider_key: string;
+        }>
+      >("/api/integrations/linear/oauth/callback", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+      queryClient.invalidateQueries({ queryKey: ["mcp"] });
+    },
+  });
+}
+
+export function useSlackOauthStart() {
+  return useMutation({
+    mutationFn: (redirectUri: string) =>
+      apiFetch<Envelope<{ authorize_url: string }>>("/api/integrations/slack/oauth/start", {
+        method: "POST",
+        body: { redirect_uri: redirectUri },
+      }),
+  });
+}
+
+export function useSlackOauthCallback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { code: string; state: string; redirect_uri: string }) =>
+      apiFetch<
+        Envelope<{
+          connection: IntegrationConnection;
+          connected_account?: string;
+          provider_key: string;
+        }>
+      >("/api/integrations/slack/oauth/callback", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+      queryClient.invalidateQueries({ queryKey: ["mcp"] });
+    },
+  });
+}
+
+export function useNotionOauthStart() {
+  return useMutation({
+    mutationFn: (redirectUri: string) =>
+      apiFetch<Envelope<{ authorize_url: string }>>("/api/integrations/notion/oauth/start", {
+        method: "POST",
+        body: { redirect_uri: redirectUri },
+      }),
+  });
+}
+
+export function useNotionOauthCallback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { code: string; state: string; redirect_uri: string }) =>
+      apiFetch<
+        Envelope<{
+          connection: IntegrationConnection;
+          connected_account?: string;
+          provider_key: string;
+        }>
+      >("/api/integrations/notion/oauth/callback", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+      queryClient.invalidateQueries({ queryKey: ["mcp"] });
+    },
+  });
+}
+
 /* ---------- Billing & analytics ---------- */
 
 export function useBillingOverview() {

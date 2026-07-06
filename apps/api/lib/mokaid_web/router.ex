@@ -96,6 +96,12 @@ defmodule MokaidWeb.Router do
     post "/integrations/google/oauth/callback", IntegrationOAuthController, :google_callback
     post "/integrations/github/oauth/start", IntegrationOAuthController, :github_start
     post "/integrations/github/oauth/callback", IntegrationOAuthController, :github_callback
+    post "/integrations/linear/oauth/start", IntegrationOAuthController, :linear_start
+    post "/integrations/linear/oauth/callback", IntegrationOAuthController, :linear_callback
+    post "/integrations/slack/oauth/start", IntegrationOAuthController, :slack_start
+    post "/integrations/slack/oauth/callback", IntegrationOAuthController, :slack_callback
+    post "/integrations/notion/oauth/start", IntegrationOAuthController, :notion_start
+    post "/integrations/notion/oauth/callback", IntegrationOAuthController, :notion_callback
 
     get "/mcp", MCPController, :index
     post "/mcp/:server/install", MCPController, :install

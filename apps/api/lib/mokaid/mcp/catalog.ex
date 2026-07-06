@@ -48,7 +48,7 @@ defmodule Mokaid.MCP.Catalog do
     {"jira", "Jira", "development", "Search, create and update Jira issues and boards.", "jira",
      false, "api_key", "https://mcp.atlassian.com/v1/sse"},
     {"linear", "Linear", "development", "Create and manage Linear issues, projects and cycles.",
-     "linear", true, "api_key", "https://mcp.linear.app/mcp"},
+     "linear", true, "oauth2", "https://mcp.linear.app/mcp"},
     {"azure_devops", "Azure DevOps", "development",
      "Work items, repos and pipelines in Azure DevOps.", "azuredevops", false, "api_key", nil},
     {"sentry", "Sentry", "development", "Query errors, issues and performance data from Sentry.",

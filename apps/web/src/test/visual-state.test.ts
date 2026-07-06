@@ -6,13 +6,21 @@ describe("toVisualState", () => {
     expect(toVisualState("busy", "online")).toBe("typing");
   });
 
-  it("maps active agents to working", () => {
-    expect(toVisualState("active", "online")).toBe("working");
+  it("maps active agents without a task to waiting", () => {
+    expect(toVisualState("active", "online")).toBe("waiting");
+    expect(toVisualState("active", "online", { has_task: false })).toBe("waiting");
+  });
+
+  it("maps active agents with a task to working", () => {
+    expect(toVisualState("active", "online", { has_task: true })).toBe("working");
+  });
+
+  it("maps idle agents online to waiting", () => {
+    expect(toVisualState("idle", "online")).toBe("waiting");
   });
 
   it("maps offline presence for idle agents", () => {
     expect(toVisualState("idle", "offline")).toBe("offline");
-    expect(toVisualState("idle", "online")).toBe("idle");
   });
 
   it("prioritizes celebration and approvals", () => {

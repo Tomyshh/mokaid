@@ -5,7 +5,9 @@ import type { SceneAgent } from "./types";
 const stateText: Partial<Record<SceneAgent["visualState"], string>> = {
   typing: "typing…",
   working: "working",
-  waiting: "waiting",
+  waiting: "Waiting",
+  idle: "Waiting",
+  walking: "Waiting",
   requesting_approval: "needs approval",
   blocked: "blocked",
 };

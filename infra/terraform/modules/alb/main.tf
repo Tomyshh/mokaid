@@ -61,7 +61,7 @@ resource "aws_lb" "this" {
   subnets            = var.public_subnet_ids
 
   drop_invalid_header_fields = true
-  idle_timeout               = 120 # keep WebSocket connections alive longer
+  idle_timeout               = 120
 
   tags = var.tags
 }
@@ -91,6 +91,25 @@ resource "aws_lb_target_group" "api" {
   tags = var.tags
 }
 
+resource "aws_lb_target_group" "web" {
+  name        = "${var.name}-web"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    path                = "/"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    interval            = 15
+    timeout             = 5
+    matcher             = "200"
+  }
+
+  tags = var.tags
+}
+
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.this.arn
   port              = 80
@@ -100,7 +119,7 @@ resource "aws_lb_listener" "http" {
     for_each = var.certificate_arn == "" ? [1] : []
     content {
       type             = "forward"
-      target_group_arn = aws_lb_target_group.api.arn
+      target_group_arn = aws_lb_target_group.web.arn
     }
   }
 
@@ -128,7 +147,79 @@ resource "aws_lb_listener" "https" {
 
   default_action {
     type             = "forward"
+    target_group_arn = aws_lb_target_group.web.arn
+  }
+}
+
+resource "aws_lb_listener_rule" "api_http" {
+  count = var.certificate_arn == "" ? 1 : 0
+
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
     target_group_arn = aws_lb_target_group.api.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api", "/api/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "socket_http" {
+  count = var.certificate_arn == "" ? 1 : 0
+
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/socket", "/socket/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "api_https" {
+  count = var.certificate_arn != "" ? 1 : 0
+
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api", "/api/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "socket_https" {
+  count = var.certificate_arn != "" ? 1 : 0
+
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/socket", "/socket/*"]
+    }
   }
 }
 
@@ -150,4 +241,8 @@ output "alb_security_group_id" {
 
 output "api_target_group_arn" {
   value = aws_lb_target_group.api.arn
+}
+
+output "web_target_group_arn" {
+  value = aws_lb_target_group.web.arn
 }

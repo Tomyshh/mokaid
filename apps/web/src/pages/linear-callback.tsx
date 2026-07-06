@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
-import { useGoogleOauthCallback } from "@/api/hooks";
+import { useLinearOauthCallback } from "@/api/hooks";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
 import { useAuthStore } from "@/stores/auth-store";
@@ -16,14 +16,14 @@ import {
 
 type Status = "working" | "success" | "error";
 
-export function GoogleCallbackPage() {
+export function LinearCallbackPage() {
   const navigate = useNavigate();
-  const callback = useGoogleOauthCallback();
+  const callback = useLinearOauthCallback();
   const mutateAsyncRef = useRef(callback.mutateAsync);
   mutateAsyncRef.current = callback.mutateAsync;
 
   const [status, setStatus] = useState<Status>("working");
-  const [message, setMessage] = useState("Finalizing the Google connection…");
+  const [message, setMessage] = useState("Finalizing the Linear connection…");
 
   useEffect(() => {
     let cancelled = false;
@@ -39,19 +39,19 @@ export function GoogleCallbackPage() {
 
       if (!token) {
         setStatus("error");
-        setMessage("You must be signed in to complete the Google connection.");
+        setMessage("You must be signed in to complete the Linear connection.");
         return;
       }
 
       if (!code || !state) {
         setStatus("error");
-        setMessage(params.get("error_description") ?? "Google did not return an authorization code.");
+        setMessage(params.get("error_description") ?? "Linear did not return an authorization code.");
         return;
       }
 
-      const dedupeKey = oauthDedupeKey("google", code);
+      const dedupeKey = oauthDedupeKey("linear", code);
       if (sessionStorage.getItem(dedupeKey) === "done") {
-        if (notifyOauthOpener("google")) {
+        if (notifyOauthOpener("linear")) {
           window.close();
         } else {
           navigate({ to: consumeOauthReturn() });
@@ -64,7 +64,7 @@ export function GoogleCallbackPage() {
           mutateAsyncRef.current({
             code,
             state,
-            redirect_uri: `${window.location.origin}/oauth/google/callback`,
+            redirect_uri: `${window.location.origin}/oauth/linear/callback`,
           }),
         );
 
@@ -73,7 +73,7 @@ export function GoogleCallbackPage() {
 
         setStatus("success");
         completeOauthInPopup(
-          "google",
+          "linear",
           result.data.connected_account,
           (to) => navigate({ to }),
           setMessage,
@@ -102,7 +102,7 @@ export function GoogleCallbackPage() {
         {status === "success" && <CheckCircle2 size={28} className="text-success" />}
         {status === "error" && <XCircle size={28} className="text-danger" />}
         <div>
-          <h1 className="text-sm font-bold text-text">Google connection</h1>
+          <h1 className="text-sm font-bold text-text">Linear connection</h1>
           <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">{message}</p>
         </div>
         {status === "error" && (

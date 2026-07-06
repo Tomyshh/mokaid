@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
 import { useAuthStore } from "@/stores/auth-store";
 import {
+  completeOauthInPopup,
   consumeOauthReturn,
+  notifyOauthOpener,
   oauthDedupeKey,
   runOauthOnce,
   waitForAuthHydration,
@@ -49,7 +51,11 @@ export function GithubCallbackPage() {
 
       const dedupeKey = oauthDedupeKey("github", code);
       if (sessionStorage.getItem(dedupeKey) === "done") {
-        navigate({ to: consumeOauthReturn() });
+        if (notifyOauthOpener("github")) {
+          window.close();
+        } else {
+          navigate({ to: consumeOauthReturn() });
+        }
         return;
       }
 
@@ -63,19 +69,16 @@ export function GithubCallbackPage() {
         );
 
         sessionStorage.setItem(dedupeKey, "done");
+        if (cancelled) return;
 
+        setStatus("success");
         const account = result.data.connected_account;
-        if (!cancelled) {
-          setStatus("success");
-          setMessage(
-            account
-              ? `Connected as @${account}. Redirecting…`
-              : "GitHub is connected. Redirecting…",
-          );
-        }
-
-        const returnTo = consumeOauthReturn();
-        window.setTimeout(() => navigate({ to: returnTo }), cancelled ? 0 : 900);
+        completeOauthInPopup(
+          "github",
+          account ? `@${account}` : undefined,
+          (to) => navigate({ to }),
+          setMessage,
+        );
       } catch {
         if (cancelled) return;
         setStatus("error");

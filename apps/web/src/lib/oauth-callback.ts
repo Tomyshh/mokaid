@@ -53,3 +53,62 @@ export function runOauthOnce<T>(key: string, run: () => Promise<T>): Promise<T> 
   oauthInflight.set(key, promise);
   return promise;
 }
+
+export const OAUTH_SUCCESS_MESSAGE = "mokaid:oauth:success" as const;
+
+export type OauthSuccessPayload = {
+  type: typeof OAUTH_SUCCESS_MESSAGE;
+  provider: string;
+  account?: string;
+};
+
+/** Open synchronously on click so popup blockers don't reject the OAuth tab. */
+export function openOauthPopup(): Window | null {
+  return window.open("about:blank", "mokaid_oauth");
+}
+
+export function navigateOauthPopup(
+  popup: Window | null,
+  url: string,
+  restore?: { step?: number },
+): void {
+  if (popup && !popup.closed) {
+    popup.location.href = url;
+    return;
+  }
+  if (restore?.step != null) {
+    setOauthReturn("/dashboard", restore.step);
+  }
+  window.location.href = url;
+}
+
+export function notifyOauthOpener(provider: string, account?: string): boolean {
+  const opener = window.opener as Window | null;
+  if (!opener || opener.closed) return false;
+
+  opener.postMessage(
+    { type: OAUTH_SUCCESS_MESSAGE, provider, account } satisfies OauthSuccessPayload,
+    window.location.origin,
+  );
+  return true;
+}
+
+export function completeOauthInPopup(
+  provider: string,
+  account: string | undefined,
+  navigate: (to: string) => void,
+  setMessage: (msg: string) => void,
+): void {
+  if (notifyOauthOpener(provider, account)) {
+    setMessage(
+      account
+        ? `Connected as ${account}. You can close this tab.`
+        : "Connected. You can close this tab.",
+    );
+    window.setTimeout(() => window.close(), 1200);
+    return;
+  }
+
+  const returnTo = consumeOauthReturn();
+  window.setTimeout(() => navigate(returnTo), 900);
+}

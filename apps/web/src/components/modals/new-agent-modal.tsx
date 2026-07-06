@@ -58,7 +58,7 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
       department,
       kind,
       ai_enabled: true,
-      status: "active",
+      status: "idle",
       presence_status: "online",
       skills: skills as never,
       avatar_config: { primary_color: color } as never,

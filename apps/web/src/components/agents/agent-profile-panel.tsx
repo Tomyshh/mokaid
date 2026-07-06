@@ -266,7 +266,7 @@ export function AgentProfilePanel({
               <p className="text-xs text-text-muted">{agent.role_title ?? "Agent"}</p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               {agent.kind === "ai" ? (
                 <Badge tone="primary">
                   <Sparkles size={10} /> AI Agent
@@ -276,6 +276,17 @@ export function AgentProfilePanel({
                   <Link2 size={10} /> {agent.linked_user_name ?? "Human-linked"}
                 </Badge>
               )}
+              {agent.capabilities?.learning?.specialty ? (
+                <Badge tone="success">
+                  <Sparkles size={10} /> {agent.capabilities.learning.specialty}
+                </Badge>
+              ) : agent.capabilities?.learning?.missions_total != null &&
+                agent.capabilities.learning.missions_total > 0 ? (
+                <Badge tone="warning">
+                  <Sparkles size={10} /> Learning ({agent.capabilities.learning.missions_total}{" "}
+                  {agent.capabilities.learning.missions_total === 1 ? "mission" : "missions"})
+                </Badge>
+              ) : null}
             </div>
 
             {agent.performance_score != null && (
@@ -345,6 +356,51 @@ export function AgentProfilePanel({
                 <InfoRow label="Last active" value={formatRelative(agent.last_active_at)} />
                 <InfoRow label="AI enabled" value={agent.ai_enabled ? "Yes" : "No"} />
               </div>
+
+              {/* Learning progress */}
+              {agent.capabilities?.learning && agent.capabilities.learning.missions_total > 0 && (
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                    Learning
+                  </p>
+                  <div className="space-y-2 rounded-xl bg-surface-raised/40 p-4">
+                    {agent.capabilities.learning.specialty ? (
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={12} className="shrink-0 text-success" />
+                        <span className="text-xs text-text">
+                          Specialised in{" "}
+                          <span className="font-semibold capitalize">
+                            {agent.capabilities.learning.specialty}
+                          </span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={12} className="shrink-0 text-warning" />
+                        <span className="text-xs text-text-muted">Still generalising…</span>
+                      </div>
+                    )}
+                    <p className="text-[11px] text-text-muted">
+                      {agent.capabilities.learning.missions_total} mission
+                      {agent.capabilities.learning.missions_total > 1 ? "s" : ""} completed
+                    </p>
+                    {Object.keys(agent.capabilities.learning.domain_counts).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {Object.entries(agent.capabilities.learning.domain_counts)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([domain, count]) => (
+                            <span
+                              key={domain}
+                              className="rounded-full bg-primary-muted px-2 py-0.5 text-[10px] font-medium capitalize text-primary-light"
+                            >
+                              {domain} ×{count}
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Skills */}
               {agent.skills.length > 0 && (

@@ -1,5 +1,5 @@
 import { Socket, Channel, Presence } from "phoenix";
-import { env } from "@/lib/env";
+import { resolveWsUrl } from "@/lib/env";
 import { useAuthStore } from "@/stores/auth-store";
 
 let socket: Socket | null = null;
@@ -10,7 +10,7 @@ export function getSocket(): Socket | null {
   if (!token) return null;
 
   if (!socket) {
-    socket = new Socket(env.VITE_WS_URL, {
+    socket = new Socket(resolveWsUrl(), {
       params: { token },
       reconnectAfterMs: (tries: number) => Math.min(1000 * 2 ** tries, 10_000),
     });

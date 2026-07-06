@@ -86,6 +86,11 @@ module "stack" {
 
   alarm_email        = var.alarm_email
   monthly_budget_usd = 1500
+
+  web_cpu           = 256
+  web_memory        = 512
+  web_desired_count = 1
+  web_max_count     = 2
 }
 
 output "cloudfront_domain" {

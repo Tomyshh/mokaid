@@ -79,7 +79,7 @@ export interface AvatarConfig {
 export function toVisualState(
   status: AgentStatus,
   presence: PresenceStatus,
-  extra?: { waiting_approval?: boolean; celebrating?: boolean },
+  extra?: { waiting_approval?: boolean; celebrating?: boolean; has_task?: boolean },
 ): AgentVisualState {
   if (extra?.celebrating) return "celebrating";
   if (extra?.waiting_approval) return "requesting_approval";
@@ -87,7 +87,7 @@ export function toVisualState(
     case "busy":
       return "typing";
     case "active":
-      return "working";
+      return extra?.has_task ? "working" : "waiting";
     case "waiting":
       return "waiting";
     case "blocked":
@@ -98,8 +98,8 @@ export function toVisualState(
     case "archived":
       return "offline";
     case "idle":
-      return presence === "online" ? "idle" : "offline";
+      return presence === "online" ? "waiting" : "offline";
     default:
-      return "idle";
+      return presence === "online" ? "waiting" : "offline";
   }
 }

@@ -43,6 +43,11 @@ variable "alarm_email" {
   default = ""
 }
 
+variable "web_image_tag" {
+  type    = string
+  default = "v2"
+}
+
 module "stack" {
   source = "../../modules/stack"
 
@@ -63,8 +68,13 @@ module "stack" {
 
   auth_mode          = "dev_fallback"
   api_image_tag      = "v2"
+  web_image_tag      = var.web_image_tag
   alarm_email        = var.alarm_email
   monthly_budget_usd = 100
+}
+
+output "web_service_name" {
+  value = module.stack.web_service_name
 }
 
 output "cloudfront_domain" {

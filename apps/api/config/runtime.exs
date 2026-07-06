@@ -36,6 +36,39 @@ config :mokaid, :github_oauth,
       "http://localhost:5173/oauth/github/callback"
     ])
 
+config :mokaid, :linear_oauth,
+  client_id: System.get_env("LINEAR_CLIENT_ID"),
+  client_secret: System.get_env("LINEAR_CLIENT_SECRET"),
+  redirect_uris:
+    Enum.uniq([
+      System.get_env("LINEAR_REDIRECT_URI") || "https://mokaid.com/oauth/linear/callback",
+      "https://mokaid.com/oauth/linear/callback",
+      "http://localhost:5173/oauth/linear/callback"
+    ])
+
+config :mokaid, :slack_oauth,
+  client_id: System.get_env("SLACK_CLIENT_ID"),
+  client_secret: System.get_env("SLACK_CLIENT_SECRET"),
+  signing_secret: System.get_env("SLACK_SIGNING_SECRET"),
+  verification_token: System.get_env("SLACK_VERIFICATION_TOKEN"),
+  app_id: System.get_env("SLACK_APP_ID"),
+  redirect_uris:
+    Enum.uniq([
+      System.get_env("SLACK_REDIRECT_URI") || "https://mokaid.com/oauth/slack/callback",
+      "https://mokaid.com/oauth/slack/callback",
+      "http://localhost:5173/oauth/slack/callback"
+    ])
+
+config :mokaid, :notion_oauth,
+  client_id: System.get_env("NOTION_CLIENT_ID"),
+  client_secret: System.get_env("NOTION_CLIENT_SECRET"),
+  redirect_uris:
+    Enum.uniq([
+      System.get_env("NOTION_REDIRECT_URI") || "https://mokaid.com/auth/notion/callback",
+      "https://mokaid.com/auth/notion/callback",
+      "http://localhost:5173/auth/notion/callback"
+    ])
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

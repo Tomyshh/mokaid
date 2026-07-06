@@ -4,7 +4,15 @@ defmodule Mokaid.Integrations do
   import Ecto.Query
 
   alias Mokaid.Audit
-  alias Mokaid.Integrations.{GitHubOAuth, GoogleOAuth, IntegrationConnection, IntegrationProvider}
+  alias Mokaid.Integrations.{
+    GitHubOAuth,
+    GoogleOAuth,
+    LinearOAuth,
+    NotionOAuth,
+    SlackOAuth,
+    IntegrationConnection,
+    IntegrationProvider
+  }
   alias Mokaid.MCP
   alias Mokaid.Repo
   alias Mokaid.Vault
@@ -36,6 +44,9 @@ defmodule Mokaid.Integrations do
     cond do
       GoogleOAuth.google_provider?(provider_key) -> {:error, :oauth_required}
       GitHubOAuth.github_provider?(provider_key) -> {:error, :oauth_required}
+      LinearOAuth.linear_provider?(provider_key) -> {:error, :oauth_required}
+      NotionOAuth.notion_provider?(provider_key) -> {:error, :oauth_required}
+      SlackOAuth.slack_provider?(provider_key) -> {:error, :oauth_required}
       true -> connect_mock(workspace_id, provider_key, member)
     end
   end
@@ -66,6 +77,108 @@ defmodule Mokaid.Integrations do
       })
 
     with {:ok, installation} <- MCP.install(workspace_id, GitHubOAuth.provider_key(), member, %{}),
+         {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
+      {:ok, :synced}
+    else
+      {:error, :server_not_found} -> {:ok, :synced}
+      other -> other
+    end
+  end
+
+  @doc "Stores Linear OAuth credentials on the workspace Linear integration."
+  def connect_linear_provider(workspace_id, member, credentials, account) do
+    member = Repo.preload(member, :user)
+
+    case connect_with_credentials(
+           workspace_id,
+           LinearOAuth.provider_key(),
+           member,
+           credentials,
+           account,
+           "linear_oauth"
+         ) do
+      {:ok, connection} -> {:ok, connection}
+      error -> error
+    end
+  end
+
+  @doc "Mirrors Linear OAuth credentials into the MCP Hub Linear installation."
+  def sync_linear_mcp_installation(workspace_id, member, credentials, account) do
+    mcp_credentials =
+      Map.merge(credentials, %{
+        "api_key" => credentials["access_token"],
+        "token" => credentials["access_token"]
+      })
+
+    with {:ok, installation} <- MCP.install(workspace_id, LinearOAuth.provider_key(), member, %{}),
+         {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
+      {:ok, :synced}
+    else
+      {:error, :server_not_found} -> {:ok, :synced}
+      other -> other
+    end
+  end
+
+  @doc "Stores Notion OAuth credentials on the workspace Notion integration."
+  def connect_notion_provider(workspace_id, member, credentials, account) do
+    member = Repo.preload(member, :user)
+
+    case connect_with_credentials(
+           workspace_id,
+           NotionOAuth.provider_key(),
+           member,
+           credentials,
+           account,
+           "notion_oauth"
+         ) do
+      {:ok, connection} -> {:ok, connection}
+      error -> error
+    end
+  end
+
+  @doc "Mirrors Notion OAuth credentials into the MCP Hub Notion installation."
+  def sync_notion_mcp_installation(workspace_id, member, credentials, account) do
+    mcp_credentials =
+      Map.merge(credentials, %{
+        "api_key" => credentials["access_token"],
+        "token" => credentials["access_token"]
+      })
+
+    with {:ok, installation} <- MCP.install(workspace_id, NotionOAuth.provider_key(), member, %{}),
+         {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
+      {:ok, :synced}
+    else
+      {:error, :server_not_found} -> {:ok, :synced}
+      other -> other
+    end
+  end
+
+  @doc "Stores Slack OAuth credentials on the workspace Slack integration."
+  def connect_slack_provider(workspace_id, member, credentials, account) do
+    member = Repo.preload(member, :user)
+
+    case connect_with_credentials(
+           workspace_id,
+           SlackOAuth.provider_key(),
+           member,
+           credentials,
+           account,
+           "slack_oauth"
+         ) do
+      {:ok, connection} -> {:ok, connection}
+      error -> error
+    end
+  end
+
+  @doc "Mirrors Slack OAuth credentials into the MCP Hub Slack installation."
+  def sync_slack_mcp_installation(workspace_id, member, credentials, account) do
+    mcp_credentials =
+      Map.merge(credentials, %{
+        "api_key" => credentials["access_token"],
+        "token" => credentials["access_token"]
+      })
+
+    with {:ok, installation} <- MCP.install(workspace_id, SlackOAuth.provider_key(), member, %{}),
          {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
       {:ok, :synced}
     else

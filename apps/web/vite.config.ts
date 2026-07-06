@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
     rollupOptions: {
       output: {
         manualChunks: {
-          babylon: ["@babylonjs/core"],
+          babylon: ["@babylonjs/core", "@babylonjs/loaders"],
           charts: ["recharts"],
           vendor: ["react", "react-dom", "@tanstack/react-query", "@tanstack/react-router"],
         },

@@ -32,7 +32,7 @@ defmodule MokaidWeb.IntegrationController do
         |> json(%{
           error: %{
             code: "oauth_required",
-            message: "This integration requires OAuth. Use /integrations/google/oauth/start or /integrations/github/oauth/start."
+            message: "This integration requires OAuth. Use /integrations/google/oauth/start, /integrations/github/oauth/start, /integrations/linear/oauth/start, or /integrations/slack/oauth/start."
           }
         })
     end
@@ -57,7 +57,7 @@ defmodule MokaidWeb.IntegrationController do
          {:ok, body, content_type} <- Mokaid.Storage.get_object(sk) do
       conn
       |> put_resp_content_type(content_type)
-      |> put_resp_header("cache-control", "public, max-age=86400, immutable")
+      |> put_resp_header("cache-control", "public, max-age=3600, must-revalidate")
       |> send_resp(200, body)
     else
       _ ->

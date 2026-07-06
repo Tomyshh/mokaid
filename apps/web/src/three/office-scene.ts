@@ -24,21 +24,47 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import type { AbstractMesh, AnimationGroup } from "@babylonjs/core";
+import { PBRMaterial } from "@babylonjs/core";
 import { statusColors } from "@mokaid/design-tokens";
+import {
+  applyTint,
+  groundAgent,
+  loadAgentModelTemplate,
+  playAgentAnimation,
+  spawnAgentModel,
+  type AgentModelTemplate,
+} from "./agent-model";
+import {
+  nearestWaypointIndex,
+  pickPathNear,
+  type IdleActivity,
+  type OfficePath,
+} from "./office-paths";
 import type { SceneAgent, SceneCallbacks } from "./types";
 
 const FRONT_ROW_SEATS = 5;
 const BACK_ROW_SEATS = 4;
 const DESK_SPACING_X = 4.2;
 
+type IdleBehavior = "patrol" | IdleActivity;
+
 interface AvatarNode {
   root: TransformNode;
-  body: Mesh;
-  head: Mesh;
+  meshes: AbstractMesh[];
   ring: Mesh;
   agent: SceneAgent;
   phase: number;
   baseY: number;
+  homePos: Vector3;
+  labelHeight: number;
+  idleAnim: AnimationGroup | null;
+  walkAnim: AnimationGroup | null;
+  currentAnim: "idle" | "walk" | null;
+  activePath: OfficePath;
+  pathIndex: number;
+  idleBehavior: IdleBehavior;
+  behaviorEnd: number;
 }
 
 export class OfficeScene {
@@ -51,6 +77,9 @@ export class OfficeScene {
   private fpsTimer = 0;
   private disposed = false;
   private resizeObserver: ResizeObserver | null = null;
+  private modelTemplate: AgentModelTemplate | null = null;
+  private modelReady = false;
+  private lastAgents: SceneAgent[] = [];
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -70,6 +99,17 @@ export class OfficeScene {
     this.setupLights();
     this.buildOffice();
     this.setupPicking();
+
+    void loadAgentModelTemplate(this.scene).then((template) => {
+      if (this.disposed) return;
+      this.modelTemplate = template;
+      this.modelReady = true;
+      this.lastAgents.forEach((agent, index) => {
+        if (!this.avatars.has(agent.id)) {
+          this.createAvatar(agent, agent.seatIndex >= 0 ? agent.seatIndex : index);
+        }
+      });
+    });
 
     this.engine.runRenderLoop(() => {
       if (this.disposed) return;
@@ -277,6 +317,7 @@ export class OfficeScene {
 
   updateAgents(agents: SceneAgent[]) {
     if (this.disposed) return;
+    this.lastAgents = agents;
 
     const seen = new Set<string>();
 
@@ -284,9 +325,28 @@ export class OfficeScene {
       seen.add(agent.id);
       const existing = this.avatars.get(agent.id);
       if (existing) {
+        const wasIdle = isIdleVisual(existing.agent.visualState);
+        const nowIdle = isIdleVisual(agent.visualState);
+        const colorChanged = existing.agent.color !== agent.color;
         existing.agent = agent;
+        if (colorChanged) applyTint(existing.meshes, agent.color);
+        if (wasIdle && !nowIdle) {
+          existing.root.position.copyFrom(existing.homePos);
+          groundAgent(existing.root, this.modelTemplate?.footOffset ?? 0);
+          existing.idleBehavior = "patrol";
+          playAgentAnimation(existing, "idle");
+        } else if (!wasIdle && nowIdle) {
+          existing.idleBehavior = "patrol";
+          existing.behaviorEnd = 0;
+          existing.activePath = pickPathNear(existing.root.position.x, existing.root.position.z);
+          existing.pathIndex = nearestWaypointIndex(
+            existing.activePath,
+            existing.root.position.x,
+            existing.root.position.z,
+          );
+        }
         this.applyStatusVisual(existing);
-      } else {
+      } else if (this.modelReady && this.modelTemplate) {
         this.createAvatar(agent, agent.seatIndex >= 0 ? agent.seatIndex : index);
       }
     });
@@ -294,6 +354,8 @@ export class OfficeScene {
     // Remove avatars for agents that no longer exist
     for (const [id, avatar] of this.avatars) {
       if (!seen.has(id)) {
+        avatar.idleAnim?.dispose();
+        avatar.walkAnim?.dispose();
         avatar.root.dispose();
         this.avatars.delete(id);
       }
@@ -301,42 +363,67 @@ export class OfficeScene {
   }
 
   private createAvatar(agent: SceneAgent, seatIndex: number) {
+    if (!this.modelTemplate) return;
     const slot = this.deskSlots[seatIndex % this.deskSlots.length] ?? Vector3.Zero();
 
-    const root = new TransformNode(`avatar-${agent.id}`, this.scene);
+    const spawned = spawnAgentModel(this.modelTemplate, this.scene, agent.id, agent.color);
+    const root = spawned.root;
     root.position.copyFrom(slot);
+    groundAgent(root, this.modelTemplate.footOffset);
 
-    const body = MeshBuilder.CreateCapsule(`avatar-body-${agent.id}`, { radius: 0.32, height: 1.15, subdivisions: 4 }, this.scene);
-    body.position.y = 1.05;
-    body.parent = root;
-    body.material = this.material(`body-${agent.id}`, agent.color);
-    body.isPickable = true;
-    body.metadata = { agentId: agent.id };
-    this.shadowGenerator?.addShadowCaster(body);
+    // Fallback: if the GLB produced no meshes (e.g. stale container after
+    // a scene navigation), create a simple capsule so the agent is still
+    // visible and the overlay/label still renders.
+    if (spawned.meshes.length === 0) {
+      console.warn("[OfficeScene] GLB spawn returned no meshes for agent", agent.id, "— using capsule fallback");
+      const body = MeshBuilder.CreateCapsule(
+        `fallback-body-${agent.id}`,
+        { radius: 0.32, height: 1.5, subdivisions: 4 },
+        this.scene,
+      );
+      body.position.y = 0.75;
+      body.parent = root;
+      body.material = this.material(`fallback-${agent.id}`, agent.color);
+      body.isPickable = true;
+      body.metadata = { agentId: agent.id };
+      spawned.meshes.push(body);
+    }
 
-    const head = MeshBuilder.CreateSphere(`avatar-head-${agent.id}`, { diameter: 0.5, segments: 12 }, this.scene);
-    head.position.y = 1.9;
-    head.parent = root;
-    head.material = this.material(`head-${agent.id}`, agent.color, 0.12);
-    head.isPickable = true;
-    head.metadata = { agentId: agent.id };
+    const path = pickPathNear(slot.x, slot.z);
+    const pathIndex = nearestWaypointIndex(path, slot.x, slot.z);
 
-    const ring = MeshBuilder.CreateTorus(`avatar-ring-${agent.id}`, { diameter: 1.05, thickness: 0.06, tessellation: 24 }, this.scene);
+    const ring = MeshBuilder.CreateTorus(
+      `avatar-ring-${agent.id}`,
+      { diameter: 1.05, thickness: 0.06, tessellation: 24 },
+      this.scene,
+    );
     ring.position.y = 0.06;
     ring.parent = root;
     ring.isPickable = false;
 
     const avatar: AvatarNode = {
       root,
-      body,
-      head,
+      meshes: spawned.meshes,
       ring,
       agent,
       phase: Math.random() * Math.PI * 2,
-      baseY: 0,
+      baseY: root.position.y,
+      homePos: slot.clone(),
+      labelHeight: spawned.labelHeight,
+      idleAnim: spawned.idleAnim,
+      walkAnim: spawned.walkAnim,
+      currentAnim: null,
+      activePath: path,
+      pathIndex,
+      idleBehavior: "patrol",
+      behaviorEnd: 0,
     };
 
     this.avatars.set(agent.id, avatar);
+    for (const mesh of spawned.meshes) {
+      this.shadowGenerator?.addShadowCaster(mesh);
+    }
+    playAgentAnimation(avatar, "idle");
     this.applyStatusVisual(avatar);
   }
 
@@ -347,62 +434,159 @@ export class OfficeScene {
     avatar.ring.material = this.material(`ring-${avatar.agent.status}`, statusColor, 0.6);
 
     const isOffline = ["offline", "archived"].includes(avatar.agent.status);
-    const bodyMat = avatar.body.material as StandardMaterial;
-    bodyMat.alpha = isOffline ? 0.35 : 1;
-    const headMat = avatar.head.material as StandardMaterial;
-    headMat.alpha = isOffline ? 0.35 : 1;
+    const alpha = isOffline ? 0.35 : 1;
+    for (const mesh of avatar.meshes) {
+      if (!mesh.material) continue;
+      if (mesh.material instanceof StandardMaterial || mesh.material instanceof PBRMaterial) {
+        mesh.material.alpha = alpha;
+      }
+    }
   }
 
   /* ---------- animation state machine ---------- */
 
   private animate() {
     const t = performance.now() / 1000;
+    const dt = this.engine.getDeltaTime() / 1000;
 
     for (const avatar of this.avatars.values()) {
-      const { root, agent, phase } = avatar;
-      const state = agent.visualState;
+      const state = avatar.agent.visualState;
+
+      if (isIdleVisual(state)) {
+        this.animateIdle(avatar, t, dt);
+        continue;
+      }
+
+      playAgentAnimation(avatar, "idle");
+      const { root, phase } = avatar;
 
       switch (state) {
         case "typing":
-          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 9)) * 0.045;
-          root.rotation.y = Math.sin((t + phase) * 2) * 0.05;
+          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 9)) * 0.02;
           break;
         case "working":
         case "reviewing":
         case "learning":
-          root.position.y = avatar.baseY + Math.sin((t + phase) * 2.4) * 0.03;
-          root.rotation.y = Math.sin((t + phase) * 0.8) * 0.12;
+          root.position.y = avatar.baseY + Math.sin((t + phase) * 2.4) * 0.015;
           break;
-        case "thinking":
-          root.rotation.y = Math.sin((t + phase) * 0.6) * 0.3;
-          root.position.y = avatar.baseY;
-          break;
-        case "waiting":
         case "requesting_approval":
-          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 3.2)) * 0.12;
+          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 3.2)) * 0.04;
           break;
         case "blocked":
           root.rotation.y = Math.sin((t + phase) * 14) * 0.04;
-          root.position.y = avatar.baseY;
           break;
         case "celebrating":
-          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 5)) * 0.35;
-          root.rotation.y += 0.04;
+          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 5)) * 0.2;
+          root.rotation.y += 0.03;
           break;
         case "talking":
-          root.position.y = avatar.baseY + Math.sin((t + phase) * 4) * 0.02;
-          root.rotation.y = Math.sin((t + phase) * 1.5) * 0.2;
+          root.rotation.y = Math.sin((t + phase) * 1.5) * 0.15;
           break;
         case "away":
         case "offline":
           root.position.y = avatar.baseY;
           root.rotation.y = 0;
           break;
-        default: // idle
-          root.position.y = avatar.baseY + Math.sin((t + phase) * 1.4) * 0.02;
+        default:
           break;
       }
     }
+  }
+
+  /** Follow pre-traced paths; pause at waypoints for idle activities. */
+  private animateIdle(avatar: AvatarNode, t: number, dt: number) {
+    const { root, phase } = avatar;
+
+    if (avatar.idleBehavior !== "patrol") {
+      playAgentAnimation(avatar, "idle");
+      if (t >= avatar.behaviorEnd) {
+        avatar.idleBehavior = "patrol";
+        return;
+      }
+      this.playIdleActivity(avatar, t, phase);
+      return;
+    }
+
+    const wp = avatar.activePath.waypoints[avatar.pathIndex];
+    if (!wp) {
+      avatar.activePath = pickPathNear(root.position.x, root.position.z, avatar.activePath.id);
+      avatar.pathIndex = 0;
+      return;
+    }
+
+    const target = new Vector3(wp.x, root.position.y, wp.z);
+    const arrived = this.walkToward(avatar, target, 1.4, dt);
+
+    if (arrived) {
+      playAgentAnimation(avatar, "idle");
+
+      if (wp.activity) {
+        avatar.idleBehavior = wp.activity;
+        avatar.behaviorEnd = t + 4 + Math.random() * 5;
+        return;
+      }
+
+      // Brief random pause (~25 %) at ordinary waypoints.
+      if (Math.random() < 0.25) {
+        const pauses: IdleActivity[] = ["look", "scrolling", "stretch"];
+        avatar.idleBehavior = pauses[Math.floor(Math.random() * pauses.length)];
+        avatar.behaviorEnd = t + 3 + Math.random() * 4;
+        return;
+      }
+
+      avatar.pathIndex += 1;
+      if (avatar.pathIndex >= avatar.activePath.waypoints.length) {
+        if (avatar.activePath.loop) {
+          avatar.pathIndex = 0;
+        } else {
+          avatar.activePath = pickPathNear(root.position.x, root.position.z, avatar.activePath.id);
+          avatar.pathIndex = 0;
+        }
+      }
+    }
+  }
+
+  private playIdleActivity(avatar: AvatarNode, t: number, phase: number) {
+    const { root } = avatar;
+    switch (avatar.idleBehavior) {
+      case "coffee":
+        root.rotation.y = Math.PI * 0.2;
+        root.position.y = avatar.baseY + Math.sin((t + phase) * 2) * 0.01;
+        break;
+      case "scrolling":
+        root.rotation.y = Math.sin((t + phase) * 0.25) * 0.2;
+        break;
+      case "stretch":
+        root.rotation.y = Math.sin((t + phase) * 0.4) * 0.1;
+        root.position.y = avatar.baseY + Math.sin((t + phase) * 1.5) * 0.02;
+        break;
+      case "look":
+        root.rotation.y = Math.sin((t + phase) * 0.5) * 0.8;
+        break;
+      default:
+        break;
+    }
+  }
+
+  private walkToward(avatar: AvatarNode, target: Vector3, speed: number, dt: number): boolean {
+    const pos = avatar.root.position;
+    const dx = target.x - pos.x;
+    const dz = target.z - pos.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.25) {
+      pos.x = target.x;
+      pos.z = target.z;
+      playAgentAnimation(avatar, "idle");
+      return true;
+    }
+
+    playAgentAnimation(avatar, "walk");
+    const step = Math.min(speed * dt, dist);
+    pos.x += (dx / dist) * step;
+    pos.z += (dz / dist) * step;
+    avatar.root.rotation.y = Math.atan2(dx, dz);
+    return false;
   }
 
   /* ---------- picking ---------- */
@@ -451,7 +635,7 @@ export class OfficeScene {
     if (cssW === 0 || cssH === 0 || renderW === 0 || renderH === 0) return;
 
     for (const [id, avatar] of this.avatars) {
-      const worldPos = avatar.head.getAbsolutePosition().add(new Vector3(0, 0.65, 0));
+      const worldPos = avatar.root.getAbsolutePosition().add(new Vector3(0, avatar.labelHeight, 0));
       const projected = Vector3.Project(
         worldPos,
         Matrix.Identity(),
@@ -481,4 +665,8 @@ export class OfficeScene {
     this.scene.dispose();
     this.engine.dispose();
   }
+}
+
+function isIdleVisual(state: string): boolean {
+  return state === "waiting" || state === "idle" || state === "walking";
 }

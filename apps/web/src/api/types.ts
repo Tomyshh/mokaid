@@ -20,6 +20,18 @@ export interface Envelope<T> {
   meta?: Record<string, unknown>;
 }
 
+export interface AgentLearning {
+  missions_total: number;
+  domain_counts: Record<string, number>;
+  specialty: string | null;
+  specialized_at: string | null;
+}
+
+export interface AgentCapabilities {
+  learning?: AgentLearning;
+  [key: string]: unknown;
+}
+
 export interface Agent {
   id: string;
   workspace_id: string;
@@ -36,6 +48,7 @@ export interface Agent {
   ai_enabled: boolean;
   human_takeover_enabled: boolean;
   skills: AgentSkill[];
+  capabilities: AgentCapabilities | null;
   current_task_id: string | null;
   performance_score: number | null;
   linked_user_id: string | null;

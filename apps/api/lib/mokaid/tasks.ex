@@ -4,6 +4,7 @@ defmodule Mokaid.Tasks do
   import Ecto.Query
 
   alias Mokaid.Agents
+  alias Mokaid.Agents.SkillLearning
   alias Mokaid.Realtime
   alias Mokaid.Repo
 
@@ -46,9 +47,17 @@ defmodule Mokaid.Tasks do
   end
 
   def list_tasks(workspace_id, filters \\ %{}) do
+    # Preload only the latest execution run per task (DISTINCT ON task_id,
+    # ordered by inserted_at DESC) so the dashboard can show run status
+    # (queued / running / failed) without loading the full run history.
+    latest_run_query =
+      from r in TaskExecutionRun,
+        distinct: r.task_id,
+        order_by: [asc: r.task_id, desc: r.inserted_at]
+
     from(t in Task,
       where: t.workspace_id == ^workspace_id,
-      preload: [:project, :assigned_agent, :subtasks],
+      preload: [:project, :assigned_agent, :subtasks, execution_runs: ^latest_run_query],
       order_by: [asc: t.position, desc: t.inserted_at]
     )
     |> maybe_filter(:status, filters["status"])
@@ -125,6 +134,7 @@ defmodule Mokaid.Tasks do
             })
 
             maybe_celebrate_agent(updated)
+            maybe_record_learning(updated)
           end
 
         true ->
@@ -143,6 +153,15 @@ defmodule Mokaid.Tasks do
     case Agents.get_agent(task.workspace_id, task.assigned_agent_id) do
       nil -> :ok
       agent -> Agents.change_status(agent, "idle", reason: "task_completed")
+    end
+  end
+
+  defp maybe_record_learning(%Task{assigned_agent_id: nil}), do: :ok
+
+  defp maybe_record_learning(%Task{} = task) do
+    case Agents.get_agent(task.workspace_id, task.assigned_agent_id) do
+      nil -> :ok
+      agent -> SkillLearning.record_mission(agent, task, %{})
     end
   end
 

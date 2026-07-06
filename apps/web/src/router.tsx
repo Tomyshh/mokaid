@@ -24,6 +24,9 @@ import { McpHubPage } from "@/pages/mcp-hub";
 import { FigmaCallbackPage } from "@/pages/figma-callback";
 import { GoogleCallbackPage } from "@/pages/google-callback";
 import { GithubCallbackPage } from "@/pages/github-callback";
+import { LinearCallbackPage } from "@/pages/linear-callback";
+import { SlackCallbackPage } from "@/pages/slack-callback";
+import { NotionCallbackPage } from "@/pages/notion-callback";
 import { BillingPage } from "@/pages/billing";
 import { PrivacyPage } from "@/pages/privacy";
 import { TermsPage } from "@/pages/terms";
@@ -108,6 +111,24 @@ const githubCallbackRoute = createRoute({
   component: GithubCallbackPage,
 });
 
+const linearCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/oauth/linear/callback",
+  component: LinearCallbackPage,
+});
+
+const slackCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/oauth/slack/callback",
+  component: SlackCallbackPage,
+});
+
+const notionCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/auth/notion/callback",
+  component: NotionCallbackPage,
+});
+
 const privacyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/privacy",
@@ -127,6 +148,9 @@ const routeTree = rootRoute.addChildren([
   figmaCallbackRoute,
   googleCallbackRoute,
   githubCallbackRoute,
+  linearCallbackRoute,
+  slackCallbackRoute,
+  notionCallbackRoute,
   privacyRoute,
   termsRoute,
   appRoute.addChildren(pageRoutes),

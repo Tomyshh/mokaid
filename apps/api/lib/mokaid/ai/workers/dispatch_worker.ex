@@ -2,14 +2,20 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
   @moduledoc """
   Dispatches an AI run to the Python worker. Uses SQS in production
   and direct HTTP in development.
+
+  After max_attempts failures the job is discarded and we call
+  `cleanup_failed_run/1` to mark the run as failed and release the agent,
+  so neither the task nor the agent stay stuck indefinitely.
   """
 
   use Oban.Worker, queue: :ai_dispatch, max_attempts: 5
 
+  alias Mokaid.Agents
+  alias Mokaid.Realtime
   alias Mokaid.Tasks
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"run_id" => run_id}}) do
+  def perform(%Oban.Job{args: %{"run_id" => run_id}, attempt: attempt, max_attempts: max_attempts}) do
     config = Application.fetch_env!(:mokaid, :ai_worker)
 
     case Tasks.get_run(run_id) do
@@ -50,7 +56,14 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
           mcp_servers: mcp_servers
         }
 
-        dispatch(config[:dispatch], payload, config)
+        result = dispatch(config[:dispatch], payload, config)
+
+        # On the final attempt clean up the run and unblock the agent.
+        if result != :ok and attempt >= max_attempts do
+          cleanup_failed_run(run, "AI worker unreachable after #{max_attempts} attempts")
+        end
+
+        result
     end
   end
 
@@ -78,5 +91,24 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
       {:ok, _} -> :ok
       {:error, reason} -> {:error, inspect(reason)}
     end
+  end
+
+  defp cleanup_failed_run(run, error_message) do
+    Tasks.update_run_progress(run, %{"status" => "failed", "error" => error_message})
+
+    if run.agent_id do
+      case Agents.get_agent(run.workspace_id, run.agent_id) do
+        nil -> :ok
+        agent -> Agents.change_status(agent, "idle", reason: "dispatch_failed")
+      end
+    end
+
+    Realtime.broadcast_workspace(run.workspace_id, "task.progress_changed", %{
+      task_id: run.task_id,
+      run_id: run.id,
+      status: "failed",
+      error: error_message,
+      agent_id: run.agent_id
+    })
   end
 end

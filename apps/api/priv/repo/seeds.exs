@@ -130,10 +130,12 @@ for {key, name, category, description, icon_slug} <- provider_specs do
   )
 end
 
-if github = Repo.get_by(IntegrationProvider, key: "github") do
-  github
-  |> Ecto.Changeset.change(auth_kind: "oauth2")
-  |> Repo.update!()
+for key <- ["github", "linear", "slack"] do
+  if provider = Repo.get_by(IntegrationProvider, key: key) do
+    provider
+    |> Ecto.Changeset.change(auth_kind: "oauth2")
+    |> Repo.update!()
+  end
 end
 
 Mokaid.Integrations.LogoAssets.seed_all()

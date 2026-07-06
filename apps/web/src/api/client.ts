@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+import { resolveApiUrl } from "@/lib/env";
 import { useAuthStore } from "@/stores/auth-store";
 
 export class ApiError extends Error {
@@ -23,7 +23,7 @@ interface RequestOptions {
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { token, workspaceId } = useAuthStore.getState();
 
-  const url = new URL(`${env.VITE_API_URL}${path}`);
+  const url = resolveApiUrl(path);
   if (options.params) {
     for (const [key, value] of Object.entries(options.params)) {
       if (value != null && value !== "") url.searchParams.set(key, value);
@@ -67,7 +67,7 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<T>
   if (token) headers.Authorization = `Bearer ${token}`;
   if (workspaceId) headers["x-workspace-id"] = workspaceId;
 
-  const response = await fetch(`${env.VITE_API_URL}${path}`, {
+  const response = await fetch(resolveApiUrl(path), {
     method: "POST",
     headers,
     body: formData,
@@ -97,7 +97,7 @@ export async function fetchWorkspaceLogoBlob(workspaceId: string): Promise<Blob 
   const { token, workspaceId: activeWorkspaceId } = useAuthStore.getState();
   if (!token) return null;
 
-  const response = await fetch(`${env.VITE_API_URL}/api/workspaces/${workspaceId}/logo`, {
+  const response = await fetch(resolveApiUrl(`/api/workspaces/${workspaceId}/logo`), {
     headers: {
       Authorization: `Bearer ${token}`,
       "x-workspace-id": activeWorkspaceId ?? workspaceId,

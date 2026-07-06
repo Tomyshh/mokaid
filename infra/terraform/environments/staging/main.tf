@@ -81,6 +81,9 @@ module "stack" {
   cloudfront_certificate_arn = var.cloudfront_certificate_arn
   cloudfront_aliases         = var.cloudfront_certificate_arn != "" ? [var.app_domain] : []
 
+  web_image_tag      = "v2"
+  web_cpu            = 256
+  web_memory         = 512
   alarm_email        = var.alarm_email
   monthly_budget_usd = 250
 }

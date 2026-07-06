@@ -43,8 +43,13 @@ terraform apply
 After the first apply:
 
 1. Set real secret values in Secrets Manager (`secret_key_base`, `worker_auth_token`, `openai_api_key`).
-2. Build & push Docker images to the ECR repositories from the outputs.
-3. Upload the web build to the `mokaid-app-*` bucket, 3D assets to `mokaid-assets-3d-*`.
+2. Build & push Docker images to the ECR repositories (API, AI worker, **web**).
+3. Point your domain (or use the ALB DNS name in dev) to the Application Load Balancer:
+   - `/` → ECS web service (nginx SPA)
+   - `/api/*` and `/socket/*` → ECS API service
+4. Upload 3D assets to `mokaid-assets-3d-*` (CloudFront optional via `enable_cloudfront`).
+
+CI/CD (`deploy.yml`) builds all three images and rolls out ECS services when `AWS_DEPLOY_ENABLED=true`.
 
 ## Conventions
 

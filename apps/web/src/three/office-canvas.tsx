@@ -38,7 +38,9 @@ function toSceneAgents(agents: Agent[]): SceneAgent[] {
       kind: agent.kind,
       status: agent.status,
       presenceStatus: agent.presence_status,
-      visualState: toVisualState(agent.status, agent.presence_status),
+      visualState: toVisualState(agent.status, agent.presence_status, {
+        has_task: Boolean(agent.current_task_id),
+      }),
       color: agent.avatar_config?.primary_color ?? "#7c5cff",
       seatIndex: agent.avatar_config?.seat_index ?? index,
       currentTaskTitle: agent.current_task_id ? "Working on task" : null,

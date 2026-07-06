@@ -96,6 +96,20 @@ jobs:
           cache-from: type=gha,scope=worker-deploy
           cache-to: type=gha,scope=worker-deploy,mode=max
 
+      - name: Build and push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/web.Dockerfile
+          push: true
+          platforms: linux/arm64
+          build-args: |
+            VITE_API_URL=
+            VITE_WS_URL=/socket
+          tags: ${{ steps.registry.outputs.registry }}/mokaid-web:${{ env.IMAGE_TAG }}
+          cache-from: type=gha,scope=web-deploy
+          cache-to: type=gha,scope=web-deploy,mode=max
+
       - name: Deploy API to ECS
         env:
           CLUSTER: mokaid-${{ env.DEPLOY_ENV }}
@@ -117,4 +131,12 @@ jobs:
           SERVICE: mokaid-${{ env.DEPLOY_ENV }}-ai-worker
           TASK_FAMILY: mokaid-${{ env.DEPLOY_ENV }}-ai-worker
           IMAGE: ${{ steps.registry.outputs.registry }}/mokaid-ai-worker:${{ env.IMAGE_TAG }}
+        run: .github/scripts/deploy-ecs-service.sh
+
+      - name: Deploy Web to ECS
+        env:
+          CLUSTER: mokaid-${{ env.DEPLOY_ENV }}
+          SERVICE: mokaid-${{ env.DEPLOY_ENV }}-web
+          TASK_FAMILY: mokaid-${{ env.DEPLOY_ENV }}-web
+          IMAGE: ${{ steps.registry.outputs.registry }}/mokaid-web:${{ env.IMAGE_TAG }}
         run: .github/scripts/deploy-ecs-service.sh
