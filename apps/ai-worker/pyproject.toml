@@ -12,9 +12,11 @@ dependencies = [
     "langgraph>=0.2",
     "langchain-core>=0.3",
     "openai>=1.50",
+    "anthropic>=0.69",
     "boto3>=1.35",
     "structlog>=24.4",
     "mcp>=1.9",
+    "Pillow>=10.0",
 ]
 
 [project.optional-dependencies]
