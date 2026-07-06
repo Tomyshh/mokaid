@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import {
   Check,
@@ -15,11 +15,16 @@ import { useTasks, useUpdateAgent, useUploadAgentFiles, useDeleteAgent } from "@
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { AgentStatusBadge, TaskStatusBadge } from "@/components/ui/status";
+
+const AgentHeadPreview3D = lazy(() =>
+  import("@/three/agent-preview").then((m) => ({ default: m.AgentHeadPreview3D })),
+);
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Badge } from "@/components/ui/badge";
 import { AgentMcpMatrix } from "@/components/mcp/agent-mcp-matrix";
 import { formatRelative } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { useUiStore } from "@/stores/ui-store";
 
 const tabClass =
   "flex-1 px-2 py-2.5 text-xs font-medium text-text-muted transition-colors rounded-md hover:text-text hover:bg-surface-hover data-[state=active]:bg-primary-muted data-[state=active]:text-primary-light";
@@ -222,6 +227,7 @@ export function AgentProfilePanel({
   const { data: tasksData } = useTasks(agent ? { agent_id: agent.id } : {});
   const updateAgent = useUpdateAgent();
   const deleteAgent = useDeleteAgent();
+  const selectTask = useUiStore((s) => s.selectTask);
   const agentTasks = agent
     ? (tasksData?.data ?? []).filter((t) => t.assigned_agent_id === agent.id)
     : [];
@@ -249,22 +255,31 @@ export function AgentProfilePanel({
         <div className="flex flex-col gap-0">
           {/* Header */}
           <div className="flex flex-col items-center gap-3 px-6 pb-5 pt-4">
-            <div className="relative">
-              <Avatar
-                name={agent.display_name}
-                size="xl"
-                isAi={agent.kind === "ai"}
-                color={agent.avatar_config?.primary_color}
-              />
-              <div className="absolute -bottom-0.5 -right-0.5">
-                <AgentStatusBadge status={agent.status} />
-              </div>
+            <div className="h-20 w-20 overflow-hidden rounded-full border border-border-strong bg-surface-raised">
+              <Suspense
+                fallback={
+                  <Avatar
+                    name={agent.display_name}
+                    size="xl"
+                    isAi={agent.kind === "ai"}
+                    color={agent.avatar_config?.primary_color}
+                  />
+                }
+              >
+                <AgentHeadPreview3D
+                  name={agent.display_name}
+                  color={agent.avatar_config?.primary_color ?? (agent.kind === "ai" ? "#5936d1" : "#472aa8")}
+                  size={80}
+                />
+              </Suspense>
             </div>
 
             <div className="flex flex-col items-center gap-1">
               <EditableName value={agent.display_name} onSave={handleRename} />
               <p className="text-xs text-text-muted">{agent.role_title ?? "Agent"}</p>
             </div>
+
+            <AgentStatusBadge status={agent.status} />
 
             <div className="flex flex-wrap items-center justify-center gap-2">
               {agent.kind === "ai" ? (
@@ -323,7 +338,11 @@ export function AgentProfilePanel({
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
                     Current Task
                   </p>
-                  <div className="space-y-2.5 rounded-xl bg-surface-raised/60 p-4">
+                  <button
+                    type="button"
+                    onClick={() => selectTask(currentTask.id)}
+                    className="w-full space-y-2.5 rounded-xl bg-surface-raised/60 p-4 text-left transition-colors hover:bg-surface-hover mk-focus-ring"
+                  >
                     <p className="text-xs font-semibold text-text">{currentTask.title}</p>
                     <div className="flex items-center justify-between">
                       <TaskStatusBadge status={currentTask.status} />
@@ -332,7 +351,7 @@ export function AgentProfilePanel({
                       </span>
                     </div>
                     <ProgressBar value={currentTask.progress_percent} />
-                  </div>
+                  </button>
                 </div>
               )}
 
@@ -430,15 +449,17 @@ export function AgentProfilePanel({
             <Tabs.Content value="tasks" className="space-y-2 px-5 py-4">
               {agentTasks.length ? (
                 agentTasks.slice(0, 8).map((task) => (
-                  <div
+                  <button
                     key={task.id}
-                    className="flex items-center justify-between gap-2 rounded-xl bg-surface-raised/60 p-3.5"
+                    type="button"
+                    onClick={() => selectTask(task.id)}
+                    className="flex w-full items-center justify-between gap-2 rounded-xl bg-surface-raised/60 p-3.5 text-left transition-colors hover:bg-surface-hover mk-focus-ring"
                   >
                     <p className="min-w-0 flex-1 truncate text-xs font-medium text-text">
                       {task.title}
                     </p>
                     <TaskStatusBadge status={task.status} />
-                  </div>
+                  </button>
                 ))
               ) : (
                 <div className="flex flex-col items-center gap-2 py-8 text-center">

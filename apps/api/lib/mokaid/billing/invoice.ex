@@ -17,6 +17,8 @@ defmodule Mokaid.Billing.Invoice do
     field :issued_at, :utc_datetime_usec
     field :paid_at, :utc_datetime_usec
     field :line_items, {:array, :map}, default: []
+    field :kind, :string, default: "subscription"
+    field :external_payment_id, :string
 
     timestamps()
   end
@@ -32,7 +34,9 @@ defmodule Mokaid.Billing.Invoice do
       :currency,
       :issued_at,
       :paid_at,
-      :line_items
+      :line_items,
+      :kind,
+      :external_payment_id
     ])
     |> validate_required([:workspace_id, :number])
     |> unique_constraint([:workspace_id, :number])

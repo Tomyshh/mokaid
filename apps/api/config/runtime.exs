@@ -137,3 +137,14 @@ if config_env() == :prod do
     region: aws_region,
     host: "s3.#{aws_region}.amazonaws.com"
 end
+
+# PayMe hosted payments — seller id comes from the environment (AWS Secrets
+# Manager in deployed environments, .env locally); never from the repo.
+if System.get_env("PAYME_SELLER_ID") do
+  config :mokaid, :payme,
+    seller_id: System.get_env("PAYME_SELLER_ID"),
+    sandbox: System.get_env("PAYME_SANDBOX", "false") == "true",
+    currency: System.get_env("PAYME_CURRENCY", "USD"),
+    api_base_url: System.get_env("API_BASE_URL", "https://api.mokaid.com"),
+    web_base_url: System.get_env("WEB_BASE_URL", "https://mokaid.com")
+end

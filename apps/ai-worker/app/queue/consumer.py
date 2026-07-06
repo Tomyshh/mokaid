@@ -3,6 +3,7 @@
 Phoenix publishes JSON messages with a `type` discriminator:
 - "run": start an agent run (RunRequest payload)
 - "resume": deliver a human approval decision to a paused run
+- "cancel": abort an in-flight run
 - "ingest": chunk + embed a knowledge document
 
 In dev the queue URL is empty and Phoenix calls the HTTP endpoints directly.
@@ -38,11 +39,27 @@ async def _handle_message(body: dict[str, Any]) -> None:
         task = asyncio.ensure_future(runner.execute_run(request))
         _background_runs.add(task)
         task.add_done_callback(_background_runs.discard)
+        runner.register_run_task(request.run_id, task)
 
     elif kind == "resume":
         request = ResumeRequest.model_validate(body)
         if not runner.resume_run(request):
             log.warning("sqs_resume_no_waiting_run", run_id=request.run_id)
+
+    elif kind == "cancel":
+        run_id = str(body.get("run_id") or "")
+        if not runner.cancel_run_task(run_id):
+            log.warning("sqs_cancel_no_running_task", run_id=run_id)
+
+    elif kind == "converse":
+        from app.agents import converse as converse_agent
+
+        await converse_agent.converse(body)
+
+    elif kind == "agent_chat":
+        from app.agents import direct_chat
+
+        await direct_chat.reply(body)
 
     elif kind == "ingest":
         await ingest_document(body)

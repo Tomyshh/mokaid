@@ -93,6 +93,9 @@ export function spawnAgentModel(
 
   const root = (instance.rootNodes[0] as TransformNode) ?? new TransformNode(`agent-${agentId}`, scene);
   root.scaling.setAll(template.scale);
+  // glTF import sets rotationQuaternion, which silently overrides `.rotation` —
+  // clear it so the walk/idle state machine's Euler rotation.y takes effect.
+  root.rotationQuaternion = null;
 
   const meshes: AbstractMesh[] = [];
   for (const node of instance.rootNodes) {

@@ -12,6 +12,9 @@ defmodule Mokaid.Knowledge.KnowledgeItem do
     belongs_to :created_by_member, Mokaid.Members.Member
     belongs_to :file, Mokaid.Files.File
     belongs_to :drive_item, Mokaid.Drive.DriveItem
+    # Knowledge scope: general (both nil), project-specific, or agent-specific.
+    belongs_to :project, Mokaid.Projects.Project
+    belongs_to :agent, Mokaid.Agents.Agent
 
     field :title, :string
     field :type, :string
@@ -23,6 +26,7 @@ defmodule Mokaid.Knowledge.KnowledgeItem do
     field :version, :integer, default: 1
     field :indexing_status, :string, default: "not_indexed"
     field :metadata, :map, default: %{}
+    field :last_reviewed_at, :utc_datetime_usec
 
     has_many :chunks, Mokaid.Knowledge.KnowledgeChunk
 
@@ -39,6 +43,8 @@ defmodule Mokaid.Knowledge.KnowledgeItem do
       :workspace_id,
       :category_id,
       :created_by_member_id,
+      :project_id,
+      :agent_id,
       :title,
       :type,
       :source_url,
@@ -50,7 +56,8 @@ defmodule Mokaid.Knowledge.KnowledgeItem do
       :tags,
       :version,
       :indexing_status,
-      :metadata
+      :metadata,
+      :last_reviewed_at
     ])
     |> validate_required([:workspace_id, :title, :type])
     |> validate_inclusion(:type, @types)

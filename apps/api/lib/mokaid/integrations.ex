@@ -4,6 +4,7 @@ defmodule Mokaid.Integrations do
   import Ecto.Query
 
   alias Mokaid.Audit
+
   alias Mokaid.Integrations.{
     GitHubOAuth,
     GoogleOAuth,
@@ -13,6 +14,7 @@ defmodule Mokaid.Integrations do
     IntegrationConnection,
     IntegrationProvider
   }
+
   alias Mokaid.MCP
   alias Mokaid.Repo
   alias Mokaid.Vault
@@ -76,7 +78,8 @@ defmodule Mokaid.Integrations do
         "token" => credentials["access_token"]
       })
 
-    with {:ok, installation} <- MCP.install(workspace_id, GitHubOAuth.provider_key(), member, %{}),
+    with {:ok, installation} <-
+           MCP.install(workspace_id, GitHubOAuth.provider_key(), member, %{}),
          {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
       {:ok, :synced}
     else
@@ -110,7 +113,8 @@ defmodule Mokaid.Integrations do
         "token" => credentials["access_token"]
       })
 
-    with {:ok, installation} <- MCP.install(workspace_id, LinearOAuth.provider_key(), member, %{}),
+    with {:ok, installation} <-
+           MCP.install(workspace_id, LinearOAuth.provider_key(), member, %{}),
          {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
       {:ok, :synced}
     else
@@ -144,7 +148,8 @@ defmodule Mokaid.Integrations do
         "token" => credentials["access_token"]
       })
 
-    with {:ok, installation} <- MCP.install(workspace_id, NotionOAuth.provider_key(), member, %{}),
+    with {:ok, installation} <-
+           MCP.install(workspace_id, NotionOAuth.provider_key(), member, %{}),
          {:ok, _} <- MCP.store_credentials(installation, mcp_credentials, account) do
       {:ok, :synced}
     else
@@ -224,7 +229,14 @@ defmodule Mokaid.Integrations do
     {:ok, :synced}
   end
 
-  defp connect_with_credentials(workspace_id, provider_key, member, credentials, account, via \\ "google_oauth") do
+  defp connect_with_credentials(
+         workspace_id,
+         provider_key,
+         member,
+         credentials,
+         account,
+         via \\ "google_oauth"
+       ) do
     with %IntegrationProvider{} = provider <- get_provider_by_key(provider_key) do
       attrs = %{
         "workspace_id" => workspace_id,
@@ -286,7 +298,11 @@ defmodule Mokaid.Integrations do
     end
   end
 
-  def store_credentials(%IntegrationConnection{} = connection, credentials, connected_account \\ nil) do
+  def store_credentials(
+        %IntegrationConnection{} = connection,
+        credentials,
+        connected_account \\ nil
+      ) do
     connection
     |> Ecto.Changeset.change(
       encrypted_credentials: Vault.encrypt(credentials),

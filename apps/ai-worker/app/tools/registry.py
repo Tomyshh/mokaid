@@ -24,6 +24,9 @@ class RunContext:
     task_id: str
     task_title: str | None = None
     task_description: str | None = None
+    # Knowledge scoping: general + this project's + this agent's knowledge.
+    project_id: str | None = None
+    agent_id: str | None = None
     phoenix: Any = None  # PhoenixClient (Any to allow fakes in tests)
     usage: llm.UsageTracker = field(default_factory=llm.UsageTracker)
     attached_files: list = field(default_factory=list)
@@ -71,7 +74,13 @@ async def search_knowledge(params: dict[str, Any], ctx: RunContext) -> Any:
         return {"results": [], "query": query, "note": "search unavailable (no LLM key)"}
 
     [embedding] = await llm.embed([query], usage=ctx.usage)
-    results = await ctx.phoenix.search_knowledge(ctx.workspace_id, embedding, query)
+    results = await ctx.phoenix.search_knowledge(
+        ctx.workspace_id,
+        embedding,
+        query,
+        project_id=ctx.project_id,
+        agent_id=ctx.agent_id,
+    )
     return {"query": query, "results": results}
 
 

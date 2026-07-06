@@ -1,13 +1,21 @@
-"""OpenAI client wrapper: chat completions, JSON output and embeddings.
-
-Every helper degrades gracefully when no API key is configured so the
+"""Multi-provider LLM wrapper: text goes to Anthropic (Claude) when a key is
+configured, with OpenAI as fallback; embeddings, images and audio stay on
+OpenAI. Every helper degrades gracefully when no API key is configured so the
 worker keeps functioning (deterministic fallbacks) in offline dev/tests.
+
+Model routing keeps quality high and unit costs low:
+- "fast"  → claude-haiku-4-5 — conversational replies, acknowledgements,
+  triage, summaries.
+- "smart" → claude-sonnet-5 — mission planning and customer-visible
+  deliverables (documents, websites).
 """
 
 import json
-from typing import Any
+import re
+from typing import Any, Literal
 
 import structlog
+from anthropic import AsyncAnthropic
 from openai import AsyncOpenAI
 
 from app.config import get_settings
@@ -17,20 +25,26 @@ log = structlog.get_logger()
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIMENSIONS = 1536
 
+Quality = Literal["fast", "smart"]
+
 # USD per 1M tokens — used for run cost accounting.
 _PRICES: dict[str, dict[str, float]] = {
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4o": {"input": 2.50, "output": 10.00},
     "gpt-4.1-mini": {"input": 0.40, "output": 1.60},
     "dall-e-3": {"input": 0.0, "output": 0.0},
+    "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+    "claude-sonnet-5": {"input": 3.00, "output": 15.00},
     EMBEDDING_MODEL: {"input": 0.02, "output": 0.0},
 }
 
 _client: AsyncOpenAI | None = None
+_anthropic: AsyncAnthropic | None = None
 
 
 def is_configured() -> bool:
-    return bool(get_settings().openai_api_key)
+    settings = get_settings()
+    return bool(settings.anthropic_api_key or settings.openai_api_key)
 
 
 def _get_client() -> AsyncOpenAI:
@@ -38,6 +52,59 @@ def _get_client() -> AsyncOpenAI:
     if _client is None:
         _client = AsyncOpenAI(api_key=get_settings().openai_api_key)
     return _client
+
+
+def _get_anthropic() -> AsyncAnthropic:
+    global _anthropic
+    if _anthropic is None:
+        _anthropic = AsyncAnthropic(api_key=get_settings().anthropic_api_key)
+    return _anthropic
+
+
+def _use_anthropic() -> bool:
+    return bool(get_settings().anthropic_api_key)
+
+
+def _anthropic_model(quality: Quality) -> str:
+    settings = get_settings()
+    return settings.anthropic_smart_model if quality == "smart" else settings.anthropic_fast_model
+
+
+async def _anthropic_chat(
+    system: str,
+    user: str,
+    usage: "UsageTracker | None",
+    max_tokens: int,
+    quality: Quality,
+) -> str:
+    model = _anthropic_model(quality)
+    response = await _get_anthropic().messages.create(
+        model=model,
+        max_tokens=max_tokens,
+        system=system,
+        messages=[{"role": "user", "content": user}],
+    )
+    if usage:
+        usage.add(model, response.usage.input_tokens, response.usage.output_tokens)
+    return "".join(block.text for block in response.content if block.type == "text")
+
+
+def _extract_json(content: str) -> dict[str, Any]:
+    """Parses a JSON object out of model text (tolerates code fences)."""
+    text = content.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
+    if fenced:
+        text = fenced.group(1)
+    elif not text.startswith("{"):
+        brace = re.search(r"\{.*\}", text, re.DOTALL)
+        if brace:
+            text = brace.group(0)
+    try:
+        parsed = json.loads(text)
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        log.warning("llm_json_parse_failed", content=content[:200])
+        return {}
 
 
 class UsageTracker:
@@ -73,8 +140,12 @@ async def chat(
     user: str,
     usage: UsageTracker | None = None,
     max_tokens: int = 1500,
+    quality: Quality = "fast",
 ) -> str:
     """Single-turn chat completion. Returns the assistant text."""
+    if _use_anthropic():
+        return await _anthropic_chat(system, user, usage, max_tokens, quality)
+
     model = get_settings().openai_model
     response = await _get_client().chat.completions.create(
         model=model,
@@ -94,8 +165,19 @@ async def chat_json(
     user: str,
     usage: UsageTracker | None = None,
     max_tokens: int = 1500,
+    quality: Quality = "fast",
 ) -> dict[str, Any]:
     """Chat completion constrained to a JSON object response."""
+    if _use_anthropic():
+        content = await _anthropic_chat(
+            system + "\n\nRespond with a single valid JSON object and nothing else.",
+            user,
+            usage,
+            max_tokens,
+            quality,
+        )
+        return _extract_json(content or "{}")
+
     model = get_settings().openai_model
     response = await _get_client().chat.completions.create(
         model=model,
@@ -124,6 +206,8 @@ async def vision(
     max_tokens: int = 1500,
 ) -> str:
     """GPT-4o vision: analyze an image with a text prompt."""
+    if not get_settings().openai_api_key:
+        return ""
     model = "gpt-4o"
     response = await _get_client().chat.completions.create(
         model=model,
@@ -145,20 +229,68 @@ async def generate_image(
     prompt: str,
     usage: UsageTracker | None = None,
     size: str = "1024x1024",
-) -> str | None:
-    """DALL-E 3 image generation. Returns the image URL or None."""
-    try:
-        response = await _get_client().images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            n=1,
-            size=size,
-            response_format="url",
-        )
-        return response.data[0].url
-    except Exception as exc:
-        log.warning("dalle_generation_failed", error=str(exc))
-        return None
+) -> bytes | None:
+    """Text-to-image generation with the configured image model. Returns the
+    image bytes or None. (`response_format` no longer exists on this API —
+    current models return b64_json, older ones a URL.)"""
+    import base64
+
+    models = [get_settings().openai_image_model, "dall-e-3"]
+
+    for model in dict.fromkeys(models):
+        try:
+            response = await _get_client().images.generate(
+                model=model,
+                prompt=prompt,
+                n=1,
+                size=size,
+            )
+            data = response.data[0]
+            if data.b64_json:
+                return base64.b64decode(data.b64_json)
+            if data.url:
+                import httpx
+
+                async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
+                    resp = await client.get(data.url)
+                    resp.raise_for_status()
+                    return resp.content
+        except Exception as exc:
+            log.warning("image_generation_failed", model=model, error=str(exc))
+
+    return None
+
+
+async def edit_image(
+    image_bytes: bytes,
+    prompt: str,
+    usage: UsageTracker | None = None,
+    mime_type: str = "image/png",
+) -> bytes | None:
+    """AI image editing: transforms the ORIGINAL image per the prompt,
+    preserving its composition. Uses the configured image model
+    (gpt-image-2 by default) and falls back to gpt-image-1 when the account
+    doesn't have access. Returns PNG bytes or None."""
+    import base64
+    import io
+
+    ext = (mime_type.split("/") + ["png"])[1]
+    models = [get_settings().openai_image_model, "gpt-image-1"]
+
+    for model in dict.fromkeys(models):
+        try:
+            response = await _get_client().images.edit(
+                model=model,
+                image=(f"image.{ext}", io.BytesIO(image_bytes), mime_type),
+                prompt=prompt,
+            )
+            b64 = response.data[0].b64_json
+            if b64:
+                return base64.b64decode(b64)
+        except Exception as exc:
+            log.warning("image_edit_failed", model=model, error=str(exc))
+
+    return None
 
 
 async def transcribe_audio_data(
@@ -178,7 +310,7 @@ async def transcribe_audio_data(
 
 async def embed(texts: list[str], usage: UsageTracker | None = None) -> list[list[float]]:
     """Embeds a batch of texts with text-embedding-3-small (1536 dims)."""
-    if not texts:
+    if not texts or not get_settings().openai_api_key:
         return []
     response = await _get_client().embeddings.create(model=EMBEDDING_MODEL, input=texts)
     if usage and response.usage:

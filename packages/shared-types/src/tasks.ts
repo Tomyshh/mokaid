@@ -75,10 +75,31 @@ export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   overdue: "Overdue",
 };
 
-export const KANBAN_COLUMNS: TaskStatus[] = [
-  "to_do",
-  "in_progress",
-  "in_review",
-  "waiting",
-  "completed",
-];
+/**
+ * The board shows three simple lanes. Statuses collapse into them
+ * (`kanbanColumnFor`); dropping a card sets the column's canonical status,
+ * which drives the agent (start / stop / celebrate) on the backend.
+ */
+export type KanbanColumn = "to_do" | "in_progress" | "completed";
+
+export const KANBAN_COLUMNS: KanbanColumn[] = ["to_do", "in_progress", "completed"];
+
+export const KANBAN_COLUMN_LABELS: Record<KanbanColumn, string> = {
+  to_do: "To Do",
+  in_progress: "In Progress",
+  completed: "Done",
+};
+
+export function kanbanColumnFor(status: TaskStatus): KanbanColumn {
+  switch (status) {
+    case "in_progress":
+    case "waiting":
+      return "in_progress";
+    case "in_review":
+    case "completed":
+      return "completed";
+    default:
+      // to_do, blocked, canceled, overdue — work not currently running.
+      return "to_do";
+  }
+}

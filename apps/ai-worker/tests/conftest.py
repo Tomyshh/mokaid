@@ -7,8 +7,9 @@ from app.config import get_settings
 
 @pytest.fixture(autouse=True)
 def offline_llm(monkeypatch):
-    """Tests never call OpenAI: force the no-key fallback paths."""
+    """Tests never call an LLM provider: force the no-key fallback paths."""
     monkeypatch.setenv("OPENAI_API_KEY", "")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -23,8 +24,18 @@ class FakePhoenixClient:
     async def update_run_status(self, run_id: str, status: str, extra: dict | None = None) -> None:
         self.calls.append(("status", {"run_id": run_id, "status": status}))
 
-    async def request_approval(self, run_id: str, tool: str, tool_input: dict, risk: str) -> None:
-        self.calls.append(("approval", {"run_id": run_id, "tool": tool, "risk": risk}))
+    async def request_approval(
+        self,
+        run_id: str,
+        tool: str,
+        tool_input: dict,
+        risk: str,
+        proposed_action: str | None = None,
+    ) -> dict[str, Any] | None:
+        self.calls.append(
+            ("approval", {"run_id": run_id, "tool": tool, "risk": risk, "proposed_action": proposed_action})
+        )
+        return {"data": {"approval_request_id": "fake-approval", "status": "pending"}}
 
     async def complete_run(
         self,

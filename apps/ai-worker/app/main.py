@@ -5,7 +5,9 @@ import structlog
 from fastapi import FastAPI, Header, HTTPException
 
 import app.tools.files  # noqa: F401 — registers file-processing tools
-from app.agents import dispatcher, runner
+import app.tools.website  # noqa: F401 — registers the website generator tool
+from app.agents import converse as converse_agent
+from app.agents import direct_chat, dispatcher, runner
 from app.config import get_settings
 from app.memory.ingestion import ingest_document
 from app.queue.consumer import consume_forever
@@ -27,7 +29,8 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="mokaid AI worker", version="0.1.0", lifespan=lifespan)
 
-# Strong references to in-flight runs so the event loop never GCs them.
+# Strong references to in-flight runs so the event loop never GCs them
+# (the per-run cancel registry lives in runner.register_run_task).
 _background_runs: set[asyncio.Task] = set()
 
 
@@ -58,9 +61,57 @@ async def start_run(
     task = asyncio.create_task(runner.execute_run(request))
     _background_runs.add(task)
     task.add_done_callback(_background_runs.discard)
+    runner.register_run_task(request.run_id, task)
 
     log.info("run_accepted", run_id=request.run_id)
     return {"accepted": True, "run_id": request.run_id}
+
+
+@app.post("/runs/{run_id}/cancel")
+async def cancel_run(
+    run_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Aborts an in-flight run (including one paused for approval)."""
+    _check_auth(authorization)
+
+    if not runner.cancel_run_task(run_id):
+        # Nothing running here (already finished, or worker restarted) —
+        # cancellation is idempotent from the caller's point of view.
+        return {"canceled": False, "reason": "run not in flight"}
+
+    log.info("run_cancel_requested", run_id=run_id)
+    return {"canceled": True}
+
+
+@app.post("/converse")
+async def converse(
+    payload: dict,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Chat reply in a task thread while the agent is idle. The reply is
+    posted back as a task comment by the worker itself."""
+    _check_auth(authorization)
+
+    task = asyncio.create_task(converse_agent.converse(payload))
+    _background_runs.add(task)
+    task.add_done_callback(_background_runs.discard)
+    return {"accepted": True}
+
+
+@app.post("/agent-chat")
+async def agent_chat(
+    payload: dict,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Direct-chat reply (agent DM thread). The reply is posted back through
+    the Phoenix worker API which broadcasts it to the floating dock."""
+    _check_auth(authorization)
+
+    task = asyncio.create_task(direct_chat.reply(payload))
+    _background_runs.add(task)
+    task.add_done_callback(_background_runs.discard)
+    return {"accepted": True}
 
 
 @app.post("/dispatch/analyze")

@@ -27,7 +27,8 @@ config :mokaid, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"0 2 * * *", Mokaid.Billing.Workers.UsageAggregationWorker},
-       {"*/15 * * * *", Mokaid.Tasks.Workers.OverdueTaskWorker}
+       {"*/15 * * * *", Mokaid.Tasks.Workers.OverdueTaskWorker},
+       {"*/5 * * * *", Mokaid.Tasks.Workers.StaleRunWorker}
      ]}
   ]
 
@@ -48,6 +49,15 @@ config :mokaid, :ai_worker,
   dispatch: :http,
   url: "http://localhost:8100",
   token: "dev-worker-token"
+
+# PayMe hosted payments. seller_id empty => payments disabled (dev fallback
+# activates plans/credits directly). Overridden per env / runtime.exs.
+config :mokaid, :payme,
+  seller_id: nil,
+  sandbox: true,
+  currency: "USD",
+  api_base_url: "http://localhost:4000",
+  web_base_url: "http://localhost:5173"
 
 config :hammer,
   backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 2, cleanup_interval_ms: 60_000 * 10]}

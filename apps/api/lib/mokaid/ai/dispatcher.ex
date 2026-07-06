@@ -121,25 +121,49 @@ defmodule Mokaid.AI.Dispatcher do
         from d in DriveItem,
           where: d.workspace_id == ^workspace_id and d.id in ^ids and d.kind == "file"
       )
-      |> Enum.map(fn item ->
-        download_url =
-          case item.storage_key && Mokaid.Storage.download_url(item.storage_key) do
-            {:ok, url} -> url
-            _ -> nil
-          end
-
-        %{
-          id: item.id,
-          name: item.name,
-          mime_type: item.mime_type,
-          size_bytes: item.size_bytes,
-          download_url: download_url
-        }
-      end)
+      |> Enum.map(&file_entry/1)
     end
   end
 
   def attached_files(_workspace_id, _), do: []
+
+  @doc """
+  Every active file the task can work with: the drive items linked to the
+  task (initial attachments, files added later, previous agent outputs) plus
+  any explicitly referenced ids — so a relaunched mission sees the complete
+  current material, not just what was dropped at creation time.
+  """
+  def task_files(workspace_id, task_id, extra_ids \\ []) do
+    ids = Enum.filter(List.wrap(extra_ids), &is_binary/1)
+
+    Repo.all(
+      from d in DriveItem,
+        where:
+          d.workspace_id == ^workspace_id and d.kind == "file" and d.status == "active" and
+            (d.linked_task_id == ^task_id or d.id in ^ids),
+        order_by: [asc: d.inserted_at]
+    )
+    |> Enum.map(&file_entry/1)
+  end
+
+  defp file_entry(item) do
+    download_url =
+      case item.storage_key && Mokaid.Storage.download_url(item.storage_key) do
+        {:ok, url} -> url
+        _ -> nil
+      end
+
+    %{
+      id: item.id,
+      name: item.name,
+      mime_type: item.mime_type,
+      size_bytes: item.size_bytes,
+      download_url: download_url,
+      # Lets the planner iterate on the agent's own previous results instead
+      # of always restarting from the user's original upload.
+      source: if(item.created_by_agent_id, do: "agent_output", else: "input")
+    }
+  end
 
   ## ---------- Worker (LLM) analysis ----------
 
@@ -397,8 +421,7 @@ defmodule Mokaid.AI.Dispatcher do
   end
 
   defp out_of_scope_check(best_entry, confidence, categories, _roster) when confidence >= 40 do
-    {"user_choice",
-     heuristic_reason("user_choice", best_entry.agent, categories),
+    {"user_choice", heuristic_reason("user_choice", best_entry.agent, categories),
      custom_proposal(categories)}
   end
 
@@ -418,7 +441,7 @@ defmodule Mokaid.AI.Dispatcher do
       specialty = get_in(entry.agent.capabilities, ["learning", "specialty"])
       skill_names = Enum.map(entry.agent.skills || [], fn s -> s["name"] || s[:name] || "" end)
 
-      not (specialty in domains) and
+      specialty not in domains and
         not Enum.any?(skill_names, fn name ->
           MapSet.member?(domain_keywords, String.downcase(to_string(name)))
         end)

@@ -35,6 +35,7 @@ Available tools:
 - transform_image {file_url, instruction, original_filename}: modify an image (color changes, filters, resize, rotate, flip, or creative edits via DALL-E)
 - transcribe_audio {file_url, original_filename}: transcribe audio/video to text using Whisper
 - extract_document_text {file_url, original_filename}: extract text from PDFs and documents
+- generate_website {brief, brand_name, style}: design and build a complete landing page / one-page website as a self-contained HTML file (premium design, real copy, responsive)
 %(mcp_tools)s
 Rules:
 - 1 to %(max_steps)d steps, ordered.
@@ -48,6 +49,18 @@ File processing (HIGHEST PRIORITY):
 - Pass the file's download_url as file_url and the file's name as original_filename.
 - For image modifications (color change, resize, filter, edit, transform, etc.), use transform_image.
   transform_image IS the deliverable — do NOT add draft_document after it.
+
+Iteration & continuity (CRITICAL):
+- Files are labeled [input] (user-provided) or [agent output] (result of a
+  previous run), listed oldest first.
+- When the conversation asks to adjust, correct or iterate on the previous
+  result ("change the text", "I prefer it in blue", "same but…"), you MUST
+  use the MOST RECENT [agent output] file as file_url — never restart from
+  the original [input] unless the user explicitly asks to start over.
+- Write the transform_image instruction so it modifies ONLY what the user
+  asked to change and explicitly preserves everything else about that image
+  (style, composition, colors), e.g. "Replace the text 'METRO' with 'Mocina',
+  keep the retro style, colors and layout identical."
 - For understanding/describing an image or document, use analyze_file.
   analyze_file IS the deliverable — do NOT add draft_document after it.
 - For audio/video, use transcribe_audio. This IS the deliverable.
@@ -61,6 +74,15 @@ Text-only tasks (no attached files, or files already processed):
   draft_document for written work (briefs, specs, plans, creative direction…)
   or generate_report for reporting tasks. search_knowledge or summarize alone
   is never a complete plan — the user must receive a concrete output file.
+
+Websites & landing pages:
+- When the task asks for a website, landing page, page de vente, portfolio,
+  one-pager or similar, use generate_website. Put ALL user requirements
+  (business, audience, tone, colors, sections, language) into the brief.
+  generate_website IS the deliverable — do NOT add draft_document after it.
+- On iteration requests ("change the color", "add a pricing section"), call
+  generate_website again with a brief that restates the full previous intent
+  plus the requested change.
 
 Prioritization judgment:
 - Urgent/high-priority tasks (or tasks close to their due date): go straight to
@@ -106,7 +128,10 @@ def deterministic_plan(request: RunRequest) -> list[dict[str, Any]]:
     )
 
     if has_images:
-        file = next(f for f in request.attached_files if (f.mime_type or "").startswith("image/"))
+        # Latest image wins: files are ordered oldest→newest, so iterating on
+        # a previous agent output naturally targets the most recent result.
+        images = [f for f in request.attached_files if (f.mime_type or "").startswith("image/")]
+        file = images[-1]
         return [
             {"tool": "transform_image", "input": {
                 "file_url": file.download_url,
@@ -166,12 +191,27 @@ async def plan_steps(
 
     files_block = (
         "\n".join(
-            f"- {f.name} ({f.mime_type or 'unknown type'}, {f.size_bytes or '?'} bytes)"
+            f"- [{'agent output' if f.source == 'agent_output' else 'input'}] "
+            f"{f.name} ({f.mime_type or 'unknown type'}, {f.size_bytes or '?'} bytes)"
             + (f"  download_url: {f.download_url}" if f.download_url else "")
             for f in request.attached_files
         )
         or "(none)"
     )
+
+    # Task-thread conversation (user replies after a failed/reviewed run):
+    # the latest human message often contains the actual course correction.
+    conversation = request.input.get("conversation") or []
+    conversation_block = (
+        "\n".join(
+            f"- {entry.get('author', '?')}: {entry.get('body', '')}"
+            for entry in conversation[-8:]
+            if isinstance(entry, dict)
+        )
+        or "(none)"
+    )
+
+    extra_input = {k: v for k, v in request.input.items() if k != "conversation"}
 
     try:
         result = await llm.chat_json(
@@ -183,10 +223,13 @@ async def plan_steps(
                 f"Priority: {request.task_priority or 'medium'}\n"
                 f"Due date: {request.task_due_at or '(none)'}\n"
                 f"Attached files:\n{files_block}\n"
-                f"Extra input: {request.input}"
+                f"Task conversation (most recent last — follow the latest human instructions):\n"
+                f"{conversation_block}\n"
+                f"Extra input: {extra_input}"
             ),
             usage=usage,
             max_tokens=800,
+            quality="smart",
         )
     except Exception as exc:  # noqa: BLE001 — planner errors fall back, run continues
         log.warning("llm_planner_failed", error=str(exc))

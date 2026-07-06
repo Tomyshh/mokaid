@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -12,18 +12,29 @@ import {
   Loader2,
   Music,
   Paperclip,
+  Play,
+  RefreshCw,
   Send,
+  ShieldAlert,
   Sparkles,
+  Square,
+  Trash2,
+  ThumbsDown,
   ThumbsUp,
   Undo2,
   User,
 } from "lucide-react";
-import { apiFetch } from "@/api/client";
-import type { Envelope, TaskAttachment, TaskRunToolCall } from "@/api/types";
+import { fetchDriveFileBlob } from "@/api/client";
+import type { TaskAttachment, TaskRunToolCall } from "@/api/types";
 import {
   useAgents,
+  useApproveTaskAction,
+  useAttachTaskFile,
   useCreateTaskComment,
+  useDeleteTask,
+  useExecuteAi,
   useProjects,
+  useStopTaskAi,
   useTask,
   useToggleSubtask,
   useUpdateTask,
@@ -34,6 +45,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { PriorityBadge, TaskStatusBadge } from "@/components/ui/status";
+import { cn } from "@/lib/cn";
 import { formatBytes, formatDateTime } from "@/lib/format";
 
 const NO_PROJECT = "__none__";
@@ -117,42 +129,124 @@ function Section({
 
 function FileRow({ file }: { file: TaskAttachment }) {
   const [busy, setBusy] = useState(false);
-  const download = async () => {
+  const [error, setError] = useState(false);
+  const isImage = file.mime_type?.startsWith("image/") ?? false;
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  // File bytes come through the authenticated API (same origin), never from
+  // the object store directly — browsers may not be able to reach it.
+  // Images are fetched eagerly for the inline preview.
+  useEffect(() => {
+    if (!isImage) return;
+    let alive = true;
+    let url: string | null = null;
+    fetchDriveFileBlob(file.id)
+      .then((blob) => {
+        url = URL.createObjectURL(blob);
+        if (alive) setBlobUrl(url);
+        else URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        if (alive) setError(true);
+      });
+    return () => {
+      alive = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [file.id, isImage]);
+
+  const ensureBlobUrl = async (): Promise<string> => {
+    if (blobUrl) return blobUrl;
+    const blob = await fetchDriveFileBlob(file.id);
+    const url = URL.createObjectURL(blob);
+    setBlobUrl(url);
+    return url;
+  };
+
+  // Save-as via a same-origin blob anchor: no new tab, no popup blockers.
+  const download = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setBusy(true);
+    setError(false);
     try {
-      const res = await apiFetch<Envelope<{ url: string; name: string }>>(
-        `/api/drive/${file.id}/download`,
-      );
-      window.open(res.data.url, "_blank", "noopener");
+      const url = await ensureBlobUrl();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = file.name;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    } catch {
+      setError(true);
     } finally {
       setBusy(false);
     }
   };
+
+  // Row click: images open full-size in a new tab (blob is already local,
+  // so the call is synchronous and popup-safe); other files download.
+  const open = () => {
+    if (isImage && blobUrl) {
+      window.open(blobUrl, "_blank");
+      return;
+    }
+    void download();
+  };
+
   return (
-    <button
-      type="button"
-      onClick={download}
-      disabled={busy}
-      className="group flex w-full items-center gap-2.5 rounded-xl bg-surface-raised/60 px-3.5 py-2.5 text-left transition-all hover:bg-surface-hover hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)] mk-focus-ring"
-    >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-muted/40 text-primary-light">
-        {fileIcon(file.mime_type)}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-medium text-text">{file.name}</span>
-        <span className="text-[10px] text-text-muted">
-          {file.size_bytes ? formatBytes(file.size_bytes) : "·"} · {formatDateTime(file.inserted_at)}
-        </span>
-      </span>
-      {busy ? (
-        <Loader2 size={13} className="shrink-0 animate-spin text-text-muted" />
-      ) : (
-        <Download
-          size={13}
-          className="shrink-0 text-text-muted opacity-0 transition-opacity group-hover:opacity-100"
-        />
+    <div className="overflow-hidden rounded-xl bg-surface-raised/60">
+      <div className="group flex w-full items-center gap-2.5 px-3.5 py-2.5">
+        <button
+          type="button"
+          onClick={open}
+          disabled={busy}
+          className="flex min-w-0 flex-1 items-center gap-2.5 text-left mk-focus-ring"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-muted/40 text-primary-light">
+            {fileIcon(file.mime_type)}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-xs font-medium text-text">{file.name}</span>
+            <span className="text-[10px] text-text-muted">
+              {error
+                ? "Could not load the file — tap to retry"
+                : `${file.size_bytes ? formatBytes(file.size_bytes) : "·"} · ${formatDateTime(file.inserted_at)}`}
+            </span>
+          </span>
+        </button>
+        {busy ? (
+          <Loader2 size={13} className="shrink-0 animate-spin text-text-muted" />
+        ) : error ? (
+          <AlertTriangle size={13} className="shrink-0 text-danger" />
+        ) : (
+          <button
+            type="button"
+            onClick={download}
+            aria-label={`Download ${file.name}`}
+            title="Download"
+            className="shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text mk-focus-ring"
+          >
+            <Download size={13} />
+          </button>
+        )}
+      </div>
+      {isImage && blobUrl && (
+        <button
+          type="button"
+          onClick={open}
+          className="block w-full bg-bg-deep/40 px-3.5 pb-3 pt-1 mk-focus-ring"
+          aria-label={`Open ${file.name} full size`}
+          title="Open full size"
+        >
+          <img
+            src={blobUrl}
+            alt={file.name}
+            className="max-h-44 w-full rounded-lg object-contain"
+            onError={() => setBlobUrl(null)}
+          />
+        </button>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -180,6 +274,15 @@ export function TaskDetailPanel({
 }) {
   const [comment, setComment] = useState("");
   const [expandedDoc, setExpandedDoc] = useState<number | null>(0);
+  const [relaunchOpen, setRelaunchOpen] = useState(false);
+  const [instructions, setInstructions] = useState("");
+
+  // Fresh composer state whenever another task is opened.
+  useEffect(() => {
+    setRelaunchOpen(false);
+    setInstructions("");
+    setComment("");
+  }, [taskId]);
 
   const { data: taskData, isLoading } = useTask(taskId);
   const { data: agentsData } = useAgents();
@@ -187,6 +290,12 @@ export function TaskDetailPanel({
   const createComment = useCreateTaskComment();
   const toggleSubtask = useToggleSubtask();
   const updateTask = useUpdateTask();
+  const approveAction = useApproveTaskAction();
+  const executeAi = useExecuteAi();
+  const stopAi = useStopTaskAi();
+  const deleteTask = useDeleteTask();
+  const attachFile = useAttachTaskFile();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const task = taskData?.data ?? null;
   const agents = agentsData?.data ?? [];
@@ -203,9 +312,56 @@ export function TaskDetailPanel({
   const inputs = task?.attachments.filter((f) => f.source === "input") ?? [];
   const run = task?.latest_run ?? null;
   const docs = useMemo(() => producedDocs(run?.output?.tool_calls ?? []), [run]);
+  const pendingApproval = task?.pending_approval ?? null;
+  const waitingApproval = run?.status === "waiting_for_approval" || pendingApproval != null;
   const agentWorking =
-    run != null && ["queued", "running", "waiting_for_approval"].includes(run.status);
+    !waitingApproval && run != null && ["queued", "running"].includes(run.status);
   const runFailed = run?.status === "failed" && task?.status !== "completed";
+  const canRetry =
+    task != null && !["completed", "canceled"].includes(task.status) && !agentWorking;
+
+  const decide = (decision: "approved" | "rejected") => {
+    if (!task || !pendingApproval) return;
+    approveAction.mutate({
+      taskId: task.id,
+      approvalRequestId: pendingApproval.id,
+      decision,
+    });
+  };
+
+  const retry = () => {
+    if (!task) return;
+    executeAi.mutate({ taskId: task.id });
+  };
+
+  // Relaunch with fresh instructions: the message lands in the task thread
+  // first, so the agent reads it (the run input carries the conversation).
+  const relaunchWithInstructions = async () => {
+    if (!task) return;
+    const text = instructions.trim();
+    if (text) {
+      await createComment.mutateAsync({ taskId: task.id, body: text });
+    }
+    executeAi.mutate({ taskId: task.id });
+    setInstructions("");
+    setRelaunchOpen(false);
+  };
+
+  const onFilesPicked = (files: FileList | null) => {
+    if (!task || !files) return;
+    Array.from(files).forEach((file) => attachFile.mutate({ file, taskId: task.id }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // The agent can be (re)launched whenever nothing is actively running and
+  // no human decision is pending — e.g. to continue after a failed attempt
+  // or after the user replied / attached new material.
+  const canRelaunch =
+    task != null &&
+    task.assigned_agent_id != null &&
+    !agentWorking &&
+    !waitingApproval &&
+    !["completed", "canceled"].includes(task.status);
 
   const submitComment = () => {
     if (!task || !comment.trim()) return;
@@ -254,12 +410,107 @@ export function TaskDetailPanel({
                 <span className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-info/30" />
                 <Loader2 size={16} className="relative animate-spin text-info" />
               </div>
-              <p className="text-[12px] leading-snug text-text-secondary">
+              <p className="min-w-0 flex-1 text-[12px] leading-snug text-text-secondary">
                 <span className="font-semibold text-text">
                   {task.assigned_agent_name ?? "Agent"}
                 </span>{" "}
-                is working…
+                {run?.status === "queued" ? "is queued…" : "is working…"}
               </p>
+              <Button
+                size="sm"
+                variant="danger"
+                className="shrink-0 gap-1.5"
+                loading={stopAi.isPending}
+                onClick={() => stopAi.mutate(task.id)}
+              >
+                <Square size={11} /> Stop
+              </Button>
+            </div>
+          )}
+
+          {/* Idle to_do task with an AI agent: one click to launch. */}
+          {task.status === "to_do" && task.assigned_agent_id && !agentWorking && !waitingApproval && (
+            <Button
+              className="w-full gap-1.5"
+              loading={executeAi.isPending}
+              onClick={retry}
+            >
+              <Play size={13} /> Start the mission with {task.assigned_agent_name ?? "the agent"}
+            </Button>
+          )}
+
+          {/* Approval needed: the agent paused and waits for a human decision. */}
+          {waitingApproval && pendingApproval && (
+            <div className="rounded-xl bg-warning/10 px-4 py-3.5">
+              <div className="flex items-start gap-2.5">
+                <ShieldAlert size={15} className="mt-0.5 shrink-0 text-warning" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-semibold text-text">
+                    {task.assigned_agent_name ?? "The agent"} needs your approval
+                  </p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-text-secondary">
+                    {pendingApproval.proposed_action}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <Badge tone="muted">{pendingApproval.tool_name}</Badge>
+                    <span
+                      className={
+                        "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " +
+                        (["high", "critical"].includes(pendingApproval.risk_level)
+                          ? "bg-danger/15 text-danger"
+                          : "bg-warning/15 text-warning")
+                      }
+                    >
+                      {pendingApproval.risk_level} risk
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  size="sm"
+                  className="flex-1 gap-1.5"
+                  loading={approveAction.isPending}
+                  onClick={() => decide("approved")}
+                >
+                  <ThumbsUp size={12} /> Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="flex-1 gap-1.5"
+                  disabled={approveAction.isPending}
+                  onClick={() => decide("rejected")}
+                >
+                  <ThumbsDown size={12} /> Reject
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Orphaned wait: the run says "waiting" but no approval exists to
+              decide on (e.g. worker restarted). Offer a clean restart. */}
+          {waitingApproval && !pendingApproval && (
+            <div className="rounded-xl bg-warning/10 px-4 py-3.5">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle size={15} className="mt-0.5 shrink-0 text-warning" />
+                <div>
+                  <p className="text-[12px] font-semibold text-text">
+                    The agent is stuck waiting
+                  </p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-text-secondary">
+                    Its approval request could not be found. Restart the mission to continue.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="mt-3 w-full gap-1.5"
+                loading={executeAi.isPending}
+                onClick={retry}
+              >
+                <RefreshCw size={12} /> Restart mission
+              </Button>
             </div>
           )}
 
@@ -293,15 +544,28 @@ export function TaskDetailPanel({
             </div>
           )}
 
-          {runFailed && (
-            <div className="flex items-start gap-2.5 rounded-xl bg-danger/8 px-4 py-3.5">
-              <AlertTriangle size={15} className="mt-0.5 shrink-0 text-danger" />
-              <div>
-                <p className="text-[12px] font-semibold text-danger">Run failed</p>
-                <p className="mt-0.5 text-[11px] leading-snug text-text-secondary">
-                  {run?.error || "An unexpected error occurred."}
-                </p>
+          {runFailed && !waitingApproval && (
+            <div className="rounded-xl bg-danger/8 px-4 py-3.5">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle size={15} className="mt-0.5 shrink-0 text-danger" />
+                <div>
+                  <p className="text-[12px] font-semibold text-danger">Run failed</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-text-secondary">
+                    {run?.error || "An unexpected error occurred."}
+                  </p>
+                </div>
               </div>
+              {canRetry && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="mt-3 w-full gap-1.5"
+                  loading={executeAi.isPending}
+                  onClick={retry}
+                >
+                  <RefreshCw size={12} /> Retry mission
+                </Button>
+              )}
             </div>
           )}
 
@@ -430,20 +694,39 @@ export function TaskDetailPanel({
             </Section>
           )}
 
-          {/* Attachments */}
-          {inputs.length > 0 && (
-            <Section
-              title="Attachments"
-              count={inputs.length}
-              icon={<Paperclip size={11} className="text-text-muted" />}
-            >
-              <div className="space-y-2">
-                {inputs.map((f) => (
-                  <FileRow key={f.id} file={f} />
-                ))}
-              </div>
-            </Section>
-          )}
+          {/* Attachments — always visible so users can hand the agent new
+              material (e.g. a usable file format) at any point. */}
+          <Section
+            title="Attachments"
+            count={inputs.length}
+            icon={<Paperclip size={11} className="text-text-muted" />}
+          >
+            <div className="space-y-2">
+              {inputs.map((f) => (
+                <FileRow key={f.id} file={f} />
+              ))}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => onFilesPicked(e.target.files)}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={attachFile.isPending}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border px-3.5 py-2.5 text-[11px] font-medium text-text-muted transition-colors hover:border-primary/50 hover:text-text mk-focus-ring"
+              >
+                {attachFile.isPending ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Paperclip size={12} />
+                )}
+                Add a file for {task.assigned_agent_name ?? "the agent"}
+              </button>
+            </div>
+          </Section>
 
           {/* Subtasks */}
           {task.subtasks.length > 0 && (
@@ -483,36 +766,43 @@ export function TaskDetailPanel({
             </Section>
           )}
 
-          {/* Activity */}
+          {/* Conversation — a real chat with the agent: it acknowledges
+              missions, explains failures and replies when you write to it. */}
           <Section
-            title="Activity"
+            title="Conversation"
             count={task.comments.length || undefined}
             icon={<User size={11} className="text-text-muted" />}
           >
             {task.comments.length > 0 && (
-              <div className="mb-3 space-y-3">
-                {task.comments.map((c) => (
-                  <div key={c.id} className="flex gap-2.5">
-                    <Avatar
-                      name={c.author_name}
-                      size="xs"
-                      isAi={c.author_kind === "agent"}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px]">
-                        <span className="font-semibold text-text">
-                          {c.author_name ?? "Unknown"}
-                        </span>
-                        <span className="ml-1.5 text-text-muted">
-                          {formatDateTime(c.inserted_at)}
-                        </span>
-                      </p>
-                      <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-text-secondary">
-                        {c.body}
-                      </p>
+              <div className="mb-3 space-y-2.5">
+                {task.comments.map((c) => {
+                  const isAgent = c.author_kind === "agent";
+                  return (
+                    <div
+                      key={c.id}
+                      className={cn("flex gap-2", isAgent ? "" : "flex-row-reverse")}
+                    >
+                      <Avatar name={c.author_name} size="xs" isAi={isAgent} />
+                      <div className={cn("max-w-[85%]", isAgent ? "" : "text-right")}>
+                        <div
+                          className={cn(
+                            "rounded-2xl px-3 py-2 text-left",
+                            isAgent
+                              ? "rounded-tl-sm bg-surface-raised/80"
+                              : "rounded-tr-sm bg-primary/15",
+                          )}
+                        >
+                          <p className="whitespace-pre-wrap text-xs leading-relaxed text-text">
+                            {c.body}
+                          </p>
+                        </div>
+                        <p className="mt-1 px-1 text-[10px] text-text-muted">
+                          {c.author_name ?? "Unknown"} · {formatDateTime(c.inserted_at)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -521,7 +811,7 @@ export function TaskDetailPanel({
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitComment()}
-                placeholder="Write a comment…"
+                placeholder={`Message ${task.assigned_agent_name ?? "the agent"}…`}
                 className="mk-input flex-1 text-xs"
               />
               <Button
@@ -529,12 +819,80 @@ export function TaskDetailPanel({
                 variant="secondary"
                 onClick={submitComment}
                 loading={createComment.isPending}
-                aria-label="Send comment"
+                aria-label="Send message"
               >
                 <Send size={13} />
               </Button>
             </div>
+
+            {/* Relaunch with fresh instructions + documents. The agent gets
+                the whole thread and every linked file as context. */}
+            {canRelaunch && !relaunchOpen && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-2.5 w-full gap-1.5"
+                onClick={() => setRelaunchOpen(true)}
+              >
+                <Sparkles size={12} />
+                Ask {task.assigned_agent_name ?? "the agent"} to continue the mission
+              </Button>
+            )}
+
+            {canRelaunch && relaunchOpen && (
+              <div className="mt-2.5 space-y-2.5 rounded-xl bg-surface-raised/50 p-3.5">
+                <p className="text-[11px] font-semibold text-text">
+                  New instructions for {task.assigned_agent_name ?? "the agent"}
+                </p>
+                <textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={3}
+                  autoFocus
+                  placeholder="Explain what to do differently, add details, reference the attached documents…"
+                  className="mk-input w-full resize-none text-xs leading-relaxed"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="gap-1.5"
+                    loading={attachFile.isPending}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip size={12} /> Add document
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 gap-1.5"
+                    loading={executeAi.isPending || createComment.isPending}
+                    onClick={relaunchWithInstructions}
+                  >
+                    <Sparkles size={12} /> Send & relaunch
+                  </Button>
+                </div>
+                <p className="text-[10px] leading-snug text-text-muted">
+                  {task.assigned_agent_name ?? "The agent"} will read the whole conversation and
+                  every attached file before continuing.
+                </p>
+              </div>
+            )}
           </Section>
+
+          {/* Danger zone — deleting also aborts the agent's run and frees it
+              for its next queued mission. */}
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(`Delete "${task.title}"? The agent will stop working on it.`)) {
+                deleteTask.mutate(task.id, { onSuccess: onClose });
+              }
+            }}
+            disabled={deleteTask.isPending}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-danger/20 py-2.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10 mk-focus-ring"
+          >
+            <Trash2 size={13} /> Delete task
+          </button>
         </div>
       )}
     </DetailPanel>

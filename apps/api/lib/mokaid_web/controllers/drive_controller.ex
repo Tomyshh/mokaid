@@ -104,6 +104,46 @@ defmodule MokaidWeb.DriveController do
     end
   end
 
+  # Streams the file bytes through the API (same pattern as the workspace
+  # logo). Browsers can't always reach the object store directly — presigned
+  # URLs point at another origin/port that HSTS or network setups may block —
+  # so previews and downloads go through this same-origin endpoint instead.
+  def raw(conn, %{"id" => id}) do
+    with :ok <- Permissions.authorize(current_member(conn), "drive.view"),
+         %{} = item <- Drive.get_item(workspace_id(conn), id),
+         true <- item.kind == "file" and is_binary(item.storage_key),
+         {:ok, body, content_type} <- Mokaid.Storage.get_object(item.storage_key) do
+      disposition_type =
+        if conn.params["disposition"] == "attachment", do: "attachment", else: "inline"
+
+      conn
+      |> put_resp_content_type(item.mime_type || content_type, nil)
+      |> put_resp_header("cache-control", "private, max-age=300")
+      |> put_resp_header(
+        "content-disposition",
+        ~s(#{disposition_type}; filename="#{sanitize_filename(item.name)}")
+      )
+      |> send_resp(200, body)
+    else
+      false ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: %{code: "not_a_file", message: "Only files can be downloaded"}})
+
+      {:error, _} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "File content not found in storage"}})
+
+      other ->
+        other
+    end
+  end
+
+  defp sanitize_filename(name) do
+    name |> String.replace(~s("), "'") |> String.replace(~r/[\r\n]/, " ")
+  end
+
   defp file_extension(filename) do
     case Path.extname(filename) do
       "." <> ext -> String.downcase(ext)

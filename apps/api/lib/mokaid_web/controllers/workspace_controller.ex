@@ -48,7 +48,9 @@ defmodule MokaidWeb.WorkspaceController do
       {:error, :invalid_image} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: %{code: "invalid_image", message: "Logo must be a PNG, JPG, WebP or GIF image"}})
+        |> json(%{
+          error: %{code: "invalid_image", message: "Logo must be a PNG, JPG, WebP or GIF image"}
+        })
     end
   end
 
@@ -70,7 +72,9 @@ defmodule MokaidWeb.WorkspaceController do
       |> send_resp(200, body)
     else
       nil ->
-        conn |> put_status(:not_found) |> json(%{error: %{code: "not_found", message: "No logo uploaded"}})
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "No logo uploaded"}})
 
       {:error, _} ->
         conn

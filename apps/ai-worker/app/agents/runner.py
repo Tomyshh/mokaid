@@ -28,9 +28,28 @@ _RUNS: dict[str, RunState] = {}
 _RESUME_EVENTS: dict[str, asyncio.Event] = {}
 _RESUME_DECISIONS: dict[str, ResumeRequest] = {}
 
+# asyncio task handles of in-flight runs, so a human can abort any mission
+# at any moment (shared by the HTTP endpoint and the SQS consumer).
+_RUN_TASKS: dict[str, asyncio.Task] = {}
+
 
 def get_run(run_id: str) -> RunState | None:
     return _RUNS.get(run_id)
+
+
+def register_run_task(run_id: str, task: asyncio.Task) -> None:
+    """Tracks the run's asyncio task (also keeps a strong reference to it)."""
+    _RUN_TASKS[run_id] = task
+    task.add_done_callback(lambda _t: _RUN_TASKS.pop(run_id, None))
+
+
+def cancel_run_task(run_id: str) -> bool:
+    """Cancels an in-flight run, including one paused for approval."""
+    task = _RUN_TASKS.get(run_id)
+    if task is None or task.done():
+        return False
+    task.cancel()
+    return True
 
 
 async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None) -> RunState:
@@ -44,6 +63,8 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
         task_id=request.task_id,
         task_title=request.task_title,
         task_description=request.task_description,
+        project_id=request.project_id,
+        agent_id=request.agent_id,
         phoenix=phoenix,
         attached_files=[f.model_dump() for f in request.attached_files],
     )
@@ -70,8 +91,20 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
             if requires_approval(tool_name):
                 state.status = RunStatus.WAITING_FOR_APPROVAL
                 state.pending_tool = call
+                created = await phoenix.request_approval(
+                    request.run_id,
+                    tool_name,
+                    tool_input,
+                    risk.value,
+                    proposed_action=_describe_action(tool_name, tool_input),
+                )
+                if created is None:
+                    # Nothing exists for a human to approve — waiting would
+                    # strand the run forever, so fail loudly instead.
+                    raise RuntimeError(
+                        f"could not create the approval request for {tool_name}"
+                    )
                 await phoenix.update_run_status(request.run_id, state.status.value)
-                await phoenix.request_approval(request.run_id, tool_name, tool_input, risk.value)
                 log.info("run_waiting_approval", run_id=request.run_id, tool=tool_name)
 
                 decision = await _wait_for_decision(request.run_id)
@@ -104,6 +137,23 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
 
         artifacts = await _save_artifacts(request, state, phoenix)
 
+        # No deliverable + tool errors = the mission actually failed. Tell the
+        # user what blocked the agent (in the task thread, so they can reply
+        # or attach a better file) and mark the run failed so the UI offers a
+        # retry instead of pretending the work is done.
+        executed = [c for c in state.tool_calls if c.approved is not False]
+        errors = [
+            c for c in executed if isinstance(c.output, dict) and c.output.get("error")
+        ]
+        if errors and not artifacts:
+            summary = "; ".join(str(c.output.get("error"))[:200] for c in errors[:3])
+            await _post_failure_comment(request, phoenix, ctx.usage, errors)
+            state.status = RunStatus.FAILED
+            state.error = summary
+            await phoenix.fail_run(request.run_id, summary)
+            log.info("run_failed_no_deliverable", run_id=request.run_id, errors=len(errors))
+            return state
+
         state.status = RunStatus.COMPLETED
         state.output = {
             "steps": len(state.steps),
@@ -134,6 +184,61 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
         log.error("run_failed", run_id=request.run_id, error=state.error)
 
     return state
+
+
+async def _post_failure_comment(request: RunRequest, phoenix, usage, errors: list) -> None:
+    """Explains the failure in the task thread, in the agent's voice, and asks
+    the user for what would unblock the mission. Never raises."""
+    from app import llm
+
+    details = "\n".join(
+        f"- {c.tool}: {c.output.get('error')}" for c in errors[:3] if isinstance(c.output, dict)
+    )
+    first_error = errors[0].output.get("error") if isinstance(errors[0].output, dict) else "unknown error"
+    text = (
+        f"I couldn't finish this mission: {first_error} "
+        "Reply here with more details or attach another file, then relaunch me."
+    )
+
+    if llm.is_configured():
+        try:
+            text = await llm.chat(
+                system=(
+                    "You are an AI agent teammate. Your attempt at the mission just failed. "
+                    "Write a short comment (2-3 sentences, first person, no markdown, in the "
+                    "same language as the task) explaining simply and non-technically what "
+                    "blocked you, and asking the user for exactly what you need to continue "
+                    "(another file format, a clarification, a new attachment…). Be warm."
+                ),
+                user=(
+                    f"Task: {request.task_title}\n"
+                    f"Description: {request.task_description}\n"
+                    f"Tool failures:\n{details}"
+                ),
+                usage=usage,
+                max_tokens=220,
+            )
+        except Exception as exc:  # noqa: BLE001 — the template above is the fallback
+            log.warning("failure_comment_llm_failed", error=str(exc))
+
+    try:
+        await phoenix.post_task_comment(
+            request.workspace_id, request.task_id, text.strip(), agent_id=request.agent_id
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("failure_comment_post_failed", run_id=request.run_id, error=str(exc))
+
+
+def _describe_action(tool_name: str, tool_input: dict) -> str:
+    """Human-readable summary of the gated action, shown in the approval UI."""
+    detail = (
+        tool_input.get("instruction")
+        or tool_input.get("subject")
+        or tool_input.get("message")
+        or tool_input.get("prompt")
+    )
+    base = f"The agent wants to run {tool_name}"
+    return f"{base}: {detail}" if isinstance(detail, str) and detail else base
 
 
 def _safe_filename(name: str) -> str:

@@ -1,0 +1,100 @@
+defmodule Mokaid.AI.Workers.AgentChatWorker do
+  @moduledoc """
+  Direct-chat replies: when a member messages an agent in its DM thread, the
+  AI worker answers in the agent's persona with awareness of its current
+  workload. The reply comes back through the worker API
+  (`POST /api/worker/agents/:id/chat-message`).
+  """
+
+  use Oban.Worker, queue: :ai_dispatch, max_attempts: 2
+
+  import Ecto.Query
+
+  alias Mokaid.AgentChat
+  alias Mokaid.Agents
+  alias Mokaid.Repo
+  alias Mokaid.Tasks.Task
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"workspace_id" => workspace_id, "agent_id" => agent_id} = args}) do
+    config = Application.fetch_env!(:mokaid, :ai_worker)
+    agent = Agents.get_agent(workspace_id, agent_id)
+
+    if agent == nil do
+      :ok
+    else
+      payload = %{
+        type: "agent_chat",
+        workspace_id: workspace_id,
+        agent_id: agent.id,
+        # Who initiated the thread — attributed as task creator if the worker
+        # judges the message an actionable work request.
+        member_id: args["member_id"],
+        agent: %{
+          display_name: agent.display_name,
+          role_title: agent.role_title,
+          department: agent.department,
+          status: agent.status,
+          skills: Enum.map(agent.skills || [], &(&1["name"] || &1[:name]))
+        },
+        current_tasks: current_tasks(workspace_id, agent.id),
+        conversation: conversation(workspace_id, agent.id)
+      }
+
+      case config[:dispatch] do
+        :sqs ->
+          config[:sqs_queue_url]
+          |> ExAws.SQS.send_message(Jason.encode!(payload))
+          |> ExAws.request()
+
+          :ok
+
+        _http ->
+          case Req.post(
+                 url: "#{config[:url]}/agent-chat",
+                 json: payload,
+                 headers: [{"authorization", "Bearer #{config[:token]}"}],
+                 receive_timeout: 30_000,
+                 retry: false
+               ) do
+            {:ok, %{status: status}} when status in 200..299 -> :ok
+            # The reply is a nicety — never crash/retry loops over it.
+            _ -> :ok
+          end
+      end
+    end
+  end
+
+  defp conversation(workspace_id, agent_id) do
+    workspace_id
+    |> AgentChat.list_messages(agent_id, 14)
+    |> Enum.map(fn message ->
+      author =
+        case message.author_kind do
+          "agent" -> "you"
+          _ -> member_name(message) || "teammate"
+        end
+
+      %{author: author, body: message.body}
+    end)
+  end
+
+  defp member_name(message) do
+    case message.author_member do
+      %{user: %{full_name: name}} when is_binary(name) -> name
+      _ -> nil
+    end
+  end
+
+  defp current_tasks(workspace_id, agent_id) do
+    Repo.all(
+      from t in Task,
+        where:
+          t.workspace_id == ^workspace_id and t.assigned_agent_id == ^agent_id and
+            t.status not in ["completed", "canceled"],
+        order_by: [desc: t.updated_at],
+        limit: 5,
+        select: %{title: t.title, status: t.status, progress_percent: t.progress_percent}
+    )
+  end
+end

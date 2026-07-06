@@ -98,8 +98,28 @@ defmodule MokaidWeb.JSON do
       comments: comments(loaded(task.comments)),
       attachments: task_attachments(loaded(task.drive_items)),
       latest_run: latest_run(loaded(task.execution_runs)),
+      pending_approval: pending_approval(loaded(task.approval_requests)),
       inserted_at: task.inserted_at,
       updated_at: task.updated_at
+    }
+  end
+
+  # Oldest pending approval first: decisions are taken in the order the
+  # agent asked for them.
+  defp pending_approval(nil), do: nil
+  defp pending_approval([]), do: nil
+
+  defp pending_approval(requests) do
+    request = List.last(requests)
+
+    %{
+      id: request.id,
+      run_id: request.run_id,
+      tool_name: request.tool_name,
+      risk_level: request.risk_level,
+      proposed_action: request.proposed_action,
+      input_payload: request.input_payload,
+      inserted_at: request.inserted_at
     }
   end
 
@@ -163,6 +183,37 @@ defmodule MokaidWeb.JSON do
       inserted_at: comment.inserted_at
     }
   end
+
+  def agent_chat_message(message) do
+    member = loaded(message.author_member)
+    member_user = member && loaded(member.user)
+
+    %{
+      id: message.id,
+      agent_id: message.agent_id,
+      body: message.body,
+      author_kind: message.author_kind,
+      author_name: member_user && member_user.full_name,
+      attachments: chat_attachments(message.attachments),
+      task_id: message.task_id,
+      inserted_at: message.inserted_at
+    }
+  end
+
+  defp chat_attachments(nil), do: []
+
+  defp chat_attachments(list) when is_list(list) do
+    Enum.map(list, fn a ->
+      %{
+        drive_item_id: a["drive_item_id"] || a[:drive_item_id],
+        name: a["name"] || a[:name],
+        mime_type: a["mime_type"] || a[:mime_type],
+        size_bytes: a["size_bytes"] || a[:size_bytes]
+      }
+    end)
+  end
+
+  defp chat_attachments(_), do: []
 
   def project(project) do
     owner = loaded(project.owner_member)
@@ -273,6 +324,15 @@ defmodule MokaidWeb.JSON do
       tags: item.tags,
       version: item.version,
       indexing_status: item.indexing_status,
+      project_id: item.project_id,
+      agent_id: item.agent_id,
+      scope:
+        cond do
+          item.agent_id -> "agent"
+          item.project_id -> "project"
+          true -> "general"
+        end,
+      last_reviewed_at: item.last_reviewed_at,
       used_by_agent_ids: item.metadata["used_by_agent_ids"] || [],
       file_size_bytes: item.metadata["file_size_bytes"],
       created_by_name: creator_user && creator_user.full_name,

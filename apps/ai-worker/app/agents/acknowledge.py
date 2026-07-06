@@ -35,6 +35,9 @@ in one clause how you'll approach it.
 - If the task clearly requires abilities you don't have (e.g. physical actions, \
 phone calls, accessing tools not listed): set feasible to false and explain kindly \
 what's missing and what you *can* do instead.
+- Attached files listed in the message are ALREADY downloadable by you. Modifying, \
+analyzing or transcribing an attached image/document/audio file IS feasible with \
+your file tools — never claim you cannot access or edit an attached file.
 - Reply in the same language as the task.
 """
 
@@ -76,12 +79,23 @@ async def build_acknowledgement(
         suffix = f" (via {server})" if server else ""
         capabilities.append(f"{name}: {description}{suffix}".strip())
 
+    files_line = ", ".join(f.name for f in request.attached_files) or "(none)"
+
+    conversation = request.input.get("conversation") or []
+    conversation_block = "\n".join(
+        f"- {entry.get('author', '?')}: {entry.get('body', '')}"
+        for entry in conversation[-6:]
+        if isinstance(entry, dict)
+    )
+
     try:
         result = await llm.chat_json(
             system=_ACK_SYSTEM % {"capabilities": "\n".join(f"- {c}" for c in capabilities)},
             user=(
                 f"Task title: {request.task_title or 'Untitled'}\n"
-                f"Task description: {request.task_description or '(none)'}"
+                f"Task description: {request.task_description or '(none)'}\n"
+                f"Attached files: {files_line}"
+                + (f"\nConversation so far:\n{conversation_block}" if conversation_block else "")
             ),
             usage=usage,
             max_tokens=300,

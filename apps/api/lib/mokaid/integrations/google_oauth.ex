@@ -41,6 +41,7 @@ defmodule Mokaid.Integrations.GoogleOAuth do
 
   def configured? do
     config = config()
+
     is_binary(config[:client_id]) and config[:client_id] != "" and
       is_binary(config[:client_secret]) and config[:client_secret] != ""
   end
@@ -75,8 +76,7 @@ defmodule Mokaid.Integrations.GoogleOAuth do
   def exchange_code(code, state, redirect_uri) do
     with :ok <- ensure_configured(),
          :ok <- validate_redirect_uri(redirect_uri),
-         {:ok,
-          %{workspace_id: workspace_id, member_id: member_id, provider_key: provider_key}} <-
+         {:ok, %{workspace_id: workspace_id, member_id: member_id, provider_key: provider_key}} <-
            Phoenix.Token.verify(MokaidWeb.Endpoint, @state_salt, state, max_age: @state_max_age),
          {:ok, tokens} <- request_tokens(code, redirect_uri) do
       account = fetch_account_email(tokens["access_token"])

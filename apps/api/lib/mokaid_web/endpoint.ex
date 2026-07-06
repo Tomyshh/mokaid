@@ -12,6 +12,12 @@ defmodule MokaidWeb.Endpoint do
     websocket: [connect_info: [:peer_data, :x_headers]],
     longpoll: false
 
+  # Recompiles changed modules on each request in dev (no-op elsewhere), so
+  # the running server never serves stale code after an edit.
+  if code_reloading? do
+    plug Phoenix.CodeReloader
+  end
+
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 

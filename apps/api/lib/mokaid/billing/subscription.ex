@@ -17,6 +17,7 @@ defmodule Mokaid.Billing.Subscription do
     field :external_customer_id, :string
     field :external_subscription_id, :string
     field :payment_method, :map, default: %{}
+    field :credits_balance, :integer, default: 0
 
     timestamps()
   end

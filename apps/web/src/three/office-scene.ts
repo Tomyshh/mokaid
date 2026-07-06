@@ -43,9 +43,26 @@ import {
 } from "./office-paths";
 import type { SceneAgent, SceneCallbacks } from "./types";
 
-const FRONT_ROW_SEATS = 5;
-const BACK_ROW_SEATS = 4;
-const DESK_SPACING_X = 4.2;
+/**
+ * Desk pods: 3 rows of 3 desks. Two pods across the front, one across the
+ * back-center, all axis-aligned and generously spaced so the aisles between
+ * them stay wide and readable. Layout validated (no desk/zone/path overlap)
+ * — see scratchpad/layout_v3.mjs.
+ */
+interface DeskPod {
+  cx: number;
+  cz: number;
+}
+
+const DESK_POD_SPACING = 3.4;
+const DESK_PODS: DeskPod[] = [
+  { cx: -6, cz: -5.5 }, // front-left
+  { cx: 6, cz: -5.5 },  // front-right
+  { cx: 0, cz: 2 },     // back-center
+];
+
+/** Desk x-offsets within a pod (3 desks side by side). */
+const POD_DESK_OFFSETS = [-DESK_POD_SPACING, 0, DESK_POD_SPACING];
 
 type IdleBehavior = "patrol" | IdleActivity;
 
@@ -65,6 +82,7 @@ interface AvatarNode {
   pathIndex: number;
   idleBehavior: IdleBehavior;
   behaviorEnd: number;
+  facing: number;
 }
 
 export class OfficeScene {
@@ -119,6 +137,8 @@ export class OfficeScene {
       this.reportOverlay();
     });
 
+    // Only resize the render buffer — never reframe the camera. The office
+    // stays statically framed regardless of the side panel opening/closing.
     const resize = () => this.engine.resize();
     window.addEventListener("resize", resize);
     this.scene.onDisposeObservable.add(() => window.removeEventListener("resize", resize));
@@ -132,32 +152,44 @@ export class OfficeScene {
 
   /* ---------- setup ---------- */
 
+  /**
+   * Fixed camera framing. Radius is chosen large enough that the whole office
+   * (23 × 19 footprint) stays visible even when the right side panel narrows
+   * the canvas — the view is intentionally STATIC and never reframes on
+   * resize, so opening/closing panels doesn't move the office.
+   */
+  // Radius 24 keeps the 23×19 footprint fully visible from the widest normal
+  // canvas down to a narrow one (side panel open, aspect ~1.2) — verified in
+  // scratchpad/framing3.mjs. It never reframes on resize.
+  private static readonly CAMERA_RADIUS = 24;
+  private static readonly CAMERA_FOV = 0.8; // vertical FOV, radians
+
   private setupCamera() {
     const camera = new ArcRotateCamera(
       "camera",
       -Math.PI / 3.2,
-      Math.PI / 3.4,
-      26,
-      new Vector3(0, 0, -1),
+      Math.PI / 4.6,
+      OfficeScene.CAMERA_RADIUS,
+      new Vector3(0, 0, 0),
       this.scene,
     );
     camera.attachControl(this.canvas, true);
-    camera.lowerRadiusLimit = 12;
-    camera.upperRadiusLimit = 42;
+    camera.fov = OfficeScene.CAMERA_FOV;
 
-    // Lock orbit angle — wheel zoom only, no drag rotation.
+    // Everything locked to the initial values — no orbit, pan, or zoom.
+    camera.lowerRadiusLimit = OfficeScene.CAMERA_RADIUS;
+    camera.upperRadiusLimit = OfficeScene.CAMERA_RADIUS;
     camera.lowerAlphaLimit = camera.alpha;
     camera.upperAlphaLimit = camera.alpha;
     camera.lowerBetaLimit = camera.beta;
     camera.upperBetaLimit = camera.beta;
-
     camera.panningSensibility = 0;
-    camera.wheelDeltaPercentage = 0.01;
-    // Zoom toward the point under the cursor instead of the scene center.
-    camera.zoomToMouseLocation = true;
 
-    // Remove drag/pinch input entirely — angular sensibility 0 causes division
-    // by zero on drag and corrupts the camera (blank scene until refresh).
+    // Remove wheel and drag/pinch input entirely so the view can't be
+    // zoomed, orbited, or panned — angular sensibility 0 on drag also
+    // causes division by zero and corrupts the camera (blank scene until
+    // refresh), so dropping the input outright avoids that too.
+    camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
     camera.inputs.removeByType("ArcRotateCameraPointersInput");
   }
 
@@ -220,45 +252,113 @@ export class OfficeScene {
     windowMat.alpha = 0.9;
     windowStrip.material = windowMat;
 
-    // Desk grid: front row of 5, back row of 4 = 9 seats
+    // Desk pods: 3 rows of 3, axis-aligned, wide aisles between them.
     let slot = 0;
-    for (let col = 0; col < FRONT_ROW_SEATS; col++) {
-      const x = (col - (FRONT_ROW_SEATS - 1) / 2) * DESK_SPACING_X;
-      const z = -4.5;
-      this.buildDesk(x, z, slot);
-      this.deskSlots.push(new Vector3(x, 0, z + 1.15));
-      slot += 1;
-    }
-    for (let col = 0; col < BACK_ROW_SEATS; col++) {
-      const x = (col - (BACK_ROW_SEATS - 1) / 2) * DESK_SPACING_X;
-      const z = 1.5;
-      this.buildDesk(x, z, slot);
-      this.deskSlots.push(new Vector3(x, 0, z + 1.15));
-      slot += 1;
+    for (const pod of DESK_PODS) {
+      for (const dx of POD_DESK_OFFSETS) {
+        const x = pod.cx + dx;
+        const z = pod.cz;
+        this.buildDesk(x, z, slot);
+        // Seat sits in front of the desk (chair is at +Z in desk-local space).
+        this.deskSlots.push(new Vector3(x, 0, z + 1.15));
+        slot += 1;
+      }
     }
 
-    // Plants in corners
+    // Plants: 4 corners + accents in the open aisles.
     for (const [x, z] of [
       [-11.5, -9.5],
       [11.5, -9.5],
-      [-11.5, 8.5],
-      [11.5, 8.5],
+      [-11.5, 9.5],
+      [11.5, 9.5],
+      [-11, 0],
+      [11, 0],
     ] as const) {
       this.buildPlant(x, z);
     }
 
-    // Meeting table
-    const table = MeshBuilder.CreateCylinder("meeting-table", { diameter: 3.4, height: 0.14 }, this.scene);
-    table.position.set(0, 0.95, 7);
-    table.material = this.material("tabletop", "#2a2a38");
-    const tableLeg = MeshBuilder.CreateCylinder("meeting-leg", { diameter: 0.35, height: 0.95 }, this.scene);
-    tableLeg.position.set(0, 0.47, 7);
-    tableLeg.material = this.material("leg", "#3a3a4c");
+    this.buildMeetingRoom();
+    this.buildLounge();
+    this.buildFoosball();
   }
 
-  private buildDesk(x: number, z: number, index: number) {
+  /** Glass-walled meeting room in the back-right corner. */
+  private buildMeetingRoom() {
+    const cx = 9.5;
+    const cz = 7.5;
+    const glassMat = this.material("glass", "#5a4fb8", 0.15);
+    glassMat.alpha = 0.25;
+
+    // Two inner glass walls (the room's back/right sides are the room walls).
+    const wallNorth = MeshBuilder.CreateBox("meeting-wall-north", { width: 7, depth: 0.12, height: 2.6 }, this.scene);
+    wallNorth.position.set(cx, 1.3, cz - 3.3);
+    wallNorth.material = glassMat;
+
+    const wallWest = MeshBuilder.CreateBox("meeting-wall-west", { width: 0.12, depth: 6.6, height: 2.6 }, this.scene);
+    wallWest.position.set(cx - 3.5, 1.3, cz);
+    wallWest.material = glassMat;
+
+    const table = MeshBuilder.CreateBox("meeting-table", { width: 3, depth: 1.4, height: 0.1 }, this.scene);
+    table.position.set(cx, 0.85, cz);
+    table.material = this.material("tabletop", "#2a2a38");
+    const tableLeg = MeshBuilder.CreateBox("meeting-leg", { width: 0.12, depth: 1.2, height: 0.85 }, this.scene);
+    tableLeg.position.set(cx, 0.42, cz);
+    tableLeg.material = this.material("leg", "#3a3a4c");
+
+    const screen = MeshBuilder.CreateBox("meeting-screen", { width: 2.2, depth: 0.08, height: 1.3 }, this.scene);
+    screen.position.set(cx, 2, cz + 3.2);
+    screen.material = this.material("screen", "#7c5cff", 0.4);
+  }
+
+  /** Lounge corner with a sofa, back-left. */
+  private buildLounge() {
+    const cx = -9.5;
+    const cz = 7.5;
+
+    const sofaBase = MeshBuilder.CreateBox("sofa-base", { width: 3.6, depth: 1.3, height: 0.55 }, this.scene);
+    sofaBase.position.set(cx, 0.3, cz);
+    sofaBase.material = this.material("sofa", "#2e2a44");
+    this.shadowGenerator?.addShadowCaster(sofaBase);
+
+    const sofaBack = MeshBuilder.CreateBox("sofa-back", { width: 3.6, depth: 0.3, height: 1 }, this.scene);
+    sofaBack.position.set(cx, 0.75, cz + 0.5);
+    sofaBack.material = this.material("sofa", "#2e2a44");
+
+    const table = MeshBuilder.CreateCylinder("lounge-table", { diameter: 1.1, height: 0.1 }, this.scene);
+    table.position.set(cx, 0.35, cz - 1.4);
+    table.material = this.material("tabletop", "#2a2a38");
+  }
+
+  /** Foosball table in the open front-center area — a shared perk. */
+  private buildFoosball() {
+    const cx = 0;
+    const cz = -8.7;
+
+    const top = MeshBuilder.CreateBox("foosball-top", { width: 2.6, depth: 1.3, height: 0.12 }, this.scene);
+    top.position.set(cx, 0.85, cz);
+    top.material = this.material("foosball-top", "#1f6b45");
+    this.shadowGenerator?.addShadowCaster(top);
+
+    for (const [lx, lz] of [
+      [-1.15, -0.5],
+      [1.15, -0.5],
+      [-1.15, 0.5],
+      [1.15, 0.5],
+    ] as const) {
+      const leg = MeshBuilder.CreateBox("foosball-leg", { width: 0.1, depth: 0.1, height: 0.85 }, this.scene);
+      leg.position.set(cx + lx, 0.42, cz + lz);
+      leg.material = this.material("leg", "#3a3a4c");
+    }
+
+    const rail = MeshBuilder.CreateBox("foosball-rail", { width: 2.6, depth: 0.06, height: 0.06 }, this.scene);
+    rail.position.set(cx, 0.94, cz);
+    rail.material = this.material("leg", "#c9c9d4");
+  }
+
+  private buildDesk(x: number, z: number, index: number, rotationY = 0) {
     const group = new TransformNode(`desk-${index}`, this.scene);
     group.position.set(x, 0, z);
+    group.rotation.y = rotationY;
 
     const top = MeshBuilder.CreateBox(`desk-top-${index}`, { width: 3, depth: 1.4, height: 0.12 }, this.scene);
     top.position.y = 1;
@@ -417,6 +517,7 @@ export class OfficeScene {
       pathIndex,
       idleBehavior: "patrol",
       behaviorEnd: 0,
+      facing: root.rotation.y,
     };
 
     this.avatars.set(agent.id, avatar);
@@ -469,6 +570,11 @@ export class OfficeScene {
         case "learning":
           root.position.y = avatar.baseY + Math.sin((t + phase) * 2.4) * 0.015;
           break;
+        case "waiting":
+          // At the desk, glancing around while a human decision is pending.
+          root.position.y = avatar.baseY + Math.sin((t + phase) * 1.6) * 0.01;
+          root.rotation.y = Math.sin((t + phase) * 0.6) * 0.25;
+          break;
         case "requesting_approval":
           root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 3.2)) * 0.04;
           break;
@@ -490,6 +596,8 @@ export class OfficeScene {
         default:
           break;
       }
+
+      avatar.facing = root.rotation.y;
     }
   }
 
@@ -566,7 +674,14 @@ export class OfficeScene {
       default:
         break;
     }
+
+    avatar.facing = root.rotation.y;
   }
+
+  /** Turn radians/sec while pivoting on the spot before stepping forward. */
+  private static readonly TURN_SPEED = Math.PI * 2.2;
+  /** Must be facing within this tolerance before advancing position. */
+  private static readonly FACING_TOLERANCE = 0.08;
 
   private walkToward(avatar: AvatarNode, target: Vector3, speed: number, dt: number): boolean {
     const pos = avatar.root.position;
@@ -581,12 +696,38 @@ export class OfficeScene {
       return true;
     }
 
+    const heading = Math.atan2(dx, dz);
+    const turned = this.turnToward(avatar, heading, dt);
+
+    if (!turned) {
+      // Still pivoting on the spot — face the target before moving.
+      playAgentAnimation(avatar, "idle");
+      return false;
+    }
+
     playAgentAnimation(avatar, "walk");
     const step = Math.min(speed * dt, dist);
     pos.x += (dx / dist) * step;
     pos.z += (dz / dist) * step;
-    avatar.root.rotation.y = Math.atan2(dx, dz);
     return false;
+  }
+
+  /** Smoothly rotate the avatar toward `heading`. Returns true once aligned. */
+  private turnToward(avatar: AvatarNode, heading: number, dt: number): boolean {
+    const twoPi = Math.PI * 2;
+    let delta = (heading - avatar.facing) % twoPi;
+    if (delta > Math.PI) delta -= twoPi;
+    if (delta < -Math.PI) delta += twoPi;
+
+    const maxStep = OfficeScene.TURN_SPEED * dt;
+    if (Math.abs(delta) <= maxStep) {
+      avatar.facing = heading;
+    } else {
+      avatar.facing += Math.sign(delta) * maxStep;
+    }
+
+    avatar.root.rotation.y = avatar.facing;
+    return Math.abs(delta) <= OfficeScene.FACING_TOLERANCE;
   }
 
   /* ---------- picking ---------- */
@@ -667,6 +808,8 @@ export class OfficeScene {
   }
 }
 
+// Only truly unoccupied agents roam the office. "waiting" (approval pending)
+// stays at the desk: an agent with work in flight must look like it.
 function isIdleVisual(state: string): boolean {
-  return state === "waiting" || state === "idle" || state === "walking";
+  return state === "idle" || state === "walking";
 }

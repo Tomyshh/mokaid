@@ -14,21 +14,31 @@ defmodule MokaidWeb.WorkerResourceController do
 
   def search_knowledge(conn, %{"workspace_id" => workspace_id, "embedding" => embedding} = params) do
     limit = min(params["limit"] || 5, 20)
-    results = Knowledge.search_chunks(workspace_id, embedding, limit)
+
+    # Three-level retrieval: general knowledge + the run's project + agent.
+    results =
+      Knowledge.search_chunks(workspace_id, embedding, limit,
+        project_id: presence(params["project_id"]),
+        agent_id: presence(params["agent_id"])
+      )
 
     json(conn, %{
       data:
-        Enum.map(results, fn %{chunk: chunk, item_title: title, distance: distance} ->
+        Enum.map(results, fn %{chunk: chunk, item_title: title, scope: scope, distance: distance} ->
           %{
             knowledge_item_id: chunk.knowledge_item_id,
             title: title,
             content: chunk.content,
             chunk_index: chunk.chunk_index,
+            scope: scope,
             score: 1.0 - distance
           }
         end)
     })
   end
+
+  defp presence(value) when is_binary(value) and value != "", do: value
+  defp presence(_), do: nil
 
   def knowledge_chunks(conn, %{"id" => id, "workspace_id" => workspace_id, "chunks" => chunks}) do
     with %{} = item <- Knowledge.get_item(workspace_id, id) do
@@ -104,6 +114,53 @@ defmodule MokaidWeb.WorkerResourceController do
         |> json(%{error: %{code: "not_found", message: "task not found"}})
     end
   end
+
+  @doc """
+  Posts the agent's reply in its direct chat thread (floating dock). The
+  context broadcasts `agent_chat.message` so open docks update instantly.
+
+  When the worker judged the member's message to be an actionable work
+  request (`start_task: true`), it starts a task assigned to the agent
+  instead of leaving it a plain reply — the run's output later lands back in
+  this thread.
+  """
+  def agent_chat_message(conn, %{"id" => id, "workspace_id" => workspace_id} = params) do
+    body = params["body"] || ""
+
+    with %{} = agent <- Agents.get_agent(workspace_id, id),
+         {:ok, message} <- Mokaid.AgentChat.post_agent_message(workspace_id, agent.id, body) do
+      maybe_start_chat_task(workspace_id, agent, params)
+
+      conn
+      |> put_status(:created)
+      |> json(%{data: %{id: message.id, agent_id: agent.id}})
+    else
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "agent not found"}})
+
+      error ->
+        error
+    end
+  end
+
+  # The worker asks us to start a task from a text-only chat request it judged
+  # actionable. The member who initiated the thread is the task creator.
+  defp maybe_start_chat_task(workspace_id, agent, %{"start_task" => true} = params) do
+    instruction = params["instruction"] || params["body"] || ""
+    member_id = params["member_id"]
+    member = member_id && Mokaid.Members.get_member(workspace_id, member_id)
+
+    if member && instruction != "" do
+      pseudo_message = %Mokaid.AgentChat.ChatMessage{body: instruction, attachments: []}
+      Mokaid.AgentChat.start_chat_task(workspace_id, agent, member, pseudo_message, [])
+    end
+
+    :ok
+  end
+
+  defp maybe_start_chat_task(_workspace_id, _agent, _params), do: :ok
 
   @doc """
   Saves a file produced by an agent (draft, report, transformed asset…) into

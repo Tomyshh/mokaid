@@ -291,24 +291,26 @@ module "secrets" {
 
   name_prefix = local.name
   secrets = {
-    secret_key_base     = "CHANGE_ME"
-    worker_auth_token   = "CHANGE_ME"
-    openai_api_key      = "CHANGE_ME"
-    figma_client_id     = "CHANGE_ME"
-    figma_client_secret = "CHANGE_ME"
-    google_client_id    = "CHANGE_ME"
-    google_client_secret = "CHANGE_ME"
-    github_client_id    = "CHANGE_ME"
-    github_client_secret = "CHANGE_ME"
-    linear_client_id    = "CHANGE_ME"
-    linear_client_secret = "CHANGE_ME"
-    slack_client_id     = "CHANGE_ME"
-    slack_client_secret = "CHANGE_ME"
-    slack_signing_secret = "CHANGE_ME"
-    slack_app_id = "CHANGE_ME"
+    secret_key_base          = "CHANGE_ME"
+    worker_auth_token        = "CHANGE_ME"
+    openai_api_key           = "CHANGE_ME"
+    anthropic_api_key        = "CHANGE_ME"
+    payme_seller_id          = "CHANGE_ME"
+    figma_client_id          = "CHANGE_ME"
+    figma_client_secret      = "CHANGE_ME"
+    google_client_id         = "CHANGE_ME"
+    google_client_secret     = "CHANGE_ME"
+    github_client_id         = "CHANGE_ME"
+    github_client_secret     = "CHANGE_ME"
+    linear_client_id         = "CHANGE_ME"
+    linear_client_secret     = "CHANGE_ME"
+    slack_client_id          = "CHANGE_ME"
+    slack_client_secret      = "CHANGE_ME"
+    slack_signing_secret     = "CHANGE_ME"
+    slack_app_id             = "CHANGE_ME"
     slack_verification_token = "CHANGE_ME"
-    notion_client_id    = "CHANGE_ME"
-    notion_client_secret = "CHANGE_ME"
+    notion_client_id         = "CHANGE_ME"
+    notion_client_secret     = "CHANGE_ME"
   }
   parameters = {
     cognito_user_pool_id = module.cognito.user_pool_id
@@ -432,27 +434,32 @@ module "api_service" {
     LINEAR_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/oauth/linear/callback" : "https://mokaid.com/oauth/linear/callback"
     SLACK_REDIRECT_URI    = var.app_domain != "" ? "https://${var.app_domain}/oauth/slack/callback" : "https://mokaid.com/oauth/slack/callback"
     NOTION_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/auth/notion/callback" : "https://mokaid.com/auth/notion/callback"
+    # PayMe hosted checkout: callback goes to the API, customers return to the app.
+    PAYME_SANDBOX = var.environment == "production" ? "false" : "true"
+    API_BASE_URL  = var.app_domain != "" ? "https://${var.app_domain}" : "http://${module.alb.alb_dns_name}"
+    WEB_BASE_URL  = var.app_domain != "" ? "https://${var.app_domain}" : "http://${module.alb.alb_dns_name}"
   }
 
   secrets = {
-    DATABASE_URL        = module.rds.database_url_secret_arn
-    SECRET_KEY_BASE     = module.secrets.secret_arns["secret_key_base"]
-    AI_WORKER_TOKEN     = module.secrets.secret_arns["worker_auth_token"]
-    FIGMA_CLIENT_ID     = module.secrets.secret_arns["figma_client_id"]
-    FIGMA_CLIENT_SECRET = module.secrets.secret_arns["figma_client_secret"]
-    GOOGLE_CLIENT_ID    = module.secrets.secret_arns["google_client_id"]
-    GOOGLE_CLIENT_SECRET = module.secrets.secret_arns["google_client_secret"]
-    GITHUB_CLIENT_ID    = module.secrets.secret_arns["github_client_id"]
-    GITHUB_CLIENT_SECRET = module.secrets.secret_arns["github_client_secret"]
-    LINEAR_CLIENT_ID    = module.secrets.secret_arns["linear_client_id"]
-    LINEAR_CLIENT_SECRET = module.secrets.secret_arns["linear_client_secret"]
-    SLACK_CLIENT_ID     = module.secrets.secret_arns["slack_client_id"]
-    SLACK_CLIENT_SECRET = module.secrets.secret_arns["slack_client_secret"]
-    SLACK_SIGNING_SECRET = module.secrets.secret_arns["slack_signing_secret"]
-    SLACK_APP_ID        = module.secrets.secret_arns["slack_app_id"]
+    DATABASE_URL             = module.rds.database_url_secret_arn
+    SECRET_KEY_BASE          = module.secrets.secret_arns["secret_key_base"]
+    AI_WORKER_TOKEN          = module.secrets.secret_arns["worker_auth_token"]
+    FIGMA_CLIENT_ID          = module.secrets.secret_arns["figma_client_id"]
+    FIGMA_CLIENT_SECRET      = module.secrets.secret_arns["figma_client_secret"]
+    GOOGLE_CLIENT_ID         = module.secrets.secret_arns["google_client_id"]
+    GOOGLE_CLIENT_SECRET     = module.secrets.secret_arns["google_client_secret"]
+    GITHUB_CLIENT_ID         = module.secrets.secret_arns["github_client_id"]
+    GITHUB_CLIENT_SECRET     = module.secrets.secret_arns["github_client_secret"]
+    LINEAR_CLIENT_ID         = module.secrets.secret_arns["linear_client_id"]
+    LINEAR_CLIENT_SECRET     = module.secrets.secret_arns["linear_client_secret"]
+    SLACK_CLIENT_ID          = module.secrets.secret_arns["slack_client_id"]
+    SLACK_CLIENT_SECRET      = module.secrets.secret_arns["slack_client_secret"]
+    SLACK_SIGNING_SECRET     = module.secrets.secret_arns["slack_signing_secret"]
+    SLACK_APP_ID             = module.secrets.secret_arns["slack_app_id"]
     SLACK_VERIFICATION_TOKEN = module.secrets.secret_arns["slack_verification_token"]
-    NOTION_CLIENT_ID    = module.secrets.secret_arns["notion_client_id"]
-    NOTION_CLIENT_SECRET = module.secrets.secret_arns["notion_client_secret"]
+    NOTION_CLIENT_ID         = module.secrets.secret_arns["notion_client_id"]
+    NOTION_CLIENT_SECRET     = module.secrets.secret_arns["notion_client_secret"]
+    PAYME_SELLER_ID          = module.secrets.secret_arns["payme_seller_id"]
   }
 
   task_policy_json   = data.aws_iam_policy_document.api_task.json
@@ -523,6 +530,7 @@ module "worker_service" {
   secrets = {
     WORKER_AUTH_TOKEN = module.secrets.secret_arns["worker_auth_token"]
     OPENAI_API_KEY    = module.secrets.secret_arns["openai_api_key"]
+    ANTHROPIC_API_KEY = module.secrets.secret_arns["anthropic_api_key"]
   }
 
   task_policy_json   = data.aws_iam_policy_document.worker_task.json

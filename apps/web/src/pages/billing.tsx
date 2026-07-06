@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check, CreditCard, Download, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Coins, CreditCard, Download, Sparkles } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -9,12 +9,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useQueryClient } from "@tanstack/react-query";
 import { colors } from "@mokaid/design-tokens";
 import {
   useBillingOverview,
   useBillingPlans,
-  useChangePlan,
+  useCreditPacks,
+  useCreditsCheckout,
   useInvoices,
+  usePlanCheckout,
 } from "@/api/hooks";
 import type { Invoice } from "@/api/types";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +26,7 @@ import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SkeletonRows } from "@/components/ui/skeleton";
+import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/cn";
 import { formatCents, formatDate, formatNumber } from "@/lib/format";
 
@@ -56,20 +60,45 @@ function downloadInvoice(invoice: Invoice, workspaceName: string) {
   }
 }
 
+// Customer-facing usage vocabulary: employees, tasks and AI credits —
+// never tokens or raw API metrics.
 const usageLabels: Record<string, { label: string; limitKey: string }> = {
-  ai_request: { label: "AI Requests", limitKey: "ai_requests_monthly" },
-  api_call: { label: "API Calls", limitKey: "api_calls_monthly" },
-  automation_run: { label: "Automations", limitKey: "automations_monthly" },
-  task_executed: { label: "Tasks Executed", limitKey: "tasks_monthly" },
-  storage_used: { label: "Storage (MB)", limitKey: "storage_gb" },
+  task_executed: { label: "Tasks completed by your AI team", limitKey: "tasks_monthly" },
+  ai_request: { label: "AI actions", limitKey: "" },
+};
+
+const planTagline: Record<string, string> = {
+  free: "Try your first AI employee",
+  starter: "For solo builders",
+  professional: "For growing teams",
+  business: "For companies at scale",
+  enterprise: "Custom for your organization",
 };
 
 export function BillingPage() {
   const { data: overviewData, isLoading } = useBillingOverview();
   const { data: invoicesData } = useInvoices();
   const { data: plansData } = useBillingPlans();
-  const changePlan = useChangePlan();
+  const { data: packsData } = useCreditPacks();
+  const planCheckout = usePlanCheckout();
+  const creditsCheckout = useCreditsCheckout();
+  const queryClient = useQueryClient();
   const [showManagePlan, setShowManagePlan] = useState(false);
+
+  // Back from the PayMe hosted page: refresh billing and confirm.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "done") {
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+      toast({
+        tone: "success",
+        title: "Payment received",
+        description: "Your plan or credits will be active within a few seconds.",
+        duration: 8000,
+      });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [queryClient]);
 
   if (isLoading || !overviewData) {
     return (
@@ -83,19 +112,43 @@ export function BillingPage() {
   const { subscription, usage, daily_usage } = overviewData.data;
   const invoices = invoicesData?.data ?? [];
   const plan = subscription?.plan;
+  const creditsBalance = subscription?.credits_balance ?? 0;
 
   const dailyAiUsage = daily_usage
     .filter((d) => d.event_type === "ai_request")
     .map((d) => ({
       day: new Date(d.day).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      requests: Number(d.total),
+      actions: Number(d.total),
     }));
+
+  const buyPlan = (planKey: string) => {
+    if (planKey === "enterprise") {
+      window.location.href =
+        "mailto:sales@mokaid.com?subject=Mokaid%20Enterprise&body=Tell%20us%20about%20your%20team%20size%20and%20needs.";
+      return;
+    }
+    planCheckout.mutate(
+      { plan_key: planKey },
+      {
+        onSuccess: (result) => {
+          if (result.data.activated) {
+            setShowManagePlan(false);
+            toast({
+              tone: "success",
+              title: "Plan updated",
+              description: "Your new plan is active.",
+            });
+          }
+        },
+      },
+    );
+  };
 
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-bold text-text">Billing</h1>
-        <p className="text-xs text-text-muted">Plan, usage and invoices</p>
+        <p className="text-xs text-text-muted">Plan, AI credits, usage and invoices</p>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-3">
@@ -103,7 +156,7 @@ export function BillingPage() {
           <CardHeader>
             <CardTitle>Current Plan</CardTitle>
             <Badge tone="success" dot>
-              {subscription?.status ?? "none"}
+              {subscription?.status ?? "free"}
             </Badge>
           </CardHeader>
           <CardBody className="space-y-4">
@@ -112,11 +165,13 @@ export function BillingPage() {
                 <span className="text-2xl font-bold text-text">{plan?.name ?? "Free"}</span>
               </div>
               <p className="mt-0.5 text-xs text-text-muted">
-                {plan
+                {plan && plan.price_cents_monthly > 0
                   ? subscription?.billing_cycle === "yearly"
                     ? `${formatCents(plan.price_cents_yearly)} / year`
                     : `${formatCents(plan.price_cents_monthly)} / month`
-                  : "No subscription"}
+                  : plan?.key === "enterprise"
+                    ? "Custom contract"
+                    : "Free forever"}
               </p>
             </div>
 
@@ -139,17 +194,24 @@ export function BillingPage() {
                   {formatDate(subscription?.current_period_end)}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-text-muted">Payment method</span>
-                <span className="flex items-center gap-1.5 text-text">
-                  <CreditCard size={13} />
-                  {subscription?.payment_method?.brand?.toUpperCase()} ····{" "}
-                  {subscription?.payment_method?.last4}
-                </span>
-              </div>
+              {subscription?.payment_method?.last4 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-text-muted">Payment method</span>
+                  <span className="flex items-center gap-1.5 text-text">
+                    <CreditCard size={13} />
+                    {subscription.payment_method.brand?.toUpperCase()} ····{" "}
+                    {subscription.payment_method.last4}
+                  </span>
+                </div>
+              )}
             </div>
 
-            <Button variant="secondary" size="sm" className="w-full" onClick={() => setShowManagePlan(true)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full"
+              onClick={() => setShowManagePlan(true)}
+            >
               Manage Plan
             </Button>
           </CardBody>
@@ -158,6 +220,10 @@ export function BillingPage() {
         <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle>Usage This Period</CardTitle>
+            <span className="flex items-center gap-1.5 rounded-full bg-primary-muted px-2.5 py-1 text-[11px] font-semibold text-primary-light">
+              <Coins size={12} />
+              {formatNumber(creditsBalance)} AI credits
+            </span>
           </CardHeader>
           <CardBody className="space-y-4">
             {usage
@@ -165,8 +231,10 @@ export function BillingPage() {
               .map((u) => {
                 const config = usageLabels[u.event_type];
                 const quantity = Number(u.total_quantity);
-                const limit = plan?.limits?.[config.limitKey];
-                const percent = limit ? Math.min(100, (quantity / limit) * 100) : 0;
+                const limit = config.limitKey ? plan?.limits?.[config.limitKey] : undefined;
+                const unlimited = limit != null && limit < 0;
+                const percent =
+                  limit && limit > 0 ? Math.min(100, (quantity / limit) * 100) : 0;
 
                 return (
                   <div key={u.event_type}>
@@ -174,7 +242,7 @@ export function BillingPage() {
                       <span className="font-medium text-text">{config.label}</span>
                       <span className="text-text-muted">
                         {formatNumber(Math.round(quantity))}
-                        {limit ? ` / ${formatNumber(limit)}` : ""}
+                        {unlimited ? " / unlimited" : limit && limit > 0 ? ` / ${formatNumber(limit)}` : ""}
                       </span>
                     </div>
                     <ProgressBar
@@ -187,7 +255,7 @@ export function BillingPage() {
 
             <div className="h-44 pt-2">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                AI requests, last 30 days
+                AI team activity, last 30 days
               </p>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyAiUsage}>
@@ -203,13 +271,63 @@ export function BillingPage() {
                     }}
                     cursor={{ fill: "rgba(124,92,255,0.06)" }}
                   />
-                  <Bar dataKey="requests" fill={colors.primary} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="actions" fill={colors.primary} radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardBody>
         </Card>
       </div>
+
+      {/* AI credit packs — top up beyond the plan's monthly quota. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Credits</CardTitle>
+          <p className="text-[11px] text-text-muted">
+            Keep your team working past your monthly quota — credits never expire.
+          </p>
+        </CardHeader>
+        <CardBody>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {(packsData?.data ?? []).map((pack) => (
+              <div
+                key={pack.key}
+                className="flex flex-col items-center rounded-lg border border-border p-4 text-center transition-colors hover:border-primary/50"
+              >
+                <Coins size={18} className="text-primary-light" />
+                <p className="mt-2 text-lg font-bold text-text">{formatNumber(pack.credits)}</p>
+                <p className="text-[11px] text-text-muted">AI credits</p>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="mt-3 w-full"
+                  loading={
+                    creditsCheckout.isPending && creditsCheckout.variables?.pack_key === pack.key
+                  }
+                  onClick={() =>
+                    creditsCheckout.mutate(
+                      { pack_key: pack.key },
+                      {
+                        onSuccess: (result) => {
+                          if (result.data.activated) {
+                            toast({
+                              tone: "success",
+                              title: "Credits added",
+                              description: `${formatNumber(result.data.credits ?? 0)} AI credits are now available.`,
+                            });
+                          }
+                        },
+                      },
+                    )
+                  }
+                >
+                  {formatCents(pack.price_cents)}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -264,28 +382,37 @@ export function BillingPage() {
       <Dialog
         open={showManagePlan}
         onOpenChange={setShowManagePlan}
-        title="Manage Plan"
-        description="Choose the plan that fits your team."
-        className="w-[640px]"
+        title="Choose your plan"
+        description="Hire more AI employees as your team grows — upgrade or downgrade anytime."
+        className="w-[880px] max-w-[95vw]"
       >
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {(plansData?.data ?? []).map((p) => {
             const isCurrent = p.key === plan?.key;
+            const isEnterprise = p.key === "enterprise";
             return (
               <div
                 key={p.key}
                 className={cn(
                   "flex flex-col rounded-lg border p-4",
                   isCurrent ? "border-primary/50 bg-primary-muted/20" : "border-border",
+                  p.key === "professional" && !isCurrent && "border-primary/30",
                 )}
               >
                 <p className="text-sm font-bold text-text">{p.name}</p>
-                <p className="mt-1 text-lg font-bold text-text">
-                  {formatCents(p.price_cents_monthly)}
-                  <span className="text-[11px] font-normal text-text-muted"> /mo</span>
+                <p className="text-[10px] text-text-muted">{planTagline[p.key] ?? ""}</p>
+                <p className="mt-2 text-lg font-bold text-text">
+                  {isEnterprise ? (
+                    "Custom"
+                  ) : (
+                    <>
+                      {formatCents(p.price_cents_monthly)}
+                      <span className="text-[11px] font-normal text-text-muted"> /mo</span>
+                    </>
+                  )}
                 </p>
                 <ul className="mt-3 flex-1 space-y-1.5">
-                  {p.features.slice(0, 4).map((f) => (
+                  {p.features.slice(0, 5).map((f) => (
                     <li key={f} className="flex items-start gap-1.5 text-[11px] text-text-secondary">
                       <Check size={11} className="mt-0.5 shrink-0 text-success" />
                       {f}
@@ -296,16 +423,13 @@ export function BillingPage() {
                   size="sm"
                   variant={isCurrent ? "secondary" : "primary"}
                   disabled={isCurrent}
-                  loading={changePlan.isPending && changePlan.variables?.plan_key === p.key}
-                  className="mt-4 w-full"
-                  onClick={() =>
-                    changePlan.mutate(
-                      { plan_key: p.key },
-                      { onSuccess: () => setShowManagePlan(false) },
-                    )
+                  loading={
+                    planCheckout.isPending && planCheckout.variables?.plan_key === p.key
                   }
+                  className="mt-4 w-full"
+                  onClick={() => buyPlan(p.key)}
                 >
-                  {isCurrent ? "Current plan" : "Switch"}
+                  {isCurrent ? "Current plan" : isEnterprise ? "Contact sales" : "Choose"}
                 </Button>
               </div>
             );

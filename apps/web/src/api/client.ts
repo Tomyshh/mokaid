@@ -92,6 +92,30 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<T>
   return payload as T;
 }
 
+/**
+ * Fetch a drive file's bytes through the authenticated API proxy.
+ * Same-origin (the API), so it works even when the browser can't reach the
+ * object store directly (HSTS upgrades, blocked ports, prod networking).
+ */
+export async function fetchDriveFileBlob(fileId: string): Promise<Blob> {
+  const { token, workspaceId } = useAuthStore.getState();
+
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (workspaceId) headers["x-workspace-id"] = workspaceId;
+
+  const response = await fetch(resolveApiUrl(`/api/drive/${fileId}/raw`), { headers });
+
+  if (response.status === 401) {
+    useAuthStore.getState().logout();
+  }
+  if (!response.ok) {
+    throw new ApiError(response.status, "download_failed", `Download failed with ${response.status}`);
+  }
+
+  return response.blob();
+}
+
 /** Fetch workspace logo bytes through the authenticated API proxy. */
 export async function fetchWorkspaceLogoBlob(workspaceId: string): Promise<Blob | null> {
   const { token, workspaceId: activeWorkspaceId } = useAuthStore.getState();

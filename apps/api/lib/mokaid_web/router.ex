@@ -30,6 +30,9 @@ defmodule MokaidWeb.Router do
     post "/auth/login", AuthController, :login
     post "/auth/register", AuthController, :register
     post "/auth/logout", AuthController, :logout
+
+    # PayMe posts payment results here (reconciled by invoice id).
+    post "/payme/callback", PaymeWebhookController, :callback
   end
 
   scope "/api", MokaidWeb do
@@ -53,6 +56,12 @@ defmodule MokaidWeb.Router do
     post "/agents/:id/link-user", AgentController, :link_user
     post "/agents/:id/unlink-user", AgentController, :unlink_user
     post "/agents/:id/assign-task", AgentController, :assign_task
+    post "/agents/:id/files", AgentController, :upload_files
+
+    get "/agent-chats", AgentChatController, :index
+    get "/agents/:agent_id/chat", AgentChatController, :show
+    post "/agents/:agent_id/chat", AgentChatController, :create
+    post "/agents/:agent_id/chat/read", AgentChatController, :mark_read
 
     post "/dispatch/analyze", DispatchController, :analyze
     post "/dispatch/confirm", DispatchController, :confirm
@@ -61,6 +70,7 @@ defmodule MokaidWeb.Router do
     patch "/tasks/:task_id/subtasks/:id", TaskController, :update_subtask
     post "/tasks/:id/comments", TaskController, :create_comment
     post "/tasks/:id/execute-ai", TaskController, :execute_ai
+    post "/tasks/:id/stop-ai", TaskController, :stop_ai
     post "/tasks/:id/approve-action", TaskController, :approve_action
 
     resources "/projects", ProjectController, only: [:index, :create, :show, :update, :delete]
@@ -73,6 +83,7 @@ defmodule MokaidWeb.Router do
     resources "/drive", DriveController, only: [:index, :create, :show, :update, :delete]
     get "/drive/:id/children", DriveController, :children
     get "/drive/:id/download", DriveController, :download
+    get "/drive/:id/raw", DriveController, :raw
     post "/drive/:id/restore", DriveController, :restore
     get "/drive-trash", DriveController, :trash
 
@@ -115,7 +126,10 @@ defmodule MokaidWeb.Router do
     get "/billing/overview", BillingController, :overview
     get "/billing/invoices", BillingController, :invoices
     get "/billing/plans", BillingController, :plans
+    get "/billing/credit-packs", BillingController, :credit_packs
     post "/billing/change-plan", BillingController, :change_plan
+    post "/billing/checkout", BillingController, :checkout
+    post "/billing/credits/checkout", BillingController, :credits_checkout
 
     get "/analytics/overview", AnalyticsController, :overview
     get "/analytics/agents", AnalyticsController, :agents
@@ -142,6 +156,7 @@ defmodule MokaidWeb.Router do
     post "/tasks/:id/update", WorkerResourceController, :update_task
     post "/tasks/:id/subtasks", WorkerResourceController, :create_subtasks
     post "/tasks/:id/comment", WorkerResourceController, :create_comment
+    post "/agents/:id/chat-message", WorkerResourceController, :agent_chat_message
     post "/tasks/:id/output", WorkerResourceController, :save_output
   end
 end

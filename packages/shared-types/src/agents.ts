@@ -87,8 +87,10 @@ export function toVisualState(
     case "busy":
       return "typing";
     case "active":
-      return extra?.has_task ? "working" : "waiting";
+      // At the desk when on a task; free to roam the office otherwise.
+      return extra?.has_task ? "working" : "idle";
     case "waiting":
+      // Waiting on a human decision — stays at the desk, not wandering.
       return "waiting";
     case "blocked":
       return "blocked";
@@ -98,8 +100,8 @@ export function toVisualState(
     case "archived":
       return "offline";
     case "idle":
-      return presence === "online" ? "waiting" : "offline";
+      return presence === "online" ? "idle" : "offline";
     default:
-      return presence === "online" ? "waiting" : "offline";
+      return presence === "online" ? "idle" : "offline";
   }
 }

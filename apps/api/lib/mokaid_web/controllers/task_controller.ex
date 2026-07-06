@@ -81,7 +81,7 @@ defmodule MokaidWeb.TaskController do
   def execute_ai(conn, %{"id" => id} = params) do
     with :ok <- Permissions.authorize(current_member(conn), "agents.run_ai"),
          %{} = task <- Tasks.get_task(workspace_id(conn), id),
-         {:ok, run} <- AI.start_run(task, params["input"] || %{}) do
+         {:ok, run} <- AI.start_run(task, params["input"] || default_run_input(task)) do
       Audit.log(workspace_id(conn), current_member(conn), "ai.run_started", "task", id, %{
         run_id: run.id
       })
@@ -89,6 +89,34 @@ defmodule MokaidWeb.TaskController do
       conn
       |> put_status(:created)
       |> json(%{data: %{run_id: run.id, status: run.status}})
+    end
+  end
+
+  # Retries reuse the original dispatch context (instruction + dropped files)
+  # plus the task-thread conversation, so the agent picks up where the
+  # discussion left off instead of restarting blind.
+  defp default_run_input(task), do: AI.default_input(task)
+
+  @doc "Stops the agent's work on this task and puts it back in To Do."
+  def stop_ai(conn, %{"id" => id}) do
+    with :ok <- Permissions.authorize(current_member(conn), "agents.run_ai"),
+         %{} = task <- Tasks.get_task(workspace_id(conn), id) do
+      AI.cancel_active_runs_for_task(task, "Stopped by a teammate")
+
+      {:ok, updated} =
+        if task.status in ["in_progress", "waiting"] do
+          Tasks.update_task(
+            task,
+            %{"status" => "to_do", "progress_percent" => 0},
+            current_member(conn)
+          )
+        else
+          {:ok, task}
+        end
+
+      Audit.log(workspace_id(conn), current_member(conn), "ai.run_stopped", "task", id, %{})
+
+      json(conn, %{data: %{id: updated.id, status: updated.status}})
     end
   end
 

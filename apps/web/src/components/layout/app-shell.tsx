@@ -7,7 +7,10 @@ import { useOnboardingSettings } from "@/api/hooks";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist";
 import { CoachmarkTour } from "@/components/onboarding/coachmark-tour";
+import { TaskDetailPanel } from "@/components/tasks/task-detail-panel";
+import { FloatingChatDock } from "@/components/chat/floating-chat-dock";
 import { Toaster } from "@/components/ui/toaster";
+import { useUiStore } from "@/stores/ui-store";
 
 function OnboardingGate() {
   const [dismissed, setDismissed] = useState(false);
@@ -24,6 +27,11 @@ function OnboardingGate() {
 export function AppShell() {
   useWorkspaceChannel();
 
+  // Task details live at the shell level: a task can be opened from any page
+  // (dashboard rows, agent panel, toasts, kanban) via useUiStore.selectTask.
+  const selectedTaskId = useUiStore((s) => s.selectedTaskId);
+  const selectTask = useUiStore((s) => s.selectTask);
+
   return (
     <div className="flex h-full overflow-hidden">
       <Sidebar />
@@ -33,6 +41,8 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      <TaskDetailPanel taskId={selectedTaskId} onClose={() => selectTask(null)} />
+      <FloatingChatDock />
       <OnboardingGate />
       <OnboardingChecklist />
       <CoachmarkTour />

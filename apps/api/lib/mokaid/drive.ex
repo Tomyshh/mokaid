@@ -22,6 +22,18 @@ defmodule Mokaid.Drive do
     )
   end
 
+  @doc "Active files matching the given ids, in the workspace (order not guaranteed)."
+  def list_items_by_ids(_workspace_id, []), do: []
+
+  def list_items_by_ids(workspace_id, ids) when is_list(ids) do
+    Repo.all(
+      from d in DriveItem,
+        where:
+          d.workspace_id == ^workspace_id and d.id in ^ids and d.kind == "file" and
+            d.status == "active"
+    )
+  end
+
   def list_children(workspace_id, parent_id) do
     from(d in DriveItem,
       where: d.workspace_id == ^workspace_id and d.status == "active",

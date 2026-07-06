@@ -2,11 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, apiUpload } from "./client";
 import type {
   Agent,
+  AgentChatMessage,
+  AgentChatSummary,
   AgentCounts,
   AnalyticsOverview,
   AppNotification,
   BillingOverview,
   CalendarEvent,
+  CheckoutResult,
+  CreditPack,
   DispatchAnalysis,
   DispatchConfirmResult,
   DispatchCustomAgent,
@@ -178,6 +182,58 @@ export function useExecuteAi() {
   });
 }
 
+/** Stops the agent's work on the task (aborts the run, task back to To Do). */
+export function useStopTaskAi() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      apiFetch<Envelope<{ id: string; status: string }>>(`/api/tasks/${taskId}/stop-ai`, {
+        method: "POST",
+        body: {},
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    },
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      apiFetch<{ ok: boolean }>(`/api/tasks/${taskId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    },
+  });
+}
+
+/** Human decision on an agent's pending approval request (approve / reject). */
+export function useApproveTaskAction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      approvalRequestId,
+      decision,
+    }: {
+      taskId: string;
+      approvalRequestId: string;
+      decision: "approved" | "rejected";
+    }) =>
+      apiFetch<Envelope<{ id: string; status: string }>>(`/api/tasks/${taskId}/approve-action`, {
+        method: "POST",
+        body: { approval_request_id: approvalRequestId, decision },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    },
+  });
+}
+
 /* ---------- Intelligent dispatch ---------- */
 
 export function useDispatchAnalyze() {
@@ -318,6 +374,45 @@ export function useTrashDriveItem() {
   });
 }
 
+/** Trashes many items at once; used for bulk selection actions. */
+export function useTrashDriveItems() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      Promise.all(ids.map((id) => apiFetch<Envelope<DriveItem>>(`/api/drive/${id}`, { method: "DELETE" }))),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drive"] }),
+  });
+}
+
+export function useMoveDriveItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, parentId }: { id: string; parentId: string | null }) =>
+      apiFetch<Envelope<DriveItem>>(`/api/drive/${id}`, {
+        method: "PATCH",
+        body: { parent_id: parentId },
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drive"] }),
+  });
+}
+
+/** Moves many items to the same destination folder at once; used for drag-and-drop and bulk selection actions. */
+export function useMoveDriveItems() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, parentId }: { ids: string[]; parentId: string | null }) =>
+      Promise.all(
+        ids.map((id) =>
+          apiFetch<Envelope<DriveItem>>(`/api/drive/${id}`, {
+            method: "PATCH",
+            body: { parent_id: parentId },
+          }),
+        ),
+      ),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drive"] }),
+  });
+}
+
 export function useUploadDriveFile() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -328,6 +423,27 @@ export function useUploadDriveFile() {
       return apiUpload<Envelope<DriveItem>>("/api/drive/upload", formData);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drive"] }),
+  });
+}
+
+/** Uploads a file and links it to a task so the agent can use it on the next run. */
+export function useAttachTaskFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ file, taskId }: { file: File; taskId: string }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("is_ai_readable", "true");
+      const uploaded = await apiUpload<Envelope<DriveItem>>("/api/drive/upload", formData);
+      return apiFetch<Envelope<DriveItem>>(`/api/drive/${uploaded.data.id}`, {
+        method: "PATCH",
+        body: { linked_task_id: taskId, is_ai_readable: true },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["drive"] });
+    },
   });
 }
 
@@ -788,6 +904,49 @@ export function useChangePlan() {
   });
 }
 
+export function useCreditPacks() {
+  const key = useWorkspaceKey("billing");
+  return useQuery({
+    queryKey: [...key, "credit-packs"],
+    queryFn: () => apiFetch<Envelope<CreditPack[]>>("/api/billing/credit-packs"),
+  });
+}
+
+/** Plan purchase — either activates directly or returns a PayMe checkout URL. */
+export function usePlanCheckout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { plan_key: string; billing_cycle?: string }) =>
+      apiFetch<Envelope<CheckoutResult>>("/api/billing/checkout", { method: "POST", body }),
+    onSuccess: (result) => {
+      if (result.data.sale_url) {
+        window.location.href = result.data.sale_url;
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["billing"] });
+      }
+    },
+  });
+}
+
+/** AI credit pack purchase — same activation-or-redirect contract. */
+export function useCreditsCheckout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { pack_key: string }) =>
+      apiFetch<Envelope<CheckoutResult>>("/api/billing/credits/checkout", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: (result) => {
+      if (result.data.sale_url) {
+        window.location.href = result.data.sale_url;
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["billing"] });
+      }
+    },
+  });
+}
+
 export function useAnalyticsOverview() {
   const key = useWorkspaceKey("analytics");
   return useQuery({
@@ -892,5 +1051,50 @@ export function useMarkNotificationRead() {
     mutationFn: (id: string) =>
       apiFetch<Envelope<AppNotification>>(`/api/notifications/${id}/read`, { method: "POST" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+}
+
+/* ---------- Agent direct chat (floating dock) ---------- */
+
+export function useAgentChats() {
+  const key = useWorkspaceKey("agent-chats");
+  return useQuery({
+    queryKey: key,
+    queryFn: () => apiFetch<Envelope<AgentChatSummary[]>>("/api/agent-chats"),
+  });
+}
+
+export function useAgentChatMessages(agentId: string | null) {
+  const key = useWorkspaceKey("agent-chat");
+  return useQuery({
+    queryKey: [...key, agentId],
+    enabled: agentId != null,
+    queryFn: () => apiFetch<Envelope<AgentChatMessage[]>>(`/api/agents/${agentId}/chat`),
+  });
+}
+
+export function useSendAgentChatMessage(agentId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: string | { body: string; drive_item_ids?: string[] }) => {
+      const payload = typeof input === "string" ? { body: input } : input;
+      return apiFetch<Envelope<AgentChatMessage>>(`/api/agents/${agentId}/chat`, {
+        method: "POST",
+        body: payload,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agent-chat"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
+    },
+  });
+}
+
+export function useMarkAgentChatRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (agentId: string) =>
+      apiFetch<{ data: { ok: boolean } }>(`/api/agents/${agentId}/chat/read`, { method: "POST" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["agent-chats"] }),
   });
 }

@@ -15,7 +15,11 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
   alias Mokaid.Tasks
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"run_id" => run_id}, attempt: attempt, max_attempts: max_attempts}) do
+  def perform(%Oban.Job{
+        args: %{"run_id" => run_id},
+        attempt: attempt,
+        max_attempts: max_attempts
+      }) do
     config = Application.fetch_env!(:mokaid, :ai_worker)
 
     case Tasks.get_run(run_id) do
@@ -34,19 +38,29 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
             []
           end
 
-        # Files dropped/linked at dispatch time, resolved to presigned URLs
-        # so the worker can actually read their content.
+        # Everything currently linked to the task (initial drops, files added
+        # later in the thread, previous agent outputs), resolved to presigned
+        # URLs so the worker can actually read their content.
         attached_files =
-          Mokaid.AI.Dispatcher.attached_files(
-            run.workspace_id,
-            (task && task.metadata["drive_item_ids"]) || run.input["drive_item_ids"] || []
-          )
+          if task do
+            Mokaid.AI.Dispatcher.task_files(
+              run.workspace_id,
+              task.id,
+              task.metadata["drive_item_ids"] || run.input["drive_item_ids"] || []
+            )
+          else
+            Mokaid.AI.Dispatcher.attached_files(
+              run.workspace_id,
+              run.input["drive_item_ids"] || []
+            )
+          end
 
         payload = %{
           run_id: run.id,
           workspace_id: run.workspace_id,
           agent_id: run.agent_id,
           task_id: run.task_id,
+          project_id: task && task.project_id,
           task_title: task && task.title,
           task_description: task && task.description,
           task_priority: task && task.priority,

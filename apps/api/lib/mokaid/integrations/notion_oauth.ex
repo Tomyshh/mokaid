@@ -19,6 +19,7 @@ defmodule Mokaid.Integrations.NotionOAuth do
 
   def configured? do
     config = config()
+
     is_binary(config[:client_id]) and config[:client_id] != "" and
       is_binary(config[:client_secret]) and config[:client_secret] != ""
   end

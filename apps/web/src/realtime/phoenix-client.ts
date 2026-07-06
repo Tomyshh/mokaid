@@ -43,6 +43,17 @@ export function leaveChannel(topic: string): void {
   }
 }
 
+/**
+ * Runs `cb` every time the socket (re)connects. Returns an unsubscribe
+ * function, or null when there is no socket yet (no auth token).
+ */
+export function onSocketOpen(cb: () => void): (() => void) | null {
+  const currentSocket = getSocket();
+  if (!currentSocket) return null;
+  const ref = currentSocket.onOpen(cb);
+  return () => currentSocket.off([ref]);
+}
+
 export function disconnect(): void {
   channels.forEach((channel) => channel.leave());
   channels.clear();

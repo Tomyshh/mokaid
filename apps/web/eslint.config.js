@@ -36,7 +36,13 @@ export default [
         FormData: "readonly",
         URLSearchParams: "readonly",
         localStorage: "readonly",
+        sessionStorage: "readonly",
         navigator: "readonly",
+        Blob: "readonly",
+        Window: "readonly",
+        MessageEvent: "readonly",
+        ResizeObserver: "readonly",
+        React: "readonly",
       },
     },
     plugins: {

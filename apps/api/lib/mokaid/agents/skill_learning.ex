@@ -261,8 +261,12 @@ defmodule Mokaid.Agents.SkillLearning do
     manual = role_source != "auto" and agent.role_title not in [nil, "", "Generalist"]
 
     cond do
-      specialty == nil -> {nil, nil}
-      manual -> {nil, nil}
+      specialty == nil ->
+        {nil, nil}
+
+      manual ->
+        {nil, nil}
+
       true ->
         case Map.get(@domain_role_map, specialty) do
           {title, dept} -> {title, dept}

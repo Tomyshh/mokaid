@@ -71,13 +71,35 @@ async def transform_image(params: dict[str, Any], ctx: RunContext) -> Any:
     img = Image.open(io.BytesIO(image_bytes))
     original_format = img.format or "PNG"
 
+    # The image APIs only accept PNG/JPEG/WebP. Anything else (.ico, .bmp,
+    # .gif, .tiff…) is transparently re-encoded to PNG so the user's request
+    # succeeds instead of erroring on a format detail.
+    if original_format not in ("PNG", "JPEG", "WEBP"):
+        buf = io.BytesIO()
+        img.convert("RGBA").save(buf, format="PNG")
+        image_bytes = buf.getvalue()
+        img = Image.open(io.BytesIO(image_bytes))
+        original_format = "PNG"
+
+    source_mime = f"image/{original_format.lower()}"
+
     plan = await llm.chat_json(
         system="""You decide HOW to process an image. Given the user instruction, respond with a JSON object:
-{"method": "pillow"|"dalle", "pillow_ops": [...], "dalle_prompt": "...", "output_format": "PNG"|"JPEG"}
+{"method": "ai_edit"|"pillow", "edit_prompt": "...", "pillow_ops": [...], "output_format": "PNG"|"JPEG"}
 
-pillow_ops is an array of operations (only when method=pillow):
-- {"op": "colorize", "hue_shift": int} — shift hue by degrees (0-360)
-- {"op": "tint", "color": "#RRGGBB"} — apply a color tint/overlay
+method=ai_edit (DEFAULT — pick this whenever in doubt): a generative image
+model edits the original image following edit_prompt. Use it for anything
+visual or subjective: recoloring/restyling ("make it orange", "more modern"),
+redesigns, style changes, adding/removing/replacing elements, backgrounds,
+lighting, textures, "make it look like…". Write edit_prompt as a precise,
+self-contained instruction in English describing the desired result while
+preserving everything the user didn't ask to change.
+
+method=pillow ONLY for purely mechanical operations where pixel-exact
+determinism matters and no aesthetic judgement is involved: resize, rotate,
+flip, format conversion, blur, sharpen, brightness/contrast adjustments.
+Never use pillow tints or hue shifts to approximate a requested look — that
+produces a cheap color-filter result. pillow_ops (only when method=pillow):
 - {"op": "grayscale"}
 - {"op": "brightness", "factor": float} — 1.0 = original, >1 brighter
 - {"op": "contrast", "factor": float}
@@ -85,17 +107,13 @@ pillow_ops is an array of operations (only when method=pillow):
 - {"op": "sharpen"}
 - {"op": "resize", "width": int, "height": int}
 - {"op": "rotate", "degrees": int}
-- {"op": "flip", "direction": "horizontal"|"vertical"}
-
-Use method=pillow for deterministic changes (color shift, resize, rotate, filters).
-Use method=dalle ONLY for creative changes that require generating new content.
-For color changes like "make it green/blue/red", always use pillow with colorize or tint.""",
+- {"op": "flip", "direction": "horizontal"|"vertical"}""",
         user=f"Instruction: {instruction}\nImage size: {img.size}\nImage mode: {img.mode}",
         usage=ctx.usage,
         max_tokens=400,
     )
 
-    method = plan.get("method", "pillow")
+    method = plan.get("method", "ai_edit")
     output_format = plan.get("output_format", original_format).upper()
     if output_format not in ("PNG", "JPEG", "WEBP"):
         output_format = "PNG"
@@ -103,7 +121,32 @@ For color changes like "make it green/blue/red", always use pillow with colorize
     result_bytes: bytes | None = None
     description = ""
 
-    if method == "pillow":
+    if method == "ai_edit":
+        edit_prompt = plan.get("edit_prompt") or instruction
+        result_bytes = await llm.edit_image(
+            image_bytes, edit_prompt, usage=ctx.usage, mime_type=source_mime
+        )
+        if result_bytes:
+            output_format = "PNG"  # gpt-image-1 returns PNG
+            description = f"AI-edited the image: {edit_prompt[:150]}"
+        else:
+            # Editing unavailable (model access, size limits…) — regenerate
+            # from a vision description so the request still lands, which
+            # beats degrading to a color filter.
+            log.warning("ai_edit_unavailable_falling_back", run_id=ctx.run_id)
+            fallback_prompt = (
+                f"Recreate this exact image with the following change applied: {edit_prompt}"
+            )
+            result_bytes = await llm.generate_image(fallback_prompt, usage=ctx.usage)
+            if result_bytes:
+                output_format = "PNG"
+                description = f"Regenerated the image with the requested change: {edit_prompt[:120]}"
+            else:
+                return {
+                    "error": "AI image editing failed. Try rephrasing the instruction or retry later."
+                }
+
+    elif method == "pillow":
         ops = plan.get("pillow_ops") or []
         processed = img.copy()
         if processed.mode not in ("RGB", "RGBA"):
@@ -185,13 +228,13 @@ For color changes like "make it green/blue/red", always use pillow with colorize
         description = f"Applied: {', '.join(applied) if applied else 'no changes'}."
 
     elif method == "dalle":
+        # Legacy plan shape — treat as text-to-image generation.
         dalle_prompt = plan.get("dalle_prompt") or f"Based on the original image: {instruction}"
-        url = await llm.generate_image(dalle_prompt, usage=ctx.usage)
-        if url:
-            result_bytes = await _download(url)
-            description = f"Generated new image via DALL-E: {dalle_prompt[:100]}"
+        result_bytes = await llm.generate_image(dalle_prompt, usage=ctx.usage)
+        if result_bytes:
+            description = f"Generated new image: {dalle_prompt[:100]}"
         else:
-            return {"error": "DALL-E image generation failed. Try rephrasing the instruction."}
+            return {"error": "Image generation failed. Try rephrasing the instruction."}
 
     if result_bytes is None:
         return {"error": "Image processing produced no output."}

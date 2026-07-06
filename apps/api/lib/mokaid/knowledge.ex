@@ -40,12 +40,21 @@ defmodule Mokaid.Knowledge do
     |> maybe_filter(:category_id, filters["category_id"])
     |> maybe_filter(:type, filters["type"])
     |> maybe_filter(:status, filters["status"])
+    |> maybe_filter(:project_id, filters["project_id"])
+    |> maybe_filter(:agent_id, filters["agent_id"])
+    |> maybe_scope(filters["scope"])
     |> Repo.all()
   end
 
   defp maybe_filter(query, _field, nil), do: query
   defp maybe_filter(query, _field, ""), do: query
   defp maybe_filter(query, field, value), do: where(query, [i], field(i, ^field) == ^value)
+
+  # "general" restricts to workspace-wide knowledge (no project, no agent).
+  defp maybe_scope(query, "general"),
+    do: where(query, [i], is_nil(i.project_id) and is_nil(i.agent_id))
+
+  defp maybe_scope(query, _), do: query
 
   def create_item(workspace_id, attrs, created_by \\ nil) do
     result =
@@ -134,18 +143,67 @@ defmodule Mokaid.Knowledge do
     insert_chunks(item, chunks)
   end
 
-  @doc "Nearest-neighbor search over knowledge chunks (cosine distance, pgvector)."
-  def search_chunks(workspace_id, embedding, limit \\ 5) do
-    vector = Pgvector.new(embedding)
+  @doc """
+  Nearest-neighbor search over knowledge chunks (cosine distance, pgvector).
 
-    Repo.all(
-      from c in KnowledgeChunk,
-        join: i in assoc(c, :knowledge_item),
-        where: c.workspace_id == ^workspace_id and not is_nil(c.embedding),
-        where: i.status == "published",
-        order_by: cosine_distance(c.embedding, ^vector),
-        limit: ^limit,
-        select: %{chunk: c, item_title: i.title, distance: cosine_distance(c.embedding, ^vector)}
+  Retrieval spans three knowledge levels: general workspace knowledge
+  (no project, no agent), plus — when `opts` provide them — the knowledge
+  scoped to the current project and to the current agent. Knowledge from
+  other projects/agents is never leaked into a run.
+  """
+  def search_chunks(workspace_id, embedding, limit \\ 5, opts \\ []) do
+    vector = Pgvector.new(embedding)
+    project_id = Keyword.get(opts, :project_id)
+    agent_id = Keyword.get(opts, :agent_id)
+
+    from(c in KnowledgeChunk,
+      join: i in assoc(c, :knowledge_item),
+      where: c.workspace_id == ^workspace_id and not is_nil(c.embedding),
+      where: i.status == "published",
+      order_by: cosine_distance(c.embedding, ^vector),
+      limit: ^limit,
+      select: %{
+        chunk: c,
+        item_title: i.title,
+        scope:
+          fragment(
+            "CASE WHEN ? IS NOT NULL THEN 'agent' WHEN ? IS NOT NULL THEN 'project' ELSE 'general' END",
+            i.agent_id,
+            i.project_id
+          ),
+        distance: cosine_distance(c.embedding, ^vector)
+      }
+    )
+    |> scope_filter(project_id, agent_id)
+    |> Repo.all()
+  end
+
+  defp scope_filter(query, nil, nil) do
+    where(query, [c, i], is_nil(i.project_id) and is_nil(i.agent_id))
+  end
+
+  defp scope_filter(query, project_id, nil) do
+    where(
+      query,
+      [c, i],
+      (is_nil(i.project_id) and is_nil(i.agent_id)) or i.project_id == ^project_id
+    )
+  end
+
+  defp scope_filter(query, nil, agent_id) do
+    where(
+      query,
+      [c, i],
+      (is_nil(i.project_id) and is_nil(i.agent_id)) or i.agent_id == ^agent_id
+    )
+  end
+
+  defp scope_filter(query, project_id, agent_id) do
+    where(
+      query,
+      [c, i],
+      (is_nil(i.project_id) and is_nil(i.agent_id)) or i.project_id == ^project_id or
+        i.agent_id == ^agent_id
     )
   end
 

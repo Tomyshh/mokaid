@@ -33,8 +33,9 @@ defmodule Mokaid.Tasks do
     )
   end
 
-  # Detail view also carries linked drive files (inputs + agent outputs)
-  # and execution runs (latest first) so the UI can show the agent's result.
+  # Detail view also carries linked drive files (inputs + agent outputs),
+  # execution runs (latest first) and pending approval requests so the UI
+  # can show the agent's result and ask for human decisions.
   defp detail_preloads do
     drive_items_query =
       from d in Mokaid.Drive.DriveItem,
@@ -43,7 +44,16 @@ defmodule Mokaid.Tasks do
 
     runs_query = from r in TaskExecutionRun, order_by: [desc: r.inserted_at]
 
-    [drive_items: drive_items_query, execution_runs: runs_query] ++ @preloads
+    approvals_query =
+      from a in TaskApprovalRequest,
+        where: a.status == "pending",
+        order_by: [desc: a.inserted_at]
+
+    [
+      drive_items: drive_items_query,
+      execution_runs: runs_query,
+      approval_requests: approvals_query
+    ] ++ @preloads
   end
 
   def list_tasks(workspace_id, filters \\ %{}) do
@@ -104,6 +114,7 @@ defmodule Mokaid.Tasks do
 
   def update_task(%Task{} = task, attrs, actor \\ nil) do
     old_status = task.status
+    old_agent_id = task.assigned_agent_id
 
     result =
       task
@@ -143,7 +154,37 @@ defmodule Mokaid.Tasks do
           })
       end
 
+      sync_ai_with_pipeline(updated, old_status, old_agent_id)
+
       {:ok, Repo.preload(updated, @preloads, force: true)}
+    end
+  end
+
+  # The pipeline drives the agents: moving a task changes what its agent is
+  # actually doing. Reassigning stops the previous agent; dragging out of
+  # "in progress" cancels the run; dragging into it starts one. Guards in
+  # Mokaid.AI (active-run checks) make these hooks safe to call from the AI
+  # callbacks themselves without recursion.
+  defp sync_ai_with_pipeline(%Task{} = updated, old_status, old_agent_id) do
+    status = updated.status
+    agent_changed = old_agent_id != updated.assigned_agent_id
+
+    cond do
+      agent_changed ->
+        Mokaid.AI.cancel_active_runs_for_task(updated, "Task reassigned")
+
+        if status == "in_progress" do
+          Mokaid.AI.ensure_started(updated)
+        end
+
+      status != old_status and status in ["completed", "canceled", "to_do", "blocked"] ->
+        Mokaid.AI.cancel_active_runs_for_task(updated, "Task moved to #{status}")
+
+      status != old_status and status == "in_progress" ->
+        Mokaid.AI.ensure_started(updated)
+
+      true ->
+        :ok
     end
   end
 
@@ -166,6 +207,8 @@ defmodule Mokaid.Tasks do
   end
 
   def delete_task(%Task{} = task) do
+    # Free the agent first: abort the live run and start its next mission.
+    Mokaid.AI.cancel_active_runs_for_task(task, "Task deleted")
     Repo.delete(task)
   end
 
@@ -254,6 +297,16 @@ defmodule Mokaid.Tasks do
         comment_id: comment.id
       })
 
+      # A human wrote to the agent while it isn't running: have it answer so
+      # the thread is a real conversation (the run's own comments cover the
+      # rest). Agent-authored comments never trigger replies (no loops).
+      if match?(%Mokaid.Members.Member{}, actor) and task.assigned_agent_id != nil and
+           active_runs_for_task(task.workspace_id, task.id) == [] do
+        %{workspace_id: task.workspace_id, task_id: task.id}
+        |> Mokaid.AI.Workers.ConverseWorker.new()
+        |> Oban.insert()
+      end
+
       {:ok, Repo.preload(comment, author_member: :user, author_agent: [])}
     end
   end
@@ -273,6 +326,45 @@ defmodule Mokaid.Tasks do
   end
 
   def get_run(run_id), do: Repo.get(TaskExecutionRun, run_id)
+
+  @active_run_statuses ~w(queued running waiting_for_approval)
+
+  @doc "Runs of a task that are queued or in flight (cancellable)."
+  def active_runs_for_task(workspace_id, task_id) do
+    Repo.all(
+      from r in TaskExecutionRun,
+        where:
+          r.workspace_id == ^workspace_id and r.task_id == ^task_id and
+            r.status in ^@active_run_statuses
+    )
+  end
+
+  @doc "True when the agent already has a run sent to the worker (in flight)."
+  def agent_has_dispatched_run?(agent_id) do
+    Repo.exists?(
+      from r in TaskExecutionRun,
+        where:
+          r.agent_id == ^agent_id and
+            (r.status in ["running", "waiting_for_approval"] or
+               (r.status == "queued" and not is_nil(r.dispatched_at)))
+    )
+  end
+
+  @doc "Oldest run waiting in the agent's queue (created but never dispatched)."
+  def next_queued_run(agent_id) do
+    Repo.one(
+      from r in TaskExecutionRun,
+        where: r.agent_id == ^agent_id and r.status == "queued" and is_nil(r.dispatched_at),
+        order_by: [asc: r.inserted_at],
+        limit: 1
+    )
+  end
+
+  def mark_run_dispatched(%TaskExecutionRun{} = run) do
+    run
+    |> Ecto.Changeset.change(dispatched_at: DateTime.utc_now())
+    |> Repo.update()
+  end
 
   def update_run_progress(%TaskExecutionRun{} = run, attrs) do
     result =

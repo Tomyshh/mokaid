@@ -69,4 +69,61 @@ defmodule MokaidWeb.AgentController do
       json(conn, %{data: Serializer.task(updated)})
     end
   end
+
+  # Text-ish formats whose content can be indexed directly. Binary formats
+  # (pdf, docx…) are stored but only indexed once an extractor handles them.
+  @indexable_extensions ~w(txt md markdown csv json html)
+
+  @doc """
+  "Feed data" to an agent: each uploaded file becomes an agent-scoped
+  knowledge item (the agent's personal knowledge base), indexed for
+  retrieval when readable as text.
+  """
+  def upload_files(conn, %{"id" => id} = params) do
+    uploads = List.wrap(params["files"] || params["file"])
+
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.upload"),
+         %{} = agent <- Agents.get_agent(workspace_id(conn), id) do
+      count =
+        uploads
+        |> Enum.filter(&match?(%Plug.Upload{}, &1))
+        |> Enum.count(fn upload ->
+          body = readable_body(upload)
+
+          case Mokaid.Knowledge.create_item(
+                 workspace_id(conn),
+                 %{
+                   "title" => upload.filename,
+                   "type" => "file",
+                   "agent_id" => agent.id,
+                   "body" => body,
+                   "status" => if(body, do: "processing", else: "published"),
+                   "metadata" => %{
+                     "original_filename" => upload.filename,
+                     "content_type" => upload.content_type,
+                     "fed_to_agent" => agent.display_name
+                   }
+                 },
+                 current_member(conn)
+               ) do
+            {:ok, _item} -> true
+            _ -> false
+          end
+        end)
+
+      json(conn, %{data: %{count: count, agent_id: agent.id}})
+    end
+  end
+
+  defp readable_body(%Plug.Upload{} = upload) do
+    extension = upload.filename |> Path.extname() |> String.trim_leading(".") |> String.downcase()
+
+    with true <- extension in @indexable_extensions,
+         {:ok, content} <- File.read(upload.path),
+         true <- String.valid?(content) do
+      content
+    else
+      _ -> nil
+    end
+  end
 end

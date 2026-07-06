@@ -40,6 +40,8 @@ class AttachedFile(BaseModel):
     mime_type: str | None = None
     size_bytes: int | None = None
     download_url: str | None = None
+    # "input" (user-provided) or "agent_output" (result of a previous run).
+    source: str | None = None
 
 
 class RunRequest(BaseModel):
@@ -47,6 +49,7 @@ class RunRequest(BaseModel):
     workspace_id: str
     agent_id: str | None = None
     task_id: str
+    project_id: str | None = None
     task_title: str | None = None
     task_description: str | None = None
     task_priority: str | None = None

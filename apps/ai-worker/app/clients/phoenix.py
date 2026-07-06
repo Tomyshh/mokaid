@@ -41,11 +41,26 @@ class PhoenixClient:
         )
 
     async def request_approval(
-        self, run_id: str, tool: str, tool_input: dict[str, Any], risk: str
-    ) -> None:
-        await self._post(
+        self,
+        run_id: str,
+        tool: str,
+        tool_input: dict[str, Any],
+        risk: str,
+        proposed_action: str | None = None,
+    ) -> dict[str, Any] | None:
+        # Field names match Mokaid.Tasks.TaskApprovalRequest; the legacy
+        # tool/input/risk keys are kept for older API builds.
+        return await self._post(
             f"/api/worker/runs/{run_id}/approval",
-            {"tool": tool, "input": tool_input, "risk": risk},
+            {
+                "tool_name": tool,
+                "input_payload": tool_input,
+                "risk_level": risk,
+                "proposed_action": proposed_action,
+                "tool": tool,
+                "input": tool_input,
+                "risk": risk,
+            },
         )
 
     async def complete_run(
@@ -66,9 +81,17 @@ class PhoenixClient:
     # ---------- Workspace resources ----------
 
     async def search_knowledge(
-        self, workspace_id: str, embedding: list[float], query: str, limit: int = 5
+        self,
+        workspace_id: str,
+        embedding: list[float],
+        query: str,
+        limit: int = 5,
+        project_id: str | None = None,
+        agent_id: str | None = None,
     ) -> list[dict[str, Any]]:
-        """Semantic search over knowledge chunks (pgvector on the Phoenix side)."""
+        """Semantic search over knowledge chunks (pgvector on the Phoenix
+        side). Retrieval spans the general knowledge base plus, when given,
+        the current project's and agent's own knowledge."""
         result = await self._post(
             "/api/worker/knowledge/search",
             {
@@ -76,6 +99,8 @@ class PhoenixClient:
                 "embedding": embedding,
                 "query": query,
                 "limit": limit,
+                "project_id": project_id,
+                "agent_id": agent_id,
             },
         )
         return (result or {}).get("data", [])
@@ -111,6 +136,30 @@ class PhoenixClient:
         if agent_id:
             payload["agent_id"] = agent_id
         result = await self._post(f"/api/worker/tasks/{task_id}/comment", payload)
+        return result is not None
+
+    async def post_agent_chat_message(
+        self,
+        workspace_id: str,
+        agent_id: str,
+        body: str,
+        start_task: bool = False,
+        instruction: str | None = None,
+        member_id: str | None = None,
+    ) -> bool:
+        """Posts the agent's reply in its direct chat thread (floating dock).
+
+        When ``start_task`` is set, Phoenix also spins up a task assigned to
+        this agent from ``instruction`` (member_id = who to attribute it to)."""
+        payload: dict[str, Any] = {"workspace_id": workspace_id, "body": body}
+        if start_task and instruction:
+            payload["start_task"] = True
+            payload["instruction"] = instruction
+            if member_id:
+                payload["member_id"] = member_id
+        result = await self._post(
+            f"/api/worker/agents/{agent_id}/chat-message", payload
+        )
         return result is not None
 
     async def create_subtasks(

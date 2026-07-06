@@ -18,6 +18,12 @@ TOOL_RISK: dict[str, RiskLevel] = {
     "draft_document": RiskLevel.MEDIUM,
     "generate_report": RiskLevel.MEDIUM,
     "summarize": RiskLevel.LOW,
+    # File processing (internal artifacts, results are reviewable in-task)
+    "analyze_file": RiskLevel.LOW,
+    "extract_document_text": RiskLevel.LOW,
+    "transform_image": RiskLevel.MEDIUM,
+    "transcribe_audio": RiskLevel.MEDIUM,
+    "generate_website": RiskLevel.MEDIUM,
     # Internal mutations
     "update_task": RiskLevel.MEDIUM,
     "create_subtasks": RiskLevel.MEDIUM,

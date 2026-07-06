@@ -22,6 +22,8 @@ export function DashboardPage() {
   const { data: workspaceData } = useWorkspace();
   const selectedAgentId = useUiStore((s) => s.selectedAgentId);
   const selectAgent = useUiStore((s) => s.selectAgent);
+  const selectTask = useUiStore((s) => s.selectTask);
+  const flashedTaskIds = useUiStore((s) => s.flashedTaskIds);
 
   const show3dOffice = workspaceData?.data.feature_toggles?.["3d_office"] !== false;
 
@@ -92,7 +94,7 @@ export function DashboardPage() {
         {/* 3D office (toggleable from Workspace Settings) */}
         {show3dOffice && (
           <Card className="overflow-hidden">
-            <div className="relative h-[420px]">
+            <div className="relative h-[560px]">
               <Suspense fallback={<Skeleton className="h-full w-full rounded-none" />}>
                 <OfficeCanvas
                   agents={agents}
@@ -143,7 +145,13 @@ export function DashboardPage() {
                     {activeTasks.map((task) => (
                       <tr
                         key={task.id}
-                        className="transition-colors hover:bg-surface-hover"
+                        onClick={() => selectTask(task.id)}
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === "Enter" && selectTask(task.id)}
+                        className={
+                          "cursor-pointer transition-colors hover:bg-surface-hover mk-focus-ring" +
+                          (flashedTaskIds.includes(task.id) ? " animate-pulse bg-primary/10" : "")
+                        }
                       >
                         <td className="max-w-[200px] truncate px-5 py-2.5 font-medium text-text">
                           {task.title}

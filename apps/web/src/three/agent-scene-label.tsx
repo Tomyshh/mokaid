@@ -5,9 +5,9 @@ import type { SceneAgent } from "./types";
 const stateText: Partial<Record<SceneAgent["visualState"], string>> = {
   typing: "typing…",
   working: "working",
-  waiting: "Waiting",
-  idle: "Waiting",
-  walking: "Waiting",
+  waiting: "waiting for you",
+  idle: "available",
+  walking: "available",
   requesting_approval: "needs approval",
   blocked: "blocked",
 };
@@ -16,6 +16,8 @@ const stateColor: Partial<Record<SceneAgent["visualState"], string>> = {
   typing: "var(--mk-success)",
   working: "var(--mk-success)",
   waiting: "var(--mk-warning)",
+  idle: "var(--mk-info)",
+  walking: "var(--mk-info)",
   requesting_approval: "var(--mk-warning)",
   blocked: "var(--mk-danger)",
 };

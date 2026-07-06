@@ -72,7 +72,7 @@ export function Topbar() {
           >
             <Bell size={17} />
             {unread > 0 && (
-              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white">
+              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white">
                 {unread}
               </span>
             )}
@@ -113,7 +113,7 @@ export function Topbar() {
                   )}
                 >
                   <p className="flex items-center gap-1.5 text-xs font-medium text-text">
-                    {!n.read_at && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
+                    {!n.read_at && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-danger" />}
                     {n.title}
                   </p>
                   {n.body && (

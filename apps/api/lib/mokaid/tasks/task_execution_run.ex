@@ -21,6 +21,7 @@ defmodule Mokaid.Tasks.TaskExecutionRun do
     field :cost_cents, :integer, default: 0
     field :started_at, :utc_datetime_usec
     field :completed_at, :utc_datetime_usec
+    field :dispatched_at, :utc_datetime_usec
 
     timestamps()
   end

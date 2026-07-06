@@ -118,6 +118,16 @@ export interface TaskRun {
   inserted_at: string;
 }
 
+export interface TaskPendingApproval {
+  id: string;
+  run_id: string | null;
+  tool_name: string;
+  risk_level: "low" | "medium" | "high" | "critical";
+  proposed_action: string;
+  input_payload: Record<string, unknown>;
+  inserted_at: string;
+}
+
 export interface Task {
   id: string;
   workspace_id: string;
@@ -143,6 +153,8 @@ export interface Task {
   comments: TaskComment[];
   attachments: TaskAttachment[];
   latest_run: TaskRun | null;
+  /** Present on the task detail endpoint when an agent is waiting on a human decision. */
+  pending_approval: TaskPendingApproval | null;
   inserted_at: string;
   updated_at: string;
 }
@@ -362,6 +374,7 @@ export interface BillingOverview {
     current_period_start: string | null;
     current_period_end: string | null;
     payment_method: { brand?: string; last4?: string; exp?: string };
+    credits_balance: number;
     plan: {
       key: string;
       name: string;
@@ -378,6 +391,22 @@ export interface BillingOverview {
     total_cost_cents: number;
   }>;
   daily_usage: Array<{ day: string; event_type: string; total: string }>;
+}
+
+export interface CreditPack {
+  key: string;
+  credits: number;
+  price_cents: number;
+}
+
+/** Either an immediate activation (free plan / dev) or a hosted checkout URL. */
+export interface CheckoutResult {
+  activated?: boolean;
+  simulated?: boolean;
+  credits?: number;
+  sale_url?: string;
+  invoice_id?: string;
+  subscription?: BillingOverview["subscription"];
 }
 
 export interface Invoice {
@@ -489,6 +518,32 @@ export interface DispatchConfirmResult {
   task: Task;
   agent: Agent | null;
   run_id: string | null;
+}
+
+/* ---------- Agent direct chat (floating dock) ---------- */
+
+export interface ChatAttachment {
+  drive_item_id: string;
+  name: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+}
+
+export interface AgentChatMessage {
+  id: string;
+  agent_id: string;
+  body: string;
+  author_kind: "member" | "agent";
+  author_name: string | null;
+  attachments: ChatAttachment[];
+  task_id: string | null;
+  inserted_at: string;
+}
+
+export interface AgentChatSummary {
+  agent_id: string;
+  unread_count: number;
+  last_message: AgentChatMessage;
 }
 
 export interface AppNotification {

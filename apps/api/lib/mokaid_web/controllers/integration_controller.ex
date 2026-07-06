@@ -32,7 +32,8 @@ defmodule MokaidWeb.IntegrationController do
         |> json(%{
           error: %{
             code: "oauth_required",
-            message: "This integration requires OAuth. Use /integrations/google/oauth/start, /integrations/github/oauth/start, /integrations/linear/oauth/start, or /integrations/slack/oauth/start."
+            message:
+              "This integration requires OAuth. Use /integrations/google/oauth/start, /integrations/github/oauth/start, /integrations/linear/oauth/start, or /integrations/slack/oauth/start."
           }
         })
     end

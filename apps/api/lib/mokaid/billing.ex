@@ -74,70 +74,94 @@ defmodule Mokaid.Billing do
     end
   end
 
+  # Customer-facing language is employees / tasks / AI credits — never tokens
+  # or API-level limits. -1 in a limit means unlimited.
   @plan_seeds [
     %{
-      key: "starter",
-      name: "Starter",
+      key: "free",
+      name: "Free",
       price_cents_monthly: 0,
       price_cents_yearly: 0,
-      limits: %{
-        "agents" => 3,
-        "ai_requests_monthly" => 500,
-        "storage_gb" => 5,
-        "automations_monthly" => 100,
-        "api_calls_monthly" => 10_000
-      },
+      limits: %{"agents" => 1, "tasks_monthly" => 20, "mcp_integrations" => 0},
       features: [
-        "Up to 3 agents",
-        "500 AI requests / month",
-        "5 GB storage",
-        "Community support"
+        "1 AI employee",
+        "20 tasks / month",
+        "Landing page generation",
+        "HTML export"
       ]
     },
     %{
-      key: "pro",
-      name: "Pro Plan",
+      key: "starter",
+      name: "Starter",
       price_cents_monthly: 4_900,
-      price_cents_yearly: 46_800,
-      limits: %{
-        "agents" => 15,
-        "ai_requests_monthly" => 10_000,
-        "storage_gb" => 50,
-        "automations_monthly" => 1_000,
-        "api_calls_monthly" => 50_000
-      },
+      price_cents_yearly: 49_000,
+      limits: %{"agents" => 3, "tasks_monthly" => 500, "mcp_integrations" => 3},
       features: [
-        "Up to 15 agents",
-        "10,000 AI requests / month",
-        "50 GB storage",
-        "1,000 automations / month",
-        "Email support",
-        "Analytics"
+        "3 AI employees",
+        "500 tasks / month",
+        "Live Preview",
+        "Version history",
+        "3 MCP integrations"
+      ]
+    },
+    %{
+      key: "professional",
+      name: "Professional",
+      price_cents_monthly: 14_900,
+      price_cents_yearly: 149_000,
+      limits: %{"agents" => 10, "tasks_monthly" => 3_000, "mcp_integrations" => -1},
+      features: [
+        "10 AI employees",
+        "3,000 tasks / month",
+        "All MCP integrations",
+        "GitHub & Figma",
+        "One-click deployment",
+        "Team collaboration"
       ]
     },
     %{
       key: "business",
-      name: "Business Plan",
-      price_cents_monthly: 11_900,
-      price_cents_yearly: 118_800,
-      limits: %{
-        "agents" => 50,
-        "ai_requests_monthly" => 50_000,
-        "storage_gb" => 100,
-        "automations_monthly" => 5_000,
-        "api_calls_monthly" => 200_000
-      },
+      name: "Business",
+      price_cents_monthly: 39_900,
+      price_cents_yearly: 399_000,
+      limits: %{"agents" => 30, "tasks_monthly" => 15_000, "mcp_integrations" => -1},
       features: [
-        "Up to 50 agents",
-        "50,000 AI requests / month",
-        "100 GB storage",
-        "5,000 automations / month",
-        "Priority support",
-        "Advanced analytics",
-        "Custom integrations"
+        "30 AI employees",
+        "15,000 tasks / month",
+        "Full AI team",
+        "API access",
+        "Execution priority",
+        "Priority support"
+      ]
+    },
+    %{
+      key: "enterprise",
+      name: "Enterprise",
+      price_cents_monthly: 0,
+      price_cents_yearly: 0,
+      limits: %{"agents" => -1, "tasks_monthly" => -1, "mcp_integrations" => -1},
+      features: [
+        "Unlimited AI employees",
+        "SSO",
+        "Private deployment",
+        "SLA",
+        "Custom models",
+        "Dedicated support"
       ]
     }
   ]
+
+  # AI credit packs (overage on top of plan quotas).
+  @credit_packs [
+    %{key: "credits_1k", credits: 1_000, price_cents: 1_900},
+    %{key: "credits_5k", credits: 5_000, price_cents: 7_900},
+    %{key: "credits_15k", credits: 15_000, price_cents: 19_900},
+    %{key: "credits_50k", credits: 50_000, price_cents: 59_900}
+  ]
+
+  def list_credit_packs, do: @credit_packs
+
+  def get_credit_pack(key), do: Enum.find(@credit_packs, &(&1.key == key))
 
   @doc "Upserts the standard plan catalog (idempotent, safe to rerun)."
   def seed_plans do
@@ -148,7 +172,137 @@ defmodule Mokaid.Billing do
       end
     end)
 
+    # Retire catalog entries that no longer exist (only when unreferenced).
+    keys = Enum.map(@plan_seeds, & &1.key)
+
+    Repo.delete_all(
+      from p in BillingPlan,
+        where: p.key not in ^keys,
+        where:
+          p.id not in subquery(
+            from s in Subscription, where: not is_nil(s.plan_id), select: s.plan_id
+          )
+    )
+
     :ok
+  end
+
+  ## ---------- Payments (PayMe hosted checkout) ----------
+
+  def get_invoice(workspace_id, invoice_id) do
+    Repo.one(from i in Invoice, where: i.workspace_id == ^workspace_id and i.id == ^invoice_id)
+  end
+
+  def get_invoice_by_id(invoice_id), do: Repo.get(Invoice, invoice_id)
+
+  @doc "Creates the pending invoice a hosted checkout will settle."
+  def create_pending_invoice(workspace_id, attrs) do
+    %Invoice{}
+    |> Invoice.changeset(
+      Map.merge(attrs, %{
+        "workspace_id" => workspace_id,
+        "number" => generate_invoice_number(),
+        "status" => "pending",
+        "issued_at" => DateTime.utc_now()
+      })
+    )
+    |> Repo.insert()
+  end
+
+  def attach_payment_reference(%Invoice{} = invoice, external_payment_id) do
+    invoice
+    |> Ecto.Changeset.change(external_payment_id: external_payment_id)
+    |> Repo.update()
+  end
+
+  @doc """
+  Settles a pending invoice after a successful payment and applies its
+  effect: plan activation (kind "subscription") or AI credits top-up
+  (kind "credits"). Idempotent — an already-paid invoice is left untouched.
+  """
+  def mark_invoice_paid(%Invoice{status: "paid"} = invoice, _payment_info), do: {:ok, invoice}
+
+  def mark_invoice_paid(%Invoice{} = invoice, payment_info) do
+    result =
+      invoice
+      |> Ecto.Changeset.change(status: "paid", paid_at: DateTime.utc_now())
+      |> Repo.update()
+
+    with {:ok, paid} <- result do
+      apply_invoice_effect(paid)
+      store_payment_method(paid.workspace_id, payment_info)
+
+      Mokaid.Realtime.broadcast_workspace(paid.workspace_id, "billing.updated", %{
+        invoice_id: paid.id
+      })
+
+      {:ok, paid}
+    end
+  end
+
+  defp apply_invoice_effect(%Invoice{kind: "subscription"} = invoice) do
+    item = List.first(invoice.line_items) || %{}
+    plan_key = item["plan_key"] || item[:plan_key]
+    cycle = item["billing_cycle"] || item[:billing_cycle] || "monthly"
+    if plan_key, do: change_plan(invoice.workspace_id, plan_key, cycle)
+  end
+
+  defp apply_invoice_effect(%Invoice{kind: "credits"} = invoice) do
+    item = List.first(invoice.line_items) || %{}
+    credits = item["credits"] || item[:credits] || 0
+    if credits > 0, do: add_credits(invoice.workspace_id, credits)
+  end
+
+  defp apply_invoice_effect(_invoice), do: :ok
+
+  @doc "Adds AI credits to the workspace balance (creates a Free sub if none)."
+  def add_credits(workspace_id, credits) when is_integer(credits) and credits > 0 do
+    subscription =
+      get_subscription(workspace_id) ||
+        case change_plan(workspace_id, "free") do
+          {:ok, sub} -> sub
+          _ -> nil
+        end
+
+    if subscription do
+      {1, _} =
+        Repo.update_all(
+          from(s in Subscription, where: s.id == ^subscription.id),
+          inc: [credits_balance: credits]
+        )
+
+      :ok
+    else
+      {:error, :no_subscription}
+    end
+  end
+
+  defp store_payment_method(_workspace_id, nil), do: :ok
+
+  defp store_payment_method(workspace_id, payment_info) do
+    case get_subscription(workspace_id) do
+      nil ->
+        :ok
+
+      subscription ->
+        changes =
+          [
+            payment_method:
+              Map.merge(subscription.payment_method || %{}, payment_info[:card] || %{})
+          ] ++
+            if payment_info[:buyer_key],
+              do: [external_customer_id: payment_info[:buyer_key]],
+              else: []
+
+        subscription |> Ecto.Changeset.change(changes) |> Repo.update()
+        :ok
+    end
+  end
+
+  defp generate_invoice_number do
+    "MK-" <>
+      (DateTime.utc_now() |> Calendar.strftime("%Y%m%d")) <>
+      "-" <> String.upcase(String.slice(Ecto.UUID.generate(), 0, 6))
   end
 
   def record_usage(workspace_id, actor_type, actor_id, event_type, quantity, unit, opts \\ []) do

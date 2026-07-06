@@ -191,3 +191,117 @@ export function AgentPreview3D({ color, name, width = 220, height = 300 }: Props
     />
   );
 }
+
+interface HeadProps {
+  color: string;
+  name: string;
+  /** Diameter in px. Renders into a square canvas cropped to a circle. */
+  size?: number;
+}
+
+/**
+ * AgentHeadPreview3D — tight headshot crop of the shared character rig.
+ *
+ * Same GLB/tint pipeline as AgentPreview3D, but the camera is framed on the
+ * top slice of the model's bounding box (the head) instead of the full body.
+ * Used where a compact "portrait" is needed, e.g. the agent profile panel.
+ */
+export function AgentHeadPreview3D({ color, name, size = 80 }: HeadProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const engineRef = useRef<Engine | null>(null);
+  const meshesRef = useRef<AbstractMesh[]>([]);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let disposed = false;
+    let engine: Engine;
+
+    async function init() {
+      try {
+        engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false });
+        engineRef.current = engine;
+
+        const scene = new Scene(engine);
+        scene.clearColor = new Color4(0, 0, 0, 0);
+
+        const camera = new ArcRotateCamera("head-cam", -Math.PI / 2, Math.PI / 2, 1, Vector3.Zero(), scene);
+        camera.inputs.clear(); // static shot — no user control needed for a portrait
+
+        const hemi = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
+        hemi.intensity = 1;
+        hemi.diffuse = Color3.White();
+        hemi.specular = new Color3(0.2, 0.2, 0.2);
+
+        const result = await SceneLoader.ImportMeshAsync("", AGENT_GLB_URL, "", scene);
+        if (disposed) return;
+
+        meshesRef.current = result.meshes;
+
+        const root = result.meshes.find((m) => !m.parent) ?? result.meshes[0];
+        if (root) {
+          root.computeWorldMatrix(true);
+          const bounds = root.getHierarchyBoundingVectors(true);
+          const modelHeight = bounds.max.y - bounds.min.y;
+          root.position.y = -bounds.min.y;
+
+          // Head/face sits around 73% up the standing rig; frame a tight
+          // portrait around that band so it fills the circular avatar slot.
+          const headY = modelHeight * 0.73;
+          camera.target = new Vector3(0, headY, 0);
+          const headSpan = modelHeight * 0.36;
+          const fovY = camera.fov;
+          const distance = (headSpan / 2 / Math.tan(fovY / 2)) * 1.15;
+          camera.radius = distance;
+        }
+
+        result.animationGroups.forEach((ag) => ag.stop());
+        const idle =
+          result.animationGroups.find((ag) => ag.name.toLowerCase().includes("idle")) ??
+          result.animationGroups[0];
+        if (idle) idle.start(true);
+
+        applyTint(result.meshes, color);
+
+        engine.runRenderLoop(() => {
+          if (!disposed) scene.render();
+        });
+      } catch (err) {
+        console.warn("[AgentHeadPreview3D] load failed, falling back to 2D", err);
+        if (!disposed) setFailed(true);
+      }
+    }
+
+    init();
+
+    return () => {
+      disposed = true;
+      engineRef.current?.dispose();
+      engineRef.current = null;
+      meshesRef.current = [];
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size]);
+
+  useEffect(() => {
+    if (meshesRef.current.length > 0) {
+      applyTint(meshesRef.current, color);
+    }
+  }, [color]);
+
+  if (failed) {
+    return <Avatar name={name} size="xl" isAi color={color} />;
+  }
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={size}
+      height={size}
+      style={{ width: size, height: size, display: "block", borderRadius: "9999px" }}
+      aria-label={`3D portrait of agent ${name}`}
+    />
+  );
+}

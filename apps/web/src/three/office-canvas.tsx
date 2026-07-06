@@ -215,8 +215,10 @@ export function OfficeCanvas({
     );
   }
 
-  const busyAgents = sceneAgents.filter((a) =>
-    ["typing", "working", "waiting", "requesting_approval", "blocked"].includes(a.visualState),
+  // Every present agent keeps its name bubble — only truly absent ones
+  // (away/offline) go unlabeled.
+  const labeledAgents = sceneAgents.filter(
+    (a) => !["away", "offline"].includes(a.visualState),
   );
 
   return (
@@ -225,7 +227,7 @@ export function OfficeCanvas({
         <canvas ref={canvasRef} className="h-full w-full outline-none" aria-label="3D office view" />
 
         {/* Status bubbles overlay — positions updated imperatively each frame */}
-        {busyAgents.map((agent) => (
+        {labeledAgents.map((agent) => (
           <AgentSceneLabel
             key={agent.id}
             ref={(node) => registerLabel(agent.id, node)}

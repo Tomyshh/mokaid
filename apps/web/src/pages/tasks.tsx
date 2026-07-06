@@ -1,6 +1,11 @@
 import { useMemo, useState, type DragEvent } from "react";
 import { CheckSquare, LayoutGrid, List, Plus } from "lucide-react";
-import { KANBAN_COLUMNS, TASK_STATUS_LABELS, type TaskStatus } from "@mokaid/shared-types";
+import {
+  KANBAN_COLUMNS,
+  KANBAN_COLUMN_LABELS,
+  kanbanColumnFor,
+  type TaskStatus,
+} from "@mokaid/shared-types";
 import { useTasks, useUpdateTask } from "@/api/hooks";
 import type { Task } from "@/api/types";
 import { Avatar } from "@/components/ui/avatar";
@@ -11,7 +16,6 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { SearchInput } from "@/components/ui/search-input";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { TaskDetailPanel } from "@/components/tasks/task-detail-panel";
 import { NewTaskModal } from "@/components/modals/new-task-modal";
 import { useAuthStore } from "@/stores/auth-store";
 import { useActiveProjectId } from "@/stores/project-store";
@@ -24,17 +28,17 @@ type ViewMode = "kanban" | "list";
 const columnAccent: Record<string, string> = {
   to_do: "bg-text-muted",
   in_progress: "bg-info",
-  in_review: "bg-primary",
-  waiting: "bg-warning",
   completed: "bg-success",
 };
 
 function KanbanCard({
   task,
+  flashed,
   onSelect,
   onDragStart,
 }: {
   task: Task;
+  flashed: boolean;
   onSelect: () => void;
   onDragStart: (e: DragEvent) => void;
 }) {
@@ -43,12 +47,20 @@ function KanbanCard({
       draggable
       onDragStart={onDragStart}
       onClick={onSelect}
-      className="mk-card-raised w-full cursor-grab space-y-2.5 p-3 text-left transition-shadow hover:shadow-glow active:cursor-grabbing mk-focus-ring"
+      className={cn(
+        "mk-card-raised w-full cursor-grab space-y-2.5 p-3 text-left transition-shadow hover:shadow-glow active:cursor-grabbing mk-focus-ring",
+        // Just-finished run: pulse so the eye lands on what moved.
+        flashed && "animate-pulse ring-2 ring-primary shadow-glow",
+      )}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs font-semibold leading-snug text-text">{task.title}</p>
         <PriorityBadge priority={task.priority} />
       </div>
+      {/* Sub-state within the merged lanes (waiting for approval, in review…) */}
+      {["waiting", "in_review", "blocked", "overdue", "canceled"].includes(task.status) && (
+        <TaskStatusBadge status={task.status} />
+      )}
       {task.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {task.tags.slice(0, 3).map((tag) => (
@@ -80,9 +92,9 @@ export function TasksPage() {
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [showNewTask, setShowNewTask] = useState(false);
 
-  // Shared selection: toasts and header notifications can open a task from anywhere.
-  const selectedId = useUiStore((s) => s.selectedTaskId);
+  // Shared selection: the detail panel is rendered globally by AppShell.
   const setSelectedId = useUiStore((s) => s.selectTask);
+  const flashedTaskIds = useUiStore((s) => s.flashedTaskIds);
 
   // Scoped to the project selected in the header (all projects when null).
   const workspaceId = useAuthStore((s) => s.workspaceId);
@@ -100,13 +112,13 @@ export function TasksPage() {
     return list.filter((t) => t.title.toLowerCase().includes(q));
   }, [data, search]);
 
-  const byStatus = useMemo(() => {
+  // Three lanes; statuses collapse into them. Dropping a card applies the
+  // lane's canonical status, which starts/stops the agent server-side.
+  const byColumn = useMemo(() => {
     const map = new Map<string, Task[]>();
-    KANBAN_COLUMNS.forEach((status) => map.set(status, []));
+    KANBAN_COLUMNS.forEach((column) => map.set(column, []));
     tasks.forEach((task) => {
-      const bucket = map.get(task.status);
-      if (bucket) bucket.push(task);
-      else map.get("to_do")?.push(task);
+      map.get(kanbanColumnFor(task.status))?.push(task);
     });
     return map;
   }, [tasks]);
@@ -116,7 +128,7 @@ export function TasksPage() {
     setDragOver(null);
     const taskId = e.dataTransfer.getData("text/task-id");
     const task = tasks.find((t) => t.id === taskId);
-    if (task && task.status !== status) {
+    if (task && kanbanColumnFor(task.status) !== kanbanColumnFor(status)) {
       updateTask.mutate({ id: taskId, status });
     }
   };
@@ -181,7 +193,7 @@ export function TasksPage() {
         ) : view === "kanban" ? (
           <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto pb-2">
             {KANBAN_COLUMNS.map((status) => {
-              const columnTasks = byStatus.get(status) ?? [];
+              const columnTasks = byColumn.get(status) ?? [];
               return (
                 <div
                   key={status}
@@ -192,14 +204,14 @@ export function TasksPage() {
                   onDragLeave={() => setDragOver(null)}
                   onDrop={handleDrop(status)}
                   className={cn(
-                    "flex w-64 shrink-0 flex-col rounded-lg bg-bg-deep/60 transition-colors",
+                    "flex w-72 shrink-0 flex-col rounded-lg bg-bg-deep/60 transition-colors",
                     dragOver === status && "border-primary/50 bg-primary-muted/20",
                   )}
                 >
                   <div className="flex items-center gap-2 px-3 py-2.5">
                     <span className={cn("h-2 w-2 rounded-full", columnAccent[status])} />
                     <span className="text-xs font-semibold text-text">
-                      {TASK_STATUS_LABELS[status]}
+                      {KANBAN_COLUMN_LABELS[status]}
                     </span>
                     <span className="rounded-full bg-surface-overlay px-1.5 text-[10px] font-medium text-text-muted">
                       {columnTasks.length}
@@ -210,6 +222,7 @@ export function TasksPage() {
                       <KanbanCard
                         key={task.id}
                         task={task}
+                        flashed={flashedTaskIds.includes(task.id)}
                         onSelect={() => setSelectedId(task.id)}
                         onDragStart={(e) => e.dataTransfer.setData("text/task-id", task.id)}
                       />
@@ -237,7 +250,10 @@ export function TasksPage() {
                   <tr
                     key={task.id}
                     onClick={() => setSelectedId(task.id)}
-                    className="cursor-pointer transition-colors hover:bg-surface-hover"
+                    className={cn(
+                      "cursor-pointer transition-colors hover:bg-surface-hover",
+                      flashedTaskIds.includes(task.id) && "animate-pulse bg-primary/10",
+                    )}
                   >
                     <td className="max-w-[280px] truncate px-5 py-3 font-medium text-text">
                       {task.title}
@@ -261,7 +277,7 @@ export function TasksPage() {
         )}
       </div>
 
-      <TaskDetailPanel taskId={selectedId} onClose={() => setSelectedId(null)} />
+      {/* TaskDetailPanel is rendered globally by AppShell (selectedTaskId). */}
       <NewTaskModal
         open={showNewTask}
         onOpenChange={setShowNewTask}

@@ -2,7 +2,10 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
-import { joinChannel, leaveChannel } from "./phoenix-client";
+import { useUiStore } from "@/stores/ui-store";
+import { useChatStore } from "@/stores/chat-store";
+import { playSound } from "@/lib/sounds";
+import { joinChannel, leaveChannel, onSocketOpen } from "./phoenix-client";
 
 type EventPayload = Record<string, unknown>;
 
@@ -34,6 +37,7 @@ function maybeToast(event: string, payload: EventPayload): void {
     case "task.run_started": {
       if (!title) return;
       const agentName = str(payload, "agent_name") ?? "An agent";
+      playSound("task-start");
       toast({
         tone: "working",
         title: `${agentName} is working on it`,
@@ -47,6 +51,8 @@ function maybeToast(event: string, payload: EventPayload): void {
       if (!title) return;
       const status = str(payload, "status");
       if (status === "completed") {
+        if (taskId) useUiStore.getState().flashTask(taskId);
+        playSound("task-done");
         toast({
           tone: "success",
           title: "Ready for review",
@@ -55,6 +61,8 @@ function maybeToast(event: string, payload: EventPayload): void {
           duration: 8000,
         });
       } else if (status === "failed") {
+        if (taskId) useUiStore.getState().flashTask(taskId);
+        playSound("task-failed");
         toast({
           tone: "error",
           title: "Task failed",
@@ -63,6 +71,19 @@ function maybeToast(event: string, payload: EventPayload): void {
           duration: 8000,
         });
       }
+      return;
+    }
+    case "task.approval_required": {
+      playSound("attention");
+      toast({
+        tone: "info",
+        title: "Approval needed",
+        description: title
+          ? `"${title}": the agent is waiting for your go-ahead.`
+          : "An agent is waiting for your go-ahead.",
+        taskId,
+        duration: 10000,
+      });
       return;
     }
     case "task.completed": {
@@ -117,17 +138,48 @@ export function useWorkspaceChannel(): void {
       ["leave_request.approved", [["leave-requests"], ["calendar"]]],
       ["leave_request.rejected", [["leave-requests"]]],
       ["notification.created", [["notifications"]]],
+      ["agent_chat.message", [["agent-chats"], ["agent-chat"]]],
+      ["billing.updated", [["billing"]]],
     ];
 
     const refs = bindings.map(([event, keys]) =>
       channel.on(event, (payload: EventPayload) => {
         invalidate(keys);
         maybeToast(event, payload ?? {});
+
+        // Floating dock: typing indicator off + a soft pop on agent replies.
+        if (event === "agent_chat.message") {
+          const agentId = str(payload ?? {}, "agent_id");
+          if (agentId && str(payload ?? {}, "author_kind") === "agent") {
+            useChatStore.getState().clearAgentTyping(agentId);
+            playSound("message");
+          }
+        }
       }),
     );
 
+    // Typing indicator on: broadcast when a member message is queued for an
+    // AI reply (kept out of `bindings` — no queries to invalidate).
+    const typingRef = channel.on("agent_chat.typing", (payload: EventPayload) => {
+      const agentId = str(payload ?? {}, "agent_id");
+      if (agentId) useChatStore.getState().setAgentTyping(agentId);
+    });
+
+    // Catch-up on reconnect: any event broadcast while the socket was down
+    // (server restart, laptop sleep, network blip) was lost — refetch the
+    // realtime-backed data so the UI never sits on a stale pipeline.
+    let firstOpen = true;
+    const offOpen = onSocketOpen(() => {
+      if (!firstOpen) {
+        invalidate([["tasks"], ["agents"], ["dashboard"], ["notifications"], ["analytics"]]);
+      }
+      firstOpen = false;
+    });
+
     return () => {
+      offOpen?.();
       bindings.forEach(([event], index) => channel.off(event, refs[index]));
+      channel.off("agent_chat.typing", typingRef);
       leaveChannel(topic);
     };
   }, [workspaceId, token, queryClient]);
