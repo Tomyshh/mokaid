@@ -37,9 +37,11 @@ import { Field } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/auth-store";
 import { useOnboardingStore } from "@/stores/onboarding-store";
-import { fetchWorkspaceLogoBlob } from "@/api/client";
+import { ApiError, fetchWorkspaceLogoBlob } from "@/api/client";
 import { IntegrationLogo } from "@/components/integrations/integration-logo";
 import { cn } from "@/lib/cn";
+import { consumeOnboardingRestoreStep, setOauthReturn } from "@/lib/oauth-callback";
+import { toast } from "@/stores/toast-store";
 
 /* ─── Steps config ─── */
 
@@ -255,7 +257,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const googleOauthStart = useGoogleOauthStart();
   const githubOauthStart = useGithubOauthStart();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => consumeOnboardingRestoreStep() ?? 0);
 
   // Workspace step
   const [companyName, setCompanyName] = useState("");
@@ -268,6 +270,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
 
   // Integrations step
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   // Agent step
   const [agentName, setAgentName] = useState("Nova");
@@ -319,8 +322,10 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const toggleConnect = async (key: string) => {
     if (connectedKeys.has(key)) return;
     setConnecting(key);
+    setConnectError(null);
     try {
       if (key === githubProviderKey) {
+        setOauthReturn("/dashboard", step);
         const result = await githubOauthStart.mutateAsync(
           `${window.location.origin}/oauth/github/callback`,
         );
@@ -328,6 +333,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
         return;
       }
       if (googleProviderKeys.has(key)) {
+        setOauthReturn("/dashboard", step);
         const result = await googleOauthStart.mutateAsync({
           redirect_uri: `${window.location.origin}/oauth/google/callback`,
           provider_key: key,
@@ -336,6 +342,15 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
         return;
       }
       await connectIntegration.mutateAsync(key);
+    } catch (err) {
+      const message =
+        err instanceof ApiError && err.code === "oauth_not_configured"
+          ? "Google OAuth is not configured on the API. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to apps/api/.env, then restart the API."
+          : err instanceof ApiError
+            ? err.message
+            : "Connection failed. Please try again.";
+      setConnectError(message);
+      toast({ tone: "error", title: "Connection failed", description: message });
     } finally {
       setConnecting(null);
     }
@@ -638,6 +653,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                         logoUrl={provider.logo_url}
                         name={provider.name}
                         size="sm"
+                        onDark
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block text-xs font-semibold text-text">
@@ -650,7 +666,12 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                       {isConnecting ? (
                         <Loader2 size={14} className="animate-spin text-text-muted" />
                       ) : connected ? (
-                        <Check size={14} className="text-success" />
+                        <span
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success text-white shadow-[0_0_14px_rgba(34,197,94,0.45)]"
+                          aria-label="Connected"
+                        >
+                          <CheckCircle2 size={18} strokeWidth={2.25} />
+                        </span>
                       ) : (
                         <Plus size={14} className="text-text-muted" />
                       )}
@@ -658,6 +679,12 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                   );
                 })}
               </div>
+
+              {connectError && (
+                <p className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-xs leading-relaxed text-danger">
+                  {connectError}
+                </p>
+              )}
 
               {providers.length === 0 && (
                 <p className="rounded-xl bg-surface-raised/60 px-4 py-3 text-center text-xs text-text-muted">

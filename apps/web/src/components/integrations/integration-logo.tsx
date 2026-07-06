@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 
+const whiteLogoOnDark = new Set(["github"]);
+
 export function IntegrationLogo({
   providerKey,
   logoUrl,
   name,
   size = "md",
+  onDark = false,
 }: {
   providerKey: string;
   logoUrl?: string | null;
   name: string;
   size?: "sm" | "md";
+  /** Lighten monochrome logos (e.g. GitHub) for dark UI surfaces */
+  onDark?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   const sizeClass = size === "sm" ? "h-9 w-9" : "h-10 w-10";
@@ -40,7 +45,11 @@ export function IntegrationLogo({
     <img
       src={src}
       alt={name}
-      className={cn("shrink-0 object-contain", sizeClass)}
+      className={cn(
+        "shrink-0 object-contain",
+        sizeClass,
+        onDark && whiteLogoOnDark.has(providerKey) && "brightness-0 invert",
+      )}
       onError={() => setFailed(true)}
     />
   );

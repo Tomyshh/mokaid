@@ -91,6 +91,7 @@ defmodule Mokaid.Integrations.GitHubOAuth do
       Req.post(@token_endpoint,
         headers: [{"accept", "application/json"}],
         form: [
+          grant_type: "authorization_code",
           client_id: config[:client_id],
           client_secret: config[:client_secret],
           code: code,

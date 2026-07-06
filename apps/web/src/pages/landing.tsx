@@ -709,22 +709,36 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-bg-deep px-5 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 md:flex-row">
-          <LandingLogo />
-          <p className="text-xs text-text-muted">
-            The workspace for AI and human employees. Built with care.
-          </p>
-          <div className="flex items-center gap-5 text-xs text-text-muted">
-            <a href="#product" className="transition-colors hover:text-text">
-              Product
-            </a>
-            <a href="#features" className="transition-colors hover:text-text">
-              Features
-            </a>
-            <Link to="/login" className="transition-colors hover:text-text">
-              Sign in
-            </Link>
+      <footer className="bg-bg-deep px-5 py-10 border-t border-border/30">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <LandingLogo />
+            <p className="text-xs text-text-muted">
+              The workspace for AI and human employees. Built with care.
+            </p>
+            <div className="flex items-center gap-5 text-xs text-text-muted">
+              <a href="#product" className="transition-colors hover:text-text">
+                Product
+              </a>
+              <a href="#features" className="transition-colors hover:text-text">
+                Features
+              </a>
+              <Link to="/login" className="transition-colors hover:text-text">
+                Sign in
+              </Link>
+            </div>
+          </div>
+          <div className="border-t border-border/20 pt-4 flex flex-col items-center justify-between gap-2 text-[11px] text-text-muted md:flex-row">
+            <p>© {new Date().getFullYear()} Mokaid. Tous droits réservés.</p>
+            <div className="flex items-center gap-4">
+              <Link to="/privacy" className="transition-colors hover:text-text">
+                Politique de confidentialité
+              </Link>
+              <span>·</span>
+              <Link to="/terms" className="transition-colors hover:text-text">
+                Conditions d'utilisation
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

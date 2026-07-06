@@ -26,6 +26,9 @@ defmodule MokaidWeb.IntegrationOAuthController do
       {:error, :oauth_not_configured} ->
         oauth_not_configured(conn, "Google")
 
+      {:error, :invalid_redirect_uri} ->
+        invalid_redirect_uri(conn)
+
       other ->
         other
     end
@@ -115,12 +118,19 @@ defmodule MokaidWeb.IntegrationOAuthController do
     else
       {:error, :invalid_state} -> invalid_state(conn)
       {:error, {:token_exchange_failed, _, _}} -> token_exchange_failed(conn, "GitHub")
+      {:error, :forbidden} -> forbidden(conn)
       other -> other
     end
   end
 
   defp ensure_same_workspace(conn, state_workspace_id) do
     if workspace_id(conn) == state_workspace_id, do: :ok, else: {:error, :forbidden}
+  end
+
+  defp forbidden(conn) do
+    conn
+    |> put_status(:forbidden)
+    |> json(%{error: %{code: "forbidden", message: "Workspace mismatch"}})
   end
 
   defp default_google_redirect_uri do
@@ -150,6 +160,17 @@ defmodule MokaidWeb.IntegrationOAuthController do
     conn
     |> put_status(:unprocessable_entity)
     |> json(%{error: %{code: "invalid_state", message: "OAuth state is invalid or expired"}})
+  end
+
+  defp invalid_redirect_uri(conn) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> json(%{
+      error: %{
+        code: "invalid_redirect_uri",
+        message: "Redirect URI is not allowed for this environment"
+      }
+    })
   end
 
   defp token_exchange_failed(conn, provider) do

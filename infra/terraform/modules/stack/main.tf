@@ -382,6 +382,8 @@ module "api_service" {
     AI_DISPATCH_QUEUE_URL = module.sqs_ai_runs.queue_url
     CORS_ORIGINS          = local.app_origin
     FIGMA_REDIRECT_URI    = var.app_domain != "" ? "https://${var.app_domain}/oauth/figma/callback" : "https://mokaid.com/oauth/figma/callback"
+    GOOGLE_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/oauth/google/callback" : "https://mokaid.com/oauth/google/callback"
+    GITHUB_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/oauth/github/callback" : "https://mokaid.com/oauth/github/callback"
   }
 
   secrets = {

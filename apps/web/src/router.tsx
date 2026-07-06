@@ -25,6 +25,8 @@ import { FigmaCallbackPage } from "@/pages/figma-callback";
 import { GoogleCallbackPage } from "@/pages/google-callback";
 import { GithubCallbackPage } from "@/pages/github-callback";
 import { BillingPage } from "@/pages/billing";
+import { PrivacyPage } from "@/pages/privacy";
+import { TermsPage } from "@/pages/terms";
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -106,6 +108,18 @@ const githubCallbackRoute = createRoute({
   component: GithubCallbackPage,
 });
 
+const privacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/privacy",
+  component: PrivacyPage,
+});
+
+const termsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/terms",
+  component: TermsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
@@ -113,6 +127,8 @@ const routeTree = rootRoute.addChildren([
   figmaCallbackRoute,
   googleCallbackRoute,
   githubCallbackRoute,
+  privacyRoute,
+  termsRoute,
   appRoute.addChildren(pageRoutes),
 ]);
 
