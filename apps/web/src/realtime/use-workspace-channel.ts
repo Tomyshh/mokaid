@@ -7,7 +7,7 @@ import { toast } from "@/stores/toast-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useChatStore } from "@/stores/chat-store";
 import { playSound } from "@/lib/sounds";
-import { joinChannel, leaveChannel, onSocketOpen } from "./phoenix-client";
+import { joinChannel, onSocketOpen } from "./phoenix-client";
 
 type EventPayload = Record<string, unknown>;
 
@@ -18,16 +18,24 @@ function insertChatMessage(
   agentId: string,
   message: AgentChatMessage,
 ): void {
-  // Thread cache: ["agent-chat", workspaceId, agentId]
-  queryClient.setQueryData<Envelope<AgentChatMessage[]>>(
-    ["agent-chat", workspaceId, agentId],
-    (prev) => {
-      if (!prev) return prev;
-      if (prev.data.some((m) => m.id === message.id)) return prev; // dedupe
-      return { ...prev, data: [...prev.data, message] };
-    },
-  );
-  // Summaries (last message + unread badge) refresh cheaply.
+  const key = ["agent-chat", workspaceId, agentId];
+  const existing = queryClient.getQueryData<Envelope<AgentChatMessage[]>>(key);
+
+  if (existing) {
+    // Thread is loaded — append in place (dedupe on id) for instant render.
+    if (!existing.data.some((m) => m.id === message.id)) {
+      queryClient.setQueryData<Envelope<AgentChatMessage[]>>(key, {
+        ...existing,
+        data: [...existing.data, message],
+      });
+    }
+  } else {
+    // Thread not in cache yet (window just opened, or first message ever) —
+    // invalidate so it refetches with the new message instead of missing it.
+    queryClient.invalidateQueries({ queryKey: key });
+  }
+
+  // Summaries (last message + unread badge) always refresh.
   queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
 }
 
@@ -244,11 +252,17 @@ export function useWorkspaceChannel(): void {
 
     return () => {
       offOpen?.();
+      // Unbind only our handlers. Do NOT leave the channel: it's a
+      // session-long shared subscription (one per workspace). Leaving it on
+      // every effect cleanup — which React StrictMode triggers on mount in
+      // dev, and any dependency change triggers in prod — tears down the
+      // socket subscription and races a rejoin, during which broadcast events
+      // (chat replies, credit updates) are silently dropped. The channel is
+      // closed for real at logout via phoenix-client `disconnect()`.
       bindings.forEach(([event], index) => channel.off(event, refs[index]));
       channel.off("agent_chat.message", chatMsgRef);
       channel.off("credits.updated", creditsRef);
       channel.off("agent_chat.typing", typingRef);
-      leaveChannel(topic);
     };
   }, [workspaceId, token, queryClient]);
 }
