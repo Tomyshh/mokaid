@@ -46,10 +46,15 @@ export function ChatAttachmentView({
 }) {
   const { drive_item_id: id, name, mime_type: mime } = attachment;
   const isImage = mime?.startsWith("image/") ?? false;
+  const isHtml =
+    mime === "text/html" ||
+    mime === "application/xhtml+xml" ||
+    (name?.toLowerCase().endsWith(".html") ?? false) ||
+    (name?.toLowerCase().endsWith(".htm") ?? false);
   const isText =
-    mime?.startsWith("text/") ||
-    ["md", "txt", "json", "csv", "html", "htm"].includes(name?.split(".").pop()?.toLowerCase() ?? "");
-  const openable = isImage || mime === "application/pdf" || (name?.endsWith(".html") ?? false);
+    (!isHtml && mime?.startsWith("text/")) ||
+    ["md", "txt", "json", "csv"].includes(name?.split(".").pop()?.toLowerCase() ?? "");
+  const openable = isImage || isHtml || mime === "application/pdf";
 
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [textPreview, setTextPreview] = useState<string | null>(null);
@@ -227,7 +232,7 @@ export function ChatAttachmentView({
                 tone === "member" ? "text-white/70" : "text-text-muted",
               )}
             >
-              {failed ? "Failed — retry" : formatSize(attachment.size_bytes) || "file"}
+              {failed ? "Failed — retry" : isHtml ? "Open website" : formatSize(attachment.size_bytes) || "file"}
             </span>
           </span>
         </button>

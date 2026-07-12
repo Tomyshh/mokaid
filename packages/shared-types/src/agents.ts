@@ -53,6 +53,7 @@ export interface AgentSummary {
   ai_enabled: boolean;
   human_takeover_enabled: boolean;
   avatar_config: AvatarConfig;
+  avatar_asset_id: string | null;
   current_task_id: string | null;
   current_task_title: string | null;
   performance_score: number | null;

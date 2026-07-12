@@ -89,6 +89,16 @@ function producedDocs(toolCalls: TaskRunToolCall[]): ProducedDoc[] {
       return [{ title: "Report", content: JSON.stringify(out.report, null, 2) }];
     if (call.tool === "analyze_file" && typeof out.analysis === "string")
       return [{ title: "Analysis", content: out.analysis }];
+    if (call.tool === "generate_website" && typeof out.filename === "string")
+      return [
+        {
+          title: out.filename,
+          content:
+            typeof out.note === "string"
+              ? out.note
+              : "Website HTML generated — open the file in Output to preview.",
+        },
+      ];
     return [];
   });
 }
@@ -185,6 +195,10 @@ function FileRow({ file }: { file: TaskAttachment }) {
   const [error, setError] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const isImage = file.mime_type?.startsWith("image/") ?? false;
+  const isHtml =
+    file.mime_type === "text/html" ||
+    file.name.toLowerCase().endsWith(".html") ||
+    file.name.toLowerCase().endsWith(".htm");
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   // File bytes come through the authenticated API (same origin), never from
@@ -237,11 +251,22 @@ function FileRow({ file }: { file: TaskAttachment }) {
     }
   };
 
-  // Row click: images open full-size in a new tab (blob is already local,
-  // so the call is synchronous and popup-safe); other files download.
-  const open = () => {
+  // Row click: images / HTML open in a new tab; other files download.
+  const open = async () => {
     if (isImage && blobUrl) {
       window.open(blobUrl, "_blank");
+      return;
+    }
+    if (isHtml) {
+      setBusy(true);
+      try {
+        const url = await ensureBlobUrl();
+        window.open(url, "_blank", "noopener");
+      } catch {
+        setError(true);
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     void download();
@@ -260,11 +285,15 @@ function FileRow({ file }: { file: TaskAttachment }) {
             {fileIcon(file.mime_type)}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-xs font-medium text-text">{file.name}</span>
+            <span className="block truncate text-xs font-medium text-text">
+              {isHtml ? `🌐 ${file.name}` : file.name}
+            </span>
             <span className="text-[10px] text-text-muted">
               {error
                 ? "Could not load the file — tap to retry"
-                : `${file.size_bytes ? formatBytes(file.size_bytes) : "·"} · ${formatDateTime(file.inserted_at)}`}
+                : isHtml
+                  ? "Open website preview"
+                  : `${file.size_bytes ? formatBytes(file.size_bytes) : "·"} · ${formatDateTime(file.inserted_at)}`}
             </span>
           </span>
         </button>

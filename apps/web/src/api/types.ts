@@ -40,6 +40,7 @@ export interface Agent {
   slug: string;
   email_alias: string | null;
   avatar_config: Partial<AvatarConfig>;
+  avatar_asset_id: string | null;
   role_title: string | null;
   department: string | null;
   status: AgentStatus;

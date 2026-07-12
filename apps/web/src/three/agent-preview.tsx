@@ -1,11 +1,7 @@
 /**
  * AgentPreview3D — minimal Babylon scene showing a single standing character.
  *
- * Used in the onboarding wizard to give the new agent a 3D presence before
- * a custom GLB asset is available. The placeholder GLB is a publicly-accessible
- * robot model; swap AGENT_GLB_URL to point to the final character once ready.
- *
- * The mesh tint reacts in real-time to the agent's chosen color prop.
+ * Uses the catalog male avatar GLB (baked AgentVisualState clips).
  */
 
 import { useEffect, useRef, useState } from "react";

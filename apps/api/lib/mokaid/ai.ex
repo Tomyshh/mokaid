@@ -377,19 +377,21 @@ defmodule Mokaid.AI do
       task = Tasks.get_task(run.workspace_id, run.task_id)
 
       if task do
-        # Only transition to "in_review" when the run actually produced artifacts
-        # (the output map carries an "artifacts" list from the Python worker).
-        # Otherwise the agent completed but had nothing useful — keep it in_progress.
+        # Only hand to human review when there is something to review. A producer
+        # run that somehow completed without files stays in_progress so the UI
+        # offers retry instead of a fake "Ready for review".
         artifacts = (output || %{})["artifacts"] || []
         has_output = length(List.wrap(artifacts)) > 0
 
-        # The agent finished its assignment — hand the task to a human for
-        # review, artifacts or not. Leaving it "in_progress" at 100% with an
-        # idle agent reads as work still happening when nothing is.
         new_status =
-          if task.status in ["completed", "canceled"], do: task.status, else: "in_review"
+          cond do
+            task.status in ["completed", "canceled"] -> task.status
+            has_output -> "in_review"
+            true -> "in_progress"
+          end
 
-        Tasks.update_task(task, %{"status" => new_status, "progress_percent" => 100})
+        progress = if has_output, do: 100, else: task.progress_percent || 0
+        Tasks.update_task(task, %{"status" => new_status, "progress_percent" => progress})
 
         # The run is over — release the agent so it can take new missions.
         if run.agent_id do
@@ -457,10 +459,17 @@ defmodule Mokaid.AI do
 
     if is_binary(chat_agent_id) do
       outputs = chat_output_attachments(run.workspace_id, task.id)
-      body = chat_delivery_message(task, outputs)
-      Mokaid.AgentChat.deliver_task_output(run.workspace_id, chat_agent_id, body, outputs)
-      # A summary line the worker may have produced, delivered as a follow-up.
-      deliver_output_summary(run.workspace_id, chat_agent_id, output)
+
+      # Never claim "Done" when there is nothing to open — that was the main
+      # UX lie when the agent asked a question and the run still completed.
+      if outputs == [] do
+        require Logger
+        Logger.info("chat_delivery_skipped_no_outputs task=#{task.id}")
+      else
+        body = chat_delivery_message(task, outputs)
+        Mokaid.AgentChat.deliver_task_output(run.workspace_id, chat_agent_id, body, outputs)
+        deliver_output_summary(run.workspace_id, chat_agent_id, output)
+      end
     end
 
     :ok
@@ -479,7 +488,7 @@ defmodule Mokaid.AI do
       from d in Mokaid.Drive.DriveItem,
         where:
           d.workspace_id == ^workspace_id and d.linked_task_id == ^task_id and
-            d.kind == "file" and d.status == "active" and not is_nil(d.created_by_agent_id),
+            d.kind == "file" and d.status == "active",
         order_by: [asc: d.inserted_at]
     )
     |> Enum.map(fn item ->
@@ -492,18 +501,19 @@ defmodule Mokaid.AI do
     end)
   end
 
-  # A warm, natural delivery line. French when the request looks French, else
-  # English — matching the teammate's language keeps the chat coherent.
+  # A warm, natural delivery line. Prefer task metadata language, else detect.
   defp chat_delivery_message(task, outputs) do
     instruction = get_in(task.metadata || %{}, ["instruction"]) || task.title || ""
-    french? = looks_french?(instruction)
+    language = get_in(task.metadata || %{}, ["language"])
+    french? = language == "fr" or (language != "en" and looks_french?(instruction))
+    has_html = Enum.any?(outputs, &html_attachment?/1)
 
     cond do
-      outputs == [] and french? ->
-        "C'est fait ! J'ai terminé « #{task.title} ». Tu peux voir le détail dans la tâche."
+      french? and has_html ->
+        "Voilà ton site pour « #{task.title} » — ouvre le fichier HTML joint pour le prévisualiser, et dis-moi si tu veux que j'ajuste quoi que ce soit !"
 
-      outputs == [] ->
-        "Done! I finished “#{task.title}”. You can see the details in the task."
+      has_html ->
+        "Here's your website for “#{task.title}” — open the attached HTML file to preview it, and tell me if you'd like any changes!"
 
       french? ->
         "Voilà ce que tu m'as demandé pour « #{task.title} » — dis-moi si tu veux que j'ajuste quoi que ce soit !"
@@ -513,10 +523,20 @@ defmodule Mokaid.AI do
     end
   end
 
+  defp html_attachment?(%{"mime_type" => mime}) when is_binary(mime),
+    do: String.contains?(mime, "html")
+
+  defp html_attachment?(%{"name" => name}) when is_binary(name),
+    do: String.ends_with?(String.downcase(name), ".html") or String.ends_with?(String.downcase(name), ".htm")
+
+  defp html_attachment?(_), do: false
+
   defp deliver_output_summary(workspace_id, chat_agent_id, output) do
     summary = (output || %{})["summary"] || (output || %{})["headline"]
 
-    if is_binary(summary) and String.trim(summary) != "" and String.length(summary) < 600 do
+    # Skip tool-ish / English clarification leftovers that contradict the delivery.
+    if is_binary(summary) and String.trim(summary) != "" and String.length(summary) < 400 and
+         not String.contains?(String.downcase(summary), "write_todos") do
       Mokaid.AgentChat.post_agent_message(workspace_id, chat_agent_id, String.trim(summary))
     end
 

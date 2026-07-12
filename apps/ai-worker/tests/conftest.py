@@ -79,7 +79,40 @@ class FakePhoenixClient:
         encoding: str | None = None,
     ) -> dict:
         self.calls.append(("output", {"task_id": task_id, "filename": filename}))
-        return {"id": "fake-drive-item", "name": filename, "task_id": task_id}
+        return {
+            "id": "fake-drive-item",
+            "name": filename,
+            "task_id": task_id,
+            "mime_type": mime_type or "text/plain",
+        }
+
+    async def post_agent_chat_message(
+        self, workspace_id: str, agent_id: str, body: str, **kwargs
+    ) -> dict:
+        self.calls.append(
+            ("chat", {"workspace_id": workspace_id, "agent_id": agent_id, "body": body, **kwargs})
+        )
+        return {"id": "fake-chat-msg"}
+
+    async def stream_agent_chat_chunk(
+        self,
+        workspace_id: str,
+        agent_id: str,
+        stream_id: str,
+        chunk: str,
+        done: bool = False,
+    ) -> None:
+        self.calls.append(
+            (
+                "stream",
+                {
+                    "agent_id": agent_id,
+                    "stream_id": stream_id,
+                    "chunk": chunk,
+                    "done": done,
+                },
+            )
+        )
 
 
 @pytest.fixture

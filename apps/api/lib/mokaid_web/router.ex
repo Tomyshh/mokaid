@@ -42,6 +42,9 @@ defmodule MokaidWeb.Router do
     get "/me", AuthController, :me
     get "/workspaces", WorkspaceController, :index
     post "/workspaces", WorkspaceController, :create
+
+    get "/assets-3d", Asset3dController, :index
+    get "/assets-3d/:id", Asset3dController, :show
   end
 
   scope "/api", MokaidWeb do

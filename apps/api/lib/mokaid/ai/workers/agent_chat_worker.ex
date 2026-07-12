@@ -6,7 +6,12 @@ defmodule Mokaid.AI.Workers.AgentChatWorker do
   (`POST /api/worker/agents/:id/chat-message`).
   """
 
-  use Oban.Worker, queue: :ai_dispatch, max_attempts: 2
+  use Oban.Worker,
+    queue: :ai_dispatch,
+    max_attempts: 2,
+    # Serialize DM replies per agent — concurrent jobs interleave streams and
+    # produce half-cut / double replies.
+    unique: [period: 60, fields: [:args], keys: [:workspace_id, :agent_id]]
 
   import Ecto.Query
 

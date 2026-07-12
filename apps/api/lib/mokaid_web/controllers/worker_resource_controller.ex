@@ -128,12 +128,21 @@ defmodule MokaidWeb.WorkerResourceController do
     body = params["body"] || ""
 
     with %{} = agent <- Agents.get_agent(workspace_id, id),
-         {:ok, message} <- Mokaid.AgentChat.post_agent_message(workspace_id, agent.id, body) do
+         {:ok, message} <-
+           Mokaid.AgentChat.post_agent_message(workspace_id, agent.id, body,
+             stream_id: params["stream_id"]
+           ) do
       maybe_start_chat_task(workspace_id, agent, params)
 
       conn
       |> put_status(:created)
-      |> json(%{data: %{id: message.id, agent_id: agent.id}})
+      |> json(%{
+        data: %{
+          id: message.id,
+          agent_id: agent.id,
+          stream_id: params["stream_id"]
+        }
+      })
     else
       nil ->
         conn
@@ -163,14 +172,27 @@ defmodule MokaidWeb.WorkerResourceController do
 
   # The worker asks us to start a task from a text-only chat request it judged
   # actionable. The member who initiated the thread is the task creator.
+  # `skip_ack: true` is the default from the structured direct_chat path —
+  # the personalized reply was already posted.
   defp maybe_start_chat_task(workspace_id, agent, %{"start_task" => true} = params) do
     instruction = params["instruction"] || params["body"] || ""
     member_id = params["member_id"]
     member = member_id && Mokaid.Members.get_member(workspace_id, member_id)
+    language = params["language"]
+    skip_ack? = params["skip_ack"] != false
 
     if member && instruction != "" do
       pseudo_message = %Mokaid.AgentChat.ChatMessage{body: instruction, attachments: []}
-      Mokaid.AgentChat.start_chat_task(workspace_id, agent, member, pseudo_message, [])
+
+      Mokaid.AgentChat.start_chat_task(workspace_id, agent, member, pseudo_message, [],
+        skip_ack: skip_ack?,
+        language: language
+      )
+    else
+      require Logger
+      Logger.warning(
+        "chat_start_task_skipped agent=#{agent.id} member=#{inspect(member_id)} instruction_empty=#{instruction == ""}"
+      )
     end
 
     :ok

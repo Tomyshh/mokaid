@@ -3,8 +3,8 @@
  *
  * The 3D world is fully decoupled from React: it is created once, receives
  * agent updates through `updateAgents`, and reports interactions through
- * callbacks. All office furniture and avatars are procedural placeholders
- * (see asset-manifest.ts) until production GLB assets are delivered.
+ * callbacks. Avatars use the catalog male GLB; furniture remains procedural
+ * until environment assets ship (see asset-manifest.ts).
  */
 
 import {
@@ -29,10 +29,13 @@ import { PBRMaterial } from "@babylonjs/core";
 import { statusColors } from "@mokaid/design-tokens";
 import {
   applyTint,
+  disposeAgentAnims,
   groundAgent,
   loadAgentModelTemplate,
   playAgentAnimation,
   spawnAgentModel,
+  type AgentAnimMap,
+  type AgentAnimName,
   type AgentModelTemplate,
 } from "./agent-model";
 import {
@@ -75,9 +78,10 @@ interface AvatarNode {
   baseY: number;
   homePos: Vector3;
   labelHeight: number;
+  anims: AgentAnimMap;
   idleAnim: AnimationGroup | null;
   walkAnim: AnimationGroup | null;
-  currentAnim: "idle" | "walk" | null;
+  currentAnim: AgentAnimName | null;
   activePath: OfficePath;
   pathIndex: number;
   idleBehavior: IdleBehavior;
@@ -454,8 +458,7 @@ export class OfficeScene {
     // Remove avatars for agents that no longer exist
     for (const [id, avatar] of this.avatars) {
       if (!seen.has(id)) {
-        avatar.idleAnim?.dispose();
-        avatar.walkAnim?.dispose();
+        disposeAgentAnims(avatar);
         avatar.root.dispose();
         this.avatars.delete(id);
       }
@@ -510,6 +513,7 @@ export class OfficeScene {
       baseY: root.position.y,
       homePos: slot.clone(),
       labelHeight: spawned.labelHeight,
+      anims: spawned.anims,
       idleAnim: spawned.idleAnim,
       walkAnim: spawned.walkAnim,
       currentAnim: null,
@@ -558,43 +562,13 @@ export class OfficeScene {
         continue;
       }
 
-      playAgentAnimation(avatar, "idle");
-      const { root, phase } = avatar;
+      // Desk / status clips — prefer baked GLB animation over procedural bob.
+      playAgentAnimation(avatar, state);
+      const { root } = avatar;
 
-      switch (state) {
-        case "typing":
-          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 9)) * 0.02;
-          break;
-        case "working":
-        case "reviewing":
-        case "learning":
-          root.position.y = avatar.baseY + Math.sin((t + phase) * 2.4) * 0.015;
-          break;
-        case "waiting":
-          // At the desk, glancing around while a human decision is pending.
-          root.position.y = avatar.baseY + Math.sin((t + phase) * 1.6) * 0.01;
-          root.rotation.y = Math.sin((t + phase) * 0.6) * 0.25;
-          break;
-        case "requesting_approval":
-          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 3.2)) * 0.04;
-          break;
-        case "blocked":
-          root.rotation.y = Math.sin((t + phase) * 14) * 0.04;
-          break;
-        case "celebrating":
-          root.position.y = avatar.baseY + Math.abs(Math.sin((t + phase) * 5)) * 0.2;
-          root.rotation.y += 0.03;
-          break;
-        case "talking":
-          root.rotation.y = Math.sin((t + phase) * 1.5) * 0.15;
-          break;
-        case "away":
-        case "offline":
-          root.position.y = avatar.baseY;
-          root.rotation.y = 0;
-          break;
-        default:
-          break;
+      // Keep feet planted; celebrating bounce is in the clip (root.x translation).
+      if (state === "away" || state === "offline") {
+        root.position.y = avatar.baseY;
       }
 
       avatar.facing = root.rotation.y;
@@ -705,7 +679,7 @@ export class OfficeScene {
       return false;
     }
 
-    playAgentAnimation(avatar, "walk");
+    playAgentAnimation(avatar, "walking");
     const step = Math.min(speed * dt, dist);
     pos.x += (dx / dist) * step;
     pos.z += (dz / dist) * step;

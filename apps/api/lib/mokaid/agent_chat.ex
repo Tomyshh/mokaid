@@ -88,7 +88,7 @@ defmodule Mokaid.AgentChat do
         set: [last_active_at: DateTime.utc_now()]
       )
 
-      broadcast_message(message)
+      broadcast_message(message, stream_id: Keyword.get(opts, :stream_id))
       {:ok, message}
     end
   end
@@ -181,9 +181,11 @@ defmodule Mokaid.AgentChat do
   chat text and any dropped files, tagged so the run's output comes back to
   this thread. Posts an acknowledgement message and returns the task.
   """
-  def start_chat_task(workspace_id, agent, member, message, attachments) do
+  def start_chat_task(workspace_id, agent, member, message, attachments, opts \\ []) do
     drive_ids = Enum.map(attachments, & &1["drive_item_id"]) |> Enum.filter(&is_binary/1)
     instruction = message_instruction(message, attachments)
+    skip_ack? = Keyword.get(opts, :skip_ack, false)
+    language = Keyword.get(opts, :language)
 
     with {:ok, task} <-
            Mokaid.Tasks.create_task(
@@ -197,46 +199,112 @@ defmodule Mokaid.AgentChat do
                  "source" => "chat",
                  "chat_agent_id" => agent.id,
                  "instruction" => instruction,
-                 "drive_item_ids" => drive_ids
+                 "drive_item_ids" => drive_ids,
+                 "language" => language || if(french?(instruction), do: "fr", else: "en"),
+                 "mission_kind" => detect_mission_kind(instruction)
                }
              },
              member
            ) do
       link_drive_items(workspace_id, task.id, drive_ids)
 
-      # Immediate acknowledgement in the chat itself, before the run starts —
-      # the teammate sees "on it" right away, in the thread they're looking at.
-      post_agent_message(workspace_id, agent.id, acknowledgement_message(instruction),
-        task_id: task.id
-      )
+      # Skip when the worker already streamed a personalized "on it" reply —
+      # posting a second boilerplate ack doubles messages and often flips language.
+      unless skip_ack? do
+        post_agent_message(
+          workspace_id,
+          agent.id,
+          acknowledgement_message(instruction, language),
+          task_id: task.id
+        )
+      end
 
       if agent.kind != "human_linked" do
-        # chat_task: true tells the worker to skip the task-thread
-        # acknowledgement comment — the chat already got its "on it" reply, and
-        # we don't want a parallel conversation living in the task menu.
-        Mokaid.AI.start_run(task, %{
-          "instruction" => instruction,
-          "drive_item_ids" => drive_ids,
-          "chat_task" => true
-        })
+        case Mokaid.AI.start_run(task, %{
+               "instruction" => instruction,
+               "drive_item_ids" => drive_ids,
+               "chat_task" => true,
+               "language" => language || if(french?(instruction), do: "fr", else: "en"),
+               "mission_kind" => detect_mission_kind(instruction)
+             }) do
+          {:ok, _} ->
+            :ok
+
+          {:error, reason} ->
+            require Logger
+            Logger.warning("chat_task_start_run_failed: #{inspect(reason)}")
+
+            post_agent_message(
+              workspace_id,
+              agent.id,
+              start_run_error_message(reason, language || instruction)
+            )
+        end
       end
 
       {:ok, task}
     end
   end
 
+  @doc "Heuristic mission kind for producer-guardrails in the AI worker."
+  def detect_mission_kind(text) when is_binary(text) do
+    t = String.downcase(text)
+
+    cond do
+      Regex.match?(~r/\b(site|website|landing|page web|html|vitrine)\b/iu, t) -> "website"
+      Regex.match?(~r/\b(image|logo|photo|picture|design|visuel)\b/iu, t) -> "image"
+      Regex.match?(~r/\b(rapport|report|document|résumé|resume|brief|markdown)\b/iu, t) ->
+        "document"
+      Regex.match?(~r/\b(analyse|analyze|analyse|transcri)/iu, t) -> "analysis"
+      true -> "general"
+    end
+  end
+
+  def detect_mission_kind(_), do: "general"
+
   # A warm, natural "I'm on it" line in the teammate's language.
-  defp acknowledgement_message(instruction) do
-    if french?(instruction) do
+  defp acknowledgement_message(instruction, language) do
+    french? =
+      case language do
+        "fr" -> true
+        "en" -> false
+        _ -> french?(instruction)
+      end
+
+    if french? do
       "Oui, bien sûr ! Je m'en occupe tout de suite — je te montre le résultat ici dès que c'est prêt. 👍"
     else
       "On it! I'll get this done and share the result right here as soon as it's ready. 👍"
     end
   end
 
+  defp start_run_error_message(reason, language_hint) do
+    french? =
+      case language_hint do
+        "fr" -> true
+        "en" -> false
+        text when is_binary(text) -> french?(text)
+        _ -> false
+      end
+
+    case {reason, french?} do
+      {:insufficient_credits, true} ->
+        "Je ne peux pas démarrer la mission : plus assez de crédits IA. Rechargez depuis Billing."
+
+      {:insufficient_credits, false} ->
+        "I can't start this mission — the workspace is out of AI credits. Top up from Billing."
+
+      {_, true} ->
+        "Je n'ai pas pu démarrer la mission. Réessaie dans un instant."
+
+      {_, false} ->
+        "I couldn't start the mission. Please try again in a moment."
+    end
+  end
+
   defp french?(text) when is_binary(text) do
     Regex.match?(
-      ~r/\b(je|tu|le|la|les|un|une|pour|avec|dans|que|qui|fais|génère|créer?|change|voici|s'il|à|é|è|ê|ç)\b/iu,
+      ~r/\b(je|tu|le|la|les|un|une|pour|avec|dans|que|qui|fais|génère|créer?|change|voici|s'il|à|é|è|ê|ç|peux|moi|site)\b/iu,
       text
     )
   end
@@ -299,11 +367,14 @@ defmodule Mokaid.AgentChat do
 
   defp normalize_attachment_entry(_), do: %{}
 
-  defp broadcast_message(%ChatMessage{} = message) do
+  defp broadcast_message(%ChatMessage{} = message, opts \\ []) do
     # Carry the fully-serialized message so the dock can insert it straight
     # into its cache — no refetch, so it appears instantly (true realtime).
+    # stream_id lets the client clear the matching typewriter draft and ignore
+    # late chunks from a superseded stream.
     Realtime.broadcast_workspace(message.workspace_id, "agent_chat.message", %{
       agent_id: message.agent_id,
+      stream_id: Keyword.get(opts, :stream_id),
       message: MokaidWeb.JSON.agent_chat_message(message)
     })
   end

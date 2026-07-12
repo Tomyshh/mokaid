@@ -95,6 +95,8 @@ if config_env() == :prod do
 
   config :mokaid, :cors_origins, String.split(System.get_env("CORS_ORIGINS", ""), ",", trim: true)
 
+  config :mokaid, :assets_cdn_url, System.get_env("ASSETS_CDN_URL") || ""
+
   auth_mode =
     case System.get_env("AUTH_MODE", "cognito") do
       "dev_fallback" -> :dev_fallback

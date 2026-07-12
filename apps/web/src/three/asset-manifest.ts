@@ -1,11 +1,11 @@
 /**
  * Asset manifest for the 3D office.
  *
- * Production GLB/KTX2 assets are not delivered yet: every entry currently
- * points to `procedural:*`, which the AssetManager resolves to runtime-built
- * placeholder meshes. When final assets arrive, swap the URLs for CDN paths
- * (e.g. `${VITE_ASSETS_CDN_URL}/office/desk.glb`) with no scene code changes.
+ * Characters resolve through the asset_3d catalog / CDN path.
+ * Furniture stays procedural until environment GLBs ship.
  */
+
+import { DEFAULT_AVATAR_CDN_PATH, resolveAgentGlbUrl } from "./agent-model";
 
 export interface AssetEntry {
   id: string;
@@ -20,7 +20,11 @@ export const ASSET_MANIFEST: Record<string, AssetEntry> = {
   chair: { id: "chair", url: "procedural:chair", kind: "furniture" },
   monitor: { id: "monitor", url: "procedural:monitor", kind: "furniture" },
   plant: { id: "plant", url: "procedural:plant", kind: "prop" },
-  avatar_base: { id: "avatar_base", url: "procedural:avatar", kind: "avatar" },
+  avatar_base: {
+    id: "avatar_base",
+    url: resolveAgentGlbUrl(DEFAULT_AVATAR_CDN_PATH),
+    kind: "avatar",
+  },
 };
 
 export function isProcedural(entry: AssetEntry): boolean {

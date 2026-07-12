@@ -35,9 +35,11 @@ class PhoenixClient:
         self.base_url = settings.phoenix_api_url.rstrip("/")
         self.headers = {"authorization": f"Bearer {settings.worker_auth_token}"}
 
-    async def _post(self, path: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+    async def _post(
+        self, path: str, payload: dict[str, Any], timeout: float = 15
+    ) -> dict[str, Any] | None:
         try:
-            async with httpx.AsyncClient(timeout=15) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(
                     f"{self.base_url}{path}", json=_sanitize(payload), headers=self.headers
                 )
@@ -173,17 +175,29 @@ class PhoenixClient:
         start_task: bool = False,
         instruction: str | None = None,
         member_id: str | None = None,
+        skip_ack: bool = False,
+        language: str | None = None,
+        stream_id: str | None = None,
     ) -> bool:
         """Posts the agent's reply in its direct chat thread (floating dock).
 
         When ``start_task`` is set, Phoenix also spins up a task assigned to
-        this agent from ``instruction`` (member_id = who to attribute it to)."""
+        this agent from ``instruction`` (member_id = who to attribute it to).
+        ``skip_ack`` avoids a second boilerplate "On it" when the worker already
+        streamed a personalized acknowledgement.
+        """
         payload: dict[str, Any] = {"workspace_id": workspace_id, "body": body}
         if start_task and instruction:
             payload["start_task"] = True
             payload["instruction"] = instruction
             if member_id:
                 payload["member_id"] = member_id
+            if skip_ack:
+                payload["skip_ack"] = True
+        if language:
+            payload["language"] = language
+        if stream_id:
+            payload["stream_id"] = stream_id
         result = await self._post(
             f"/api/worker/agents/{agent_id}/chat-message", payload
         )
@@ -251,5 +265,8 @@ class PhoenixClient:
         }
         if encoding:
             payload["encoding"] = encoding
-        result = await self._post(f"/api/worker/tasks/{task_id}/output", payload)
+        # HTML landings are large — give the upload more than the default 15s.
+        result = await self._post(
+            f"/api/worker/tasks/{task_id}/output", payload, timeout=60
+        )
         return (result or {}).get("data")

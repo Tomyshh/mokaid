@@ -207,6 +207,14 @@ async def _execute_deep(
     mcp_tools: list,
 ) -> RunState:
     """Runs the mission on the deepagents engine and reports the outcome."""
+    from app.agents.mission_kind import (
+        PRODUCER_KINDS,
+        detect_mission_kind,
+        language_for_request,
+        producer_tool_succeeded,
+        required_tool_for_kind,
+    )
+
     try:
         output = await deep_runner.execute(
             request, ctx, state, phoenix, toolbox, mcp_tools, _wait_for_decision
@@ -216,19 +224,70 @@ async def _execute_deep(
         # generate_report / transform_image tool outputs become Drive files.
         extra_artifacts = await _save_artifacts(request, state, phoenix)
         artifacts = list(dict.fromkeys([*output.get("artifacts", []), *extra_artifacts]))
+
+        kind = detect_mission_kind(request)
+        required = required_tool_for_kind(kind)
+
+        # Website (and other producer) missions: if the deep agent never called
+        # the required tool, force it once with the full brief — don't accept
+        # a clarification-only close as success.
+        if (
+            required
+            and not any(c.tool == required and not (
+                isinstance(c.output, dict) and c.output.get("error")
+            ) for c in state.tool_calls)
+        ):
+            forced = await _force_producer_tool(request, ctx, state, required)
+            if forced:
+                extra_artifacts = await _save_artifacts(request, state, phoenix)
+                artifacts = list(
+                    dict.fromkeys([*artifacts, *extra_artifacts, *forced])
+                )
+
         output["artifacts"] = artifacts
+        output["mission_kind"] = kind
 
         executed = [c for c in state.tool_calls if c.approved is not False]
         errors = [
             c for c in executed if isinstance(c.output, dict) and c.output.get("error")
         ]
-        if errors and not artifacts and not output.get("summary"):
-            summary = "; ".join(str(c.output.get("error"))[:200] for c in errors[:3])
-            await _post_failure_comment(request, phoenix, ctx.usage, errors)
+
+        has_deliverable = bool(artifacts) or producer_tool_succeeded(state.tool_calls)
+        producer = kind in PRODUCER_KINDS
+
+        # Analysis without a source file cannot invent a deliverable — pause and
+        # ask the teammate instead of pretending the mission succeeded.
+        if (
+            kind == "analysis"
+            and not has_deliverable
+            and not request.attached_files
+            and not (request.input or {}).get("drive_item_ids")
+        ):
+            await _pause_for_user_input(request, phoenix, state, kind=kind)
+            return state
+
+        if (errors and not has_deliverable) or (producer and not has_deliverable):
+            lang = language_for_request(request)
+            if errors:
+                summary = "; ".join(
+                    str(c.output.get("error"))[:200] for c in errors[:3]
+                )
+            else:
+                summary = (
+                    "Aucun livrable produit — la mission a été clôturée sans fichier."
+                    if lang == "fr"
+                    else "No deliverable produced — the mission closed without a file."
+                )
+            await _post_failure_comment(request, phoenix, ctx.usage, errors or [])
             state.status = RunStatus.FAILED
             state.error = summary
             await phoenix.fail_run(request.run_id, summary)
-            log.info("deep_run_failed_no_deliverable", run_id=request.run_id)
+            log.info(
+                "deep_run_failed_no_deliverable",
+                run_id=request.run_id,
+                kind=kind,
+                artifacts=len(artifacts),
+            )
             return state
 
         state.status = RunStatus.COMPLETED
@@ -260,18 +319,119 @@ async def _execute_deep(
     return state
 
 
+async def _pause_for_user_input(
+    request: RunRequest,
+    phoenix: PhoenixClient,
+    state: RunState,
+    *,
+    kind: str,
+) -> None:
+    """Marks the run waiting and posts the clarifying question (never completes)."""
+    from app.agents.mission_kind import language_for_request
+
+    lang = language_for_request(request)
+    question = (
+        "Pour analyser correctement, j'ai besoin du fichier source — "
+        "dépose-le ici ou dans la tâche, puis relance-moi."
+        if lang == "fr"
+        else (
+            "To analyze this properly I need the source file — "
+            "drop it here or on the task, then send me again."
+        )
+    )
+    state.status = RunStatus.WAITING_FOR_USER_INPUT
+    state.error = None
+    await phoenix.update_run_status(
+        request.run_id, RunStatus.WAITING_FOR_USER_INPUT.value
+    )
+    await phoenix.post_task_comment(
+        request.workspace_id,
+        request.task_id,
+        question,
+        agent_id=request.agent_id,
+    )
+    if (request.input or {}).get("chat_task") and request.agent_id:
+        try:
+            await phoenix.post_agent_chat_message(
+                request.workspace_id, request.agent_id, question
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.warning("user_input_chat_post_failed", error=str(exc))
+    log.info("deep_run_waiting_for_user_input", run_id=request.run_id, kind=kind)
+
+
+async def _force_producer_tool(
+    request: RunRequest, ctx: RunContext, state: RunState, tool_name: str
+) -> list[str]:
+    """Runs the required producer tool once when the deep agent skipped it."""
+    from app.policies.approval import risk_for_tool
+    from app.tools.registry import get_tool
+
+    fn = get_tool(tool_name)
+    if fn is None:
+        return []
+
+    brief = (
+        request.input.get("instruction")
+        or request.task_description
+        or request.task_title
+        or ""
+    )
+    tool_input: dict = {"brief": brief} if tool_name == "generate_website" else {}
+    if tool_name == "draft_document":
+        tool_input = {"title": request.task_title or "Document", "brief": brief}
+    if tool_name == "analyze_file":
+        files = request.attached_files
+        if not files:
+            return []
+        tool_input = {"file_url": files[0].download_url or "", "question": brief}
+
+    call = ToolCall(tool=tool_name, input=tool_input, risk=risk_for_tool(tool_name))
+    try:
+        enriched = {**tool_input, "_attached_files": [f.model_dump() for f in request.attached_files]}
+        call.output = await fn(enriched, ctx)
+        call.approved = None
+        state.tool_calls.append(call)
+        state.steps.append({"tool": tool_name, "ok": True, "forced": True})
+        log.info("producer_tool_forced", run_id=request.run_id, tool=tool_name)
+        if isinstance(call.output, dict) and call.output.get("filename"):
+            return [call.output["filename"]]
+    except Exception as exc:  # noqa: BLE001
+        call.output = {"error": str(exc)}
+        state.tool_calls.append(call)
+        log.warning("producer_tool_force_failed", tool=tool_name, error=str(exc))
+    return []
+
+
 async def _post_failure_comment(request: RunRequest, phoenix, usage, errors: list) -> None:
     """Explains the failure in the task thread, in the agent's voice, and asks
     the user for what would unblock the mission. Never raises."""
     from app import llm
+    from app.agents.mission_kind import language_for_request
 
     details = "\n".join(
-        f"- {c.tool}: {c.output.get('error')}" for c in errors[:3] if isinstance(c.output, dict)
+        f"- {c.tool}: {c.output.get('error')}"
+        for c in (errors or [])[:3]
+        if isinstance(getattr(c, "output", None), dict)
     )
-    first_error = errors[0].output.get("error") if isinstance(errors[0].output, dict) else "unknown error"
+    lang = language_for_request(request)
+    if errors and isinstance(getattr(errors[0], "output", None), dict):
+        first_error = errors[0].output.get("error") or "unknown error"
+    else:
+        first_error = (
+            "aucun livrable produit"
+            if lang == "fr"
+            else "no deliverable was produced"
+        )
+
     text = (
-        f"I couldn't finish this mission: {first_error} "
-        "Reply here with more details or attach another file, then relaunch me."
+        f"Je n'ai pas pu terminer cette mission : {first_error}. "
+        "Réponds ici avec plus de détails ou un autre fichier, puis relance-moi."
+        if lang == "fr"
+        else (
+            f"I couldn't finish this mission: {first_error}. "
+            "Reply here with more details or attach another file, then relaunch me."
+        )
     )
 
     if llm.is_configured():
@@ -287,7 +447,7 @@ async def _post_failure_comment(request: RunRequest, phoenix, usage, errors: lis
                 user=(
                     f"Task: {request.task_title}\n"
                     f"Description: {request.task_description}\n"
-                    f"Tool failures:\n{details}"
+                    f"Tool failures:\n{details or first_error}"
                 ),
                 usage=usage,
                 max_tokens=220,
@@ -296,9 +456,15 @@ async def _post_failure_comment(request: RunRequest, phoenix, usage, errors: lis
             log.warning("failure_comment_llm_failed", error=str(exc))
 
     try:
-        await phoenix.post_task_comment(
-            request.workspace_id, request.task_id, text.strip(), agent_id=request.agent_id
-        )
+        # Prefer the chat thread when the mission was launched from DM.
+        if request.input.get("chat_task") and request.agent_id:
+            await phoenix.post_agent_chat_message(
+                request.workspace_id, request.agent_id, text.strip()
+            )
+        else:
+            await phoenix.post_task_comment(
+                request.workspace_id, request.task_id, text.strip(), agent_id=request.agent_id
+            )
     except Exception as exc:  # noqa: BLE001
         log.warning("failure_comment_post_failed", run_id=request.run_id, error=str(exc))
 
@@ -357,6 +523,9 @@ async def _save_artifacts(request: RunRequest, state: RunState, phoenix: Phoenix
                 if saved:
                     artifacts.append(filename)
             elif call.tool == "transform_image" and output.get("filename"):
+                artifacts.append(output["filename"])
+            elif call.tool == "generate_website" and output.get("filename"):
+                # Already saved by the tool itself — just record the artifact name.
                 artifacts.append(output["filename"])
             elif call.tool == "transcribe_audio" and output.get("transcript"):
                 clean = _safe_filename(request.task_title or "transcript")

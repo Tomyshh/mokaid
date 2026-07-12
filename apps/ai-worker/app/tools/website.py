@@ -173,6 +173,8 @@ async def generate_website(params: dict[str, Any], ctx: RunContext) -> Any:
             log.info("website_generated", filename=filename, size=len(html))
             return {
                 "filename": filename,
+                "drive_item_id": saved.get("id") or saved.get("drive_item_id"),
+                "mime_type": "text/html",
                 "size_bytes": len(html),
                 "style": design.get("style"),
                 "pattern": design.get("pattern"),

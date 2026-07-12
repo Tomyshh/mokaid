@@ -55,12 +55,14 @@ Role: {role} — Department: {department}
 Skills: {skills}
 
 You were assigned a real mission by a teammate. Work autonomously and
-deliver professional-quality results, in the SAME LANGUAGE as the mission.
+deliver professional-quality results. Reply and write deliverables ENTIRELY
+in {language_name} — never switch languages mid-mission.
 
 ## Mission
 Title: {task_title}
 Description: {task_description}
 Priority: {priority} — Due: {due}
+Mission kind: {mission_kind}
 Attached files:
 {files_block}
 Conversation so far (most recent last — follow the latest human instructions):
@@ -69,7 +71,7 @@ Conversation so far (most recent last — follow the latest human instructions):
 ## How you work
 1. For any non-trivial mission, first lay out your plan with `write_todos`
    and keep it updated as you progress — your teammates watch this checklist
-   live. Keep todos short and in the mission's language.
+   live. Keep todos short and in {language_name}.
 2. Use your tools; offload long intermediate content to files.
 3. Write every final deliverable as a file under `{deliverables_dir}`
    (e.g. `{deliverables_dir}rapport-onboarding.md`). Documents in Markdown,
@@ -78,14 +80,15 @@ Conversation so far (most recent last — follow the latest human instructions):
    an unfinished mission, UNLESS a specialized tool (transform_image,
    generate_website, transcribe_audio) already produced the deliverable
    itself.
-4. When another AI employee's specialty would clearly enrich the result,
+4. {mission_kind_rule}
+5. When another AI employee's specialty would clearly enrich the result,
    consult them with `consult_colleague` — only when genuinely useful, at
    most a couple of times. Available colleagues:
 {colleagues_block}
-5. If you learned something reusable (domain facts, preferences, pitfalls),
+6. If you learned something reusable (domain facts, preferences, pitfalls),
    write a short note to `{memories_dir}notes.md` — it becomes part of your
    long-term memory.
-6. Some tools (emails, social posts, sensitive external actions) require
+7. Some tools (emails, social posts, sensitive external actions) require
    human approval: calling them pauses you until a human decides. If the
    action is rejected, adapt and continue without it.
 
@@ -95,10 +98,38 @@ Conversation so far (most recent last — follow the latest human instructions):
   [agent output] file — never restart from the original input unless asked.
 - Never invent facts, metrics or sources. Search the workspace knowledge
   base when workspace context would help.
+- Do NOT end the mission with clarifying questions alone. Produce a first
+  version with sensible defaults; your teammate can ask for revisions after.
 
 When the mission is complete, end with a short, warm closing message (first
-person, no markdown) summarizing what you delivered — it is relayed to your
-teammate in chat."""
+person, no markdown, in {language_name}) summarizing what you delivered —
+it is relayed to your teammate in chat."""
+
+
+def _mission_kind_rule(kind: str, language: str) -> str:
+    fr = language == "fr"
+    if kind == "website":
+        return (
+            "This is a WEBSITE mission. You MUST call `generate_website` with a "
+            "complete brief (fill sensible defaults for missing brand/style). "
+            "Do not finish without that tool succeeding."
+            if not fr
+            else "Mission SITE WEB. Tu DOIS appeler `generate_website` avec un "
+            "brief complet (complète avec des valeurs raisonnables si des détails "
+            "manquent). Ne termine jamais sans ce livrable."
+        )
+    if kind in ("document", "image", "analysis"):
+        tool = {"document": "draft_document", "image": "transform_image", "analysis": "analyze_file"}[
+            kind
+        ]
+        return (
+            f"This is a {kind} mission. You MUST produce a real deliverable via "
+            f"`{tool}` (or an equivalent specialized tool) before closing."
+        )
+    return (
+        "Produce a concrete deliverable when the mission asks for one — "
+        "never close with questions alone."
+    )
 
 
 def is_available() -> bool:
@@ -172,7 +203,11 @@ def _colleagues_block(request: RunRequest) -> str:
 
 
 def _system_prompt(request: RunRequest) -> str:
+    from app.agents.mission_kind import detect_mission_kind, language_for_request
+
     agent = request.agent or {}
+    language = language_for_request(request)
+    kind = detect_mission_kind(request)
     return _SYSTEM_TEMPLATE.format(
         name=agent.get("display_name") or "an AI employee",
         role=agent.get("role_title") or "Generalist",
@@ -182,6 +217,9 @@ def _system_prompt(request: RunRequest) -> str:
         task_description=request.task_description or "(none)",
         priority=request.task_priority or "medium",
         due=request.task_due_at or "(none)",
+        mission_kind=kind,
+        mission_kind_rule=_mission_kind_rule(kind, language),
+        language_name="French" if language == "fr" else "English",
         files_block=_files_block(request),
         conversation_block=_conversation_block(request),
         colleagues_block=_colleagues_block(request),

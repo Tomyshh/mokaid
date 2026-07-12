@@ -33,6 +33,16 @@ defmodule Mokaid.Agents do
   defp maybe_filter(query, field, value), do: where(query, [a], field(a, ^field) == ^value)
 
   def create_agent(workspace_id, attrs, created_by \\ nil) do
+    attrs =
+      if blank?(attrs["avatar_asset_id"]) do
+        case Mokaid.Assets3d.default_character() do
+          %{id: id} -> Map.put(attrs, "avatar_asset_id", id)
+          _ -> attrs
+        end
+      else
+        attrs
+      end
+
     result =
       %Agent{}
       |> Agent.changeset(
@@ -48,6 +58,10 @@ defmodule Mokaid.Agents do
       {:ok, agent}
     end
   end
+
+  defp blank?(nil), do: true
+  defp blank?(""), do: true
+  defp blank?(_), do: false
 
   def update_agent(%Agent{} = agent, attrs) do
     result =

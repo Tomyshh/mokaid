@@ -237,19 +237,25 @@ export function useWorkspaceChannel(): void {
 
       if (message.author_kind === "agent") {
         useChatStore.getState().clearAgentTyping(agentId);
-        // The persisted message replaces the streamed draft, if any.
-        useChatStore.getState().clearStreamingDraft(agentId);
+        // Clear the matching typewriter draft (or any draft if no stream_id).
+        useChatStore.getState().finalizeStream(agentId, str(payload ?? {}, "stream_id"));
         playSound("message");
       }
     });
 
     // Token-by-token reply stream: grow the agent's draft bubble live. The
     // final `agent_chat.message` broadcast swaps the draft for the real thing.
+    // `done: true` also clears the draft so late empty/partial packets don't linger.
     const chatChunkRef = channel.on("agent_chat.chunk", (payload: EventPayload) => {
       const agentId = str(payload ?? {}, "agent_id");
       const streamId = str(payload ?? {}, "stream_id");
       if (!agentId || !streamId) return;
+      const done = payload.done === true;
       const chunk = typeof payload.chunk === "string" ? payload.chunk : "";
+      if (done) {
+        useChatStore.getState().finalizeStream(agentId, streamId);
+        return;
+      }
       if (chunk) {
         useChatStore.getState().clearAgentTyping(agentId);
         useChatStore.getState().appendStreamChunk(agentId, streamId, chunk);

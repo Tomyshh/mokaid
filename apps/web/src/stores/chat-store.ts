@@ -8,6 +8,8 @@ const SOUND_PREF_KEY = "mokaid.sounds";
 interface StreamingDraft {
   streamId: string;
   text: string;
+  /** Once the final message for this stream lands, ignore late chunks. */
+  finalized: boolean;
 }
 
 interface ChatState {
@@ -18,6 +20,8 @@ interface ChatState {
   typingAgentIds: string[];
   /** In-progress agent replies, streamed token-by-token (typewriter). */
   streamingDrafts: Record<string, StreamingDraft>;
+  /** streamIds that already received their final message — reject late chunks. */
+  finalizedStreamIds: Record<string, true>;
   soundEnabled: boolean;
   openChat: (agentId: string) => void;
   closeChat: (agentId: string) => void;
@@ -25,6 +29,7 @@ interface ChatState {
   setAgentTyping: (agentId: string) => void;
   clearAgentTyping: (agentId: string) => void;
   appendStreamChunk: (agentId: string, streamId: string, chunk: string) => void;
+  finalizeStream: (agentId: string, streamId?: string | null) => void;
   clearStreamingDraft: (agentId: string) => void;
   toggleSound: () => void;
 }
@@ -36,6 +41,7 @@ export const useChatStore = create<ChatState>((set) => ({
   minimizedIds: [],
   typingAgentIds: [],
   streamingDrafts: {},
+  finalizedStreamIds: {},
   soundEnabled: localStorage.getItem(SOUND_PREF_KEY) !== "off",
 
   openChat: (agentId) =>
@@ -84,10 +90,34 @@ export const useChatStore = create<ChatState>((set) => ({
 
   appendStreamChunk: (agentId, streamId, chunk) =>
     set((s) => {
+      if (s.finalizedStreamIds[streamId]) return s;
       const current = s.streamingDrafts[agentId];
-      // A new streamId supersedes any stale draft from a previous reply.
-      const text = current?.streamId === streamId ? current.text + chunk : chunk;
-      return { streamingDrafts: { ...s.streamingDrafts, [agentId]: { streamId, text } } };
+      if (current?.finalized && current.streamId === streamId) return s;
+      const text =
+        current?.streamId === streamId && !current.finalized ? current.text + chunk : chunk;
+      return {
+        streamingDrafts: {
+          ...s.streamingDrafts,
+          [agentId]: { streamId, text, finalized: false },
+        },
+      };
+    }),
+
+  finalizeStream: (agentId, streamId) =>
+    set((s) => {
+      const current = s.streamingDrafts[agentId];
+      if (streamId && current && current.streamId !== streamId) {
+        return {
+          finalizedStreamIds: { ...s.finalizedStreamIds, [streamId]: true },
+        };
+      }
+      const { [agentId]: _removed, ...rest } = s.streamingDrafts;
+      return {
+        streamingDrafts: rest,
+        finalizedStreamIds: streamId
+          ? { ...s.finalizedStreamIds, [streamId]: true }
+          : s.finalizedStreamIds,
+      };
     }),
 
   clearStreamingDraft: (agentId) =>

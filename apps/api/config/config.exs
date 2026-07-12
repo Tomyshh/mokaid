@@ -34,6 +34,9 @@ config :mokaid, Oban,
      ]}
   ]
 
+# Empty = serve relative /assets3d/* from the web origin (public folder / future CF).
+config :mokaid, :assets_cdn_url, ""
+
 config :mokaid, :auth,
   mode: :dev_fallback,
   cognito_region: nil,

@@ -1,13 +1,10 @@
 # 3D Assets
 
-## Current state: temporary procedural assets
+## Current state
 
-Final GLB assets (office map + avatars) are **not delivered yet**. The scene in `apps/web/src/three/` builds everything procedurally:
-
-- Office: floor, rug, walls, window strip, 10 desks (top/legs/monitor/chair), meeting table, corner plants — simple boxes/cylinders with shared materials.
-- Avatars: capsule body + sphere head, tinted per agent (`avatar_config.primary_color`), status ring (torus) colored by agent status.
-
-Everything is resolved through `asset-manifest.ts` where each entry currently points to `procedural:*`. **Swapping in final assets only requires changing manifest URLs** — no scene code changes.
+- **Character**: `avatar_male` GLB with 14 baked `AgentVisualState` clips, served from `/assets3d/avatar_male.<hash>.glb` (also uploaded to S3 `mokaid-assets-3d-*`).
+- **Catalog**: Postgres table `asset_3d` (metadata only) — API `GET /api/assets-3d`.
+- **Office furniture**: still procedural via `asset-manifest.ts` until environment GLBs ship.
 
 ## Delivery requirements for final assets
 
@@ -17,29 +14,40 @@ Everything is resolved through `asset-manifest.ts` where each entry currently po
 | Meshes | Draco-compressed, < 50k triangles per asset |
 | Textures | KTX2 (BasisU), max 1024×1024, power of two |
 | Size budget | ≤ 5 MB per asset, ≤ 25 MB total initial load |
-| Avatars | Rigged with the 13 animation states (see below), consistent skeleton |
+| Avatars | Rigged with the 14 animation states (see below), consistent skeleton |
 | Pivot | Centered at floor level, +Y up, meters |
 
 ### Required avatar animation states (`AgentVisualState`)
 
-`idle`, `typing`, `working`, `thinking`, `talking`, `reviewing`, `learning`, `waiting`, `requesting_approval`, `blocked`, `celebrating`, `away`, `offline`
+`idle`, `walking`, `typing`, `working`, `thinking`, `talking`, `waiting`, `requesting_approval`, `blocked`, `celebrating`, `away`, `offline`, `reviewing`, `learning`
 
-The animation state machine already maps agent/task statuses to these states; clips must be named accordingly in the GLB.
+Bake procedural clips onto a rigged mesh:
+
+```bash
+python3 scripts/bake-avatar-animations.py assets/raw/avatar_male.glb
+```
 
 ## Pipeline
 
 ```bash
-# 1. Optimize raw exports (Draco + KTX2)
+# 1. Bake clips (if the source GLB has no animations)
+python3 scripts/bake-avatar-animations.py assets/raw/avatar_male.glb
+
+# 2. Optimize raw exports (Draco + KTX2)
 ./scripts/optimize-assets.sh assets/raw assets/optimized
 
-# 2. Validate against budgets
+# 3. Validate against budgets
 ./scripts/validate-gltf.sh assets/optimized
 
-# 3. Generate the hashed CDN manifest
-npx tsx scripts/generate-asset-manifest.ts assets/optimized https://<cloudfront-domain>
+# 4. Hash + copy into the web public folder (and optionally generate manifest)
+HASH=$(shasum -a 256 assets/optimized/avatar_male.glb | cut -c1-12)
+cp assets/optimized/avatar_male.glb "apps/web/public/assets3d/avatar_male.${HASH}.glb"
 
-# 4. Upload to the assets bucket (Terraform output: mokaid-assets-3d-<env>-<account>)
-aws s3 sync assets/optimized s3://mokaid-assets-3d-.../assets3d/ --cache-control "public,max-age=31536000,immutable"
+# 5. Upload to the assets bucket (Terraform output: mokaid-assets-3d-<env>-<account>)
+aws s3 sync assets/optimized s3://mokaid-assets-3d-.../assets3d/ --cache-control "public,max-age=31536000,immutable" --exclude "*" --include "*.glb"
+
+# 6. Upsert catalog metadata
+cd apps/api && mix run priv/repo/seeds.exs   # calls Assets3d.seed_catalog/0
 ```
 
-CloudFront serves `/assets3d/*` from the dedicated S3 bucket with immutable caching.
+CloudFront serves `/assets3d/*` when enabled; until then the SPA serves the same path from `apps/web/public/assets3d/`.

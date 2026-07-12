@@ -36,6 +36,22 @@ defmodule MokaidWeb.JSON do
     }
   end
 
+  def asset_3d(asset) do
+    %{
+      id: asset.id,
+      slug: asset.slug,
+      kind: asset.kind,
+      storage_key: asset.storage_key,
+      cdn_path: asset.cdn_path,
+      url: Mokaid.Assets3d.resolve_url(asset),
+      sha256: asset.sha256,
+      byte_size: asset.byte_size,
+      animation_clips: asset.animation_clips,
+      metadata: asset.metadata,
+      inserted_at: asset.inserted_at
+    }
+  end
+
   def agent(agent) do
     linked_user = loaded(agent.linked_user)
 
@@ -47,6 +63,7 @@ defmodule MokaidWeb.JSON do
       slug: agent.slug,
       email_alias: agent.email_alias,
       avatar_config: agent.avatar_config,
+      avatar_asset_id: agent.avatar_asset_id,
       role_title: agent.role_title,
       department: agent.department,
       status: agent.status,

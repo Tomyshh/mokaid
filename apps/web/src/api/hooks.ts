@@ -37,12 +37,37 @@ import type {
 } from "./types";
 import { useAuthStore } from "@/stores/auth-store";
 
+export interface Asset3d {
+  id: string;
+  slug: string;
+  kind: "character" | "environment" | "accessory" | "furniture" | "prop";
+  storage_key: string;
+  cdn_path: string;
+  url: string;
+  sha256: string;
+  byte_size: number;
+  animation_clips: string[];
+  metadata: Record<string, unknown>;
+  inserted_at: string;
+}
+
 function useWorkspaceKey(base: string): (string | null)[] {
   const workspaceId = useAuthStore((s) => s.workspaceId);
   return [base, workspaceId];
 }
 
 /* ---------- Agents ---------- */
+
+export function useAssets3d(kind?: string) {
+  return useQuery({
+    queryKey: ["assets-3d", kind ?? "all"],
+    queryFn: () =>
+      apiFetch<Envelope<Asset3d[]>>("/api/assets-3d", {
+        params: kind ? { kind } : undefined,
+        skipWorkspace: true,
+      }).then((r) => r.data),
+  });
+}
 
 export function useAgents(filters: Record<string, string | undefined> = {}) {
   const key = useWorkspaceKey("agents");

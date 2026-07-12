@@ -20,6 +20,7 @@ Logger.info("Seeding mokaid base data...")
 
 Members.seed_global_permissions()
 Mokaid.MCP.seed_catalog()
+Mokaid.Assets3d.seed_catalog()
 Billing.seed_plans()
 
 ## ---------- Users ----------
