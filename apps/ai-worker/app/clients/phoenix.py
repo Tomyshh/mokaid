@@ -175,6 +175,8 @@ class PhoenixClient:
         start_task: bool = False,
         instruction: str | None = None,
         member_id: str | None = None,
+        message_id: str | None = None,
+        attachments: list[dict[str, Any]] | None = None,
         skip_ack: bool = False,
         language: str | None = None,
         stream_id: str | None = None,
@@ -192,6 +194,10 @@ class PhoenixClient:
             payload["instruction"] = instruction
             if member_id:
                 payload["member_id"] = member_id
+            if message_id:
+                payload["message_id"] = message_id
+            if attachments:
+                payload["attachments"] = attachments
             if skip_ack:
                 payload["skip_ack"] = True
         if language:

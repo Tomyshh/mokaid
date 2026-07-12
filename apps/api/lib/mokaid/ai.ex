@@ -630,7 +630,7 @@ defmodule Mokaid.AI do
            Tasks.update_run_progress(run, %{"status" => "failed", "error" => error_message}) do
       case Agents.get_agent(run.workspace_id, run.agent_id) do
         nil -> :ok
-        agent -> Agents.change_status(agent, "blocked", reason: "run_failed")
+        agent -> Agents.change_status(agent, "idle", current_task_id: nil, reason: "run_failed")
       end
 
       task = Tasks.get_task(run.workspace_id, run.task_id)

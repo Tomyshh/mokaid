@@ -1,4 +1,4 @@
-import { ExternalLink, ShieldAlert, Sparkles, ThumbsDown, ThumbsUp, Undo2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, ShieldAlert, ThumbsDown, ThumbsUp, Undo2 } from "lucide-react";
 import { useEffect } from "react";
 import { useApproveTaskAction, useTask, useUpdateTask } from "@/api/hooks";
 import { Badge } from "@/components/ui/badge";
@@ -26,16 +26,29 @@ export function ReviewGateModal() {
   const approveAction = useApproveTaskAction();
 
   // Keep queue item enriched from live task detail (approval id, copy).
+  // Guard: only call updateItem when values actually differ to avoid an
+  // infinite setState loop (updateItem creates new object refs each time).
   useEffect(() => {
     if (!current || !task) return;
     if (current.kind === "tool_approval" && task.pending_approval) {
+      const pa = task.pending_approval;
+      if (
+        current.approvalRequestId === pa.id &&
+        current.proposedAction === pa.proposed_action &&
+        current.agentName === task.assigned_agent_name &&
+        current.title === task.title
+      ) return;
       updateItem(current.taskId, "tool_approval", {
-        approvalRequestId: task.pending_approval.id,
-        proposedAction: task.pending_approval.proposed_action,
+        approvalRequestId: pa.id,
+        proposedAction: pa.proposed_action,
         agentName: task.assigned_agent_name,
         title: task.title,
       });
     } else if (current.kind === "in_review") {
+      if (
+        current.agentName === task.assigned_agent_name &&
+        current.title === task.title
+      ) return;
       updateItem(current.taskId, "in_review", {
         agentName: task.assigned_agent_name,
         title: task.title,
@@ -124,7 +137,11 @@ export function ReviewGateModal() {
       onOpenChange={onOpenChange}
       title={current.kind === "tool_approval" ? "Approval needed" : "Validation required"}
       description={`${index} of ${total} pending`}
-      className="w-[560px] border border-warning/40 shadow-[0_0_0_1px_rgba(245,158,11,0.25)]"
+      className={
+        current.kind === "tool_approval"
+          ? "w-[560px] border border-warning/40 shadow-[0_0_0_1px_rgba(245,158,11,0.25)]"
+          : "w-[560px] border border-success/40 shadow-[0_0_0_1px_rgba(34,197,94,0.25)]"
+      }
       footer={
         current.kind === "in_review" ? (
           <>
@@ -164,14 +181,14 @@ export function ReviewGateModal() {
           className={
             current.kind === "tool_approval"
               ? "rounded-xl bg-warning/10 px-4 py-3.5"
-              : "rounded-xl bg-warning/10 px-4 py-3.5"
+              : "rounded-xl bg-success/10 px-4 py-3.5"
           }
         >
           <div className="flex items-start gap-2.5">
             {current.kind === "tool_approval" ? (
               <ShieldAlert size={16} className="mt-0.5 shrink-0 text-warning" />
             ) : (
-              <Sparkles size={16} className="mt-0.5 shrink-0 text-warning" />
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" />
             )}
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-text">{title}</p>
@@ -199,9 +216,23 @@ export function ReviewGateModal() {
           </div>
         </div>
 
-        <p className="text-[12px] leading-relaxed text-text-secondary line-clamp-6">
-          {descriptionPreview}
-        </p>
+        {/* Agent output / run summary */}
+        {task?.latest_run?.output?.summary && (
+          <div className="rounded-lg border border-border bg-surface-raised px-4 py-3">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+              Agent output
+            </p>
+            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-text">
+              {task.latest_run.output.summary}
+            </p>
+          </div>
+        )}
+
+        {!task?.latest_run?.output?.summary && (
+          <p className="text-[12px] leading-relaxed text-text-secondary line-clamp-6">
+            {descriptionPreview}
+          </p>
+        )}
 
         <button
           type="button"

@@ -21,29 +21,23 @@ function insertChatMessage(
   agentId: string,
   message: AgentChatMessage,
 ): void {
-  const convId = message.conversation_id ?? null;
+  let inserted = false;
 
-  const tryInsert = (cacheKey: (string | null)[]) => {
-    const existing = queryClient.getQueryData<Envelope<AgentChatMessage[]>>(cacheKey);
-    if (existing) {
-      if (!existing.data.some((m) => m.id === message.id)) {
-        queryClient.setQueryData<Envelope<AgentChatMessage[]>>(cacheKey, {
-          ...existing,
-          data: [...existing.data, message],
-        });
+  queryClient.setQueriesData<Envelope<AgentChatMessage[]>>(
+    { queryKey: ["agent-chat", workspaceId, agentId] },
+    (prev) => {
+      if (!prev) return prev;
+      if (prev.data.some((m) => m.id === message.id)) {
+        inserted = true;
+        return prev;
       }
-      return true;
-    }
-    return false;
-  };
+      inserted = true;
+      return { ...prev, data: [...prev.data, message] };
+    },
+  );
 
-  const keyWithConv = ["agent-chat", workspaceId, agentId, convId];
-  const keyLegacy = ["agent-chat", workspaceId, agentId, null];
-
-  if (!tryInsert(keyWithConv)) {
-    if (!tryInsert(keyLegacy)) {
-      queryClient.invalidateQueries({ queryKey: ["agent-chat", workspaceId, agentId] });
-    }
+  if (!inserted) {
+    queryClient.invalidateQueries({ queryKey: ["agent-chat", workspaceId, agentId] });
   }
 
   queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
@@ -323,20 +317,17 @@ export function useWorkspaceChannel(): void {
       if (done) {
         useChatStore.getState().clearAgentTyping(agentId);
         useChatStore.getState().markStreamDone(agentId, streamId);
-        const activeConvId = useChatStore.getState().activeConversationIds[agentId] ?? null;
-        const chatKey = ["agent-chat", workspaceId, agentId, activeConvId] as const;
         void queryClient
           .invalidateQueries({ queryKey: ["agent-chat", workspaceId, agentId] })
           .then(() => {
             const draft = useChatStore.getState().streamingDrafts[agentId];
-            const cached =
-              queryClient.getQueryData<Envelope<AgentChatMessage[]>>(chatKey);
-            const persisted =
-              draft?.streamId === streamId &&
-              cached?.data.some(
-                (message) =>
-                  message.author_kind === "agent" && message.body === draft.text,
-              );
+            if (!draft || draft.streamId !== streamId) return;
+            const allCached = queryClient.getQueriesData<Envelope<AgentChatMessage[]>>({
+              queryKey: ["agent-chat", workspaceId, agentId],
+            });
+            const persisted = allCached.some(([, data]) =>
+              data?.data.some((m) => m.author_kind === "agent" && m.body === draft.text),
+            );
             if (persisted) {
               useChatStore.getState().finalizeStream(agentId, streamId);
             }

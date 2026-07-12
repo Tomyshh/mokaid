@@ -376,22 +376,17 @@ defmodule Mokaid.AgentChat do
   # (chat vs. actionable request) so a plain "how's it going?" doesn't spin up
   # a task — we let the worker decide and start the task from its callback.
   defp route_member_message(workspace_id, agent, member, message, attachments) do
-    if attachments != [] do
-      resume_or_start_chat_task(workspace_id, agent, member, message, attachments)
-    else
-      # No files: the worker replies conversationally, and if it judges the
-      # message to be an actionable work request it asks us to start a task.
-      Realtime.broadcast_workspace(workspace_id, "agent_chat.typing", %{agent_id: agent.id})
+    Realtime.broadcast_workspace(workspace_id, "agent_chat.typing", %{agent_id: agent.id})
 
-      %{
-        workspace_id: workspace_id,
-        agent_id: agent.id,
-        member_id: member.id,
-        message_id: message.id
-      }
-      |> Mokaid.AI.Workers.AgentChatWorker.new()
-      |> Oban.insert()
-    end
+    %{
+      workspace_id: workspace_id,
+      agent_id: agent.id,
+      member_id: member.id,
+      message_id: message.id,
+      attachments: attachments
+    }
+    |> Mokaid.AI.Workers.AgentChatWorker.new()
+    |> Oban.insert()
   end
 
   @doc """

@@ -391,6 +391,64 @@ def _looks_like_text(value: str) -> bool:
 _MAX_EXTRACTED_CHARS = 20000
 
 
+def _extract_pdf_annotations(doc_bytes: bytes) -> str:
+    """Extract text from PDF annotations (FreeText, stamps, signatures).
+
+    Standard text extraction only reads the page content stream, missing
+    annotations such as FreeText overlays, filled form fields, and digital
+    signature names. This function extracts those separately.
+    """
+    try:
+        import io as _io
+
+        from pypdf import PdfReader
+
+        reader = PdfReader(_io.BytesIO(doc_bytes))
+    except Exception:
+        return ""
+
+    lines: list[str] = []
+    for page_num, page in enumerate(reader.pages, 1):
+        if "/Annots" not in page:
+            continue
+        try:
+            annots_ref = page["/Annots"]
+            annots = (
+                annots_ref.get_object()
+                if hasattr(annots_ref, "get_object")
+                else annots_ref
+            )
+            if not isinstance(annots, list):
+                continue
+        except Exception:
+            continue
+
+        for a in annots:
+            try:
+                ao = a.get_object() if hasattr(a, "get_object") else a
+                subtype = str(ao.get("/Subtype", ""))
+                contents = ao.get("/Contents", "")
+
+                if subtype == "/FreeText" and contents:
+                    lines.append(f"[Page {page_num} annotation] {contents}")
+
+                if str(ao.get("/FT", "")) == "/Sig":
+                    v = ao.get("/V")
+                    if v:
+                        sig = v.get_object() if hasattr(v, "get_object") else v
+                        name = sig.get("/Name", "")
+                        reason = sig.get("/Reason", "")
+                        if name:
+                            lines.append(
+                                f"[Page {page_num} digital signature] Signer: {name}"
+                                + (f", Reason: {reason}" if reason else "")
+                            )
+            except Exception:
+                continue
+
+    return "\n".join(lines)
+
+
 @tool("extract_document_text")
 async def extract_document_text(params: dict[str, Any], ctx: RunContext) -> Any:
     """Extract text content from a document (PDF, etc.) for further processing."""
@@ -438,6 +496,13 @@ async def extract_document_text(params: dict[str, Any], ctx: RunContext) -> Any:
             except Exception as exc:
                 log.warning("pdf_pypdf_failed", error=str(exc))
                 text = ""
+
+        # 2b) Annotations: FreeText overlays, filled fields, and digital
+        # signatures live outside the page content stream and are invisible
+        # to standard text extraction.
+        annot_text = _extract_pdf_annotations(doc_bytes)
+        if annot_text:
+            text = text + "\n\n--- Annotations & Signatures ---\n" + annot_text
 
     # 3) Plain-text documents: decode, but only keep it if it reads as text.
     if not text.strip():

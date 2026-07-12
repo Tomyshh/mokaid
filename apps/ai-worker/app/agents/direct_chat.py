@@ -27,10 +27,12 @@ _FLUSH_CHARS = 24
 _DECIDE_SYSTEM = """You are routing a teammate's DM for an AI employee.
 
 Decide whether the latest teammate message is:
-(a) conversation — a question, status check, small talk, clarification; or
+(a) conversation — a question, status check, small talk, clarification,
+    or a QUESTION about an attached file (e.g. "who signed this?",
+    "summarize this", "what does section 3 say?"); or
 (b) an actionable work request — they want a PRODUCED deliverable
     (document, report, website/landing page, analysis, edited image,
-    transcription…).
+    transcription…) that should be saved as a file.
 
 Respond with JSON only:
 {{
@@ -40,8 +42,9 @@ Respond with JSON only:
 }}
 
 Rules:
-- Use "task" when they clearly want a deliverable an AI employee can produce.
-  Vague ideas or questions stay "chat".
+- Use "task" ONLY when they clearly want a saved deliverable an AI employee
+  can produce. Questions or conversational requests about attached files stay
+  "chat" — the agent will answer inline.
 - "Create a website / landing page / site internet" is always "task", even if
   details are incomplete — the worker will fill sensible defaults.
 - instruction must capture the full ask in ONE line, same language as the
@@ -198,6 +201,13 @@ async def _stream_reply(
     return "".join(text_parts).strip()
 
 
+def _format_attachments(attachments: list[dict[str, Any]]) -> str:
+    if not attachments:
+        return ""
+    names = [a.get("name") or "file" for a in attachments]
+    return "Attached files: " + ", ".join(names)
+
+
 async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -> bool:
     """Streams the agent's DM reply (and possibly starts a task) via Phoenix."""
     if not llm.is_configured():
@@ -206,6 +216,7 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
     phoenix = phoenix or PhoenixClient()
     agent = payload.get("agent") or {}
     conversation = payload.get("conversation") or []
+    attachments = payload.get("attachments") or []
 
     thread = "\n".join(
         f"- {entry.get('author', '?')}: {entry.get('body', '')}"
@@ -214,7 +225,10 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
     )
     latest = _latest_teammate_message(conversation)
 
-    decision = await _decide(thread, latest)
+    file_context = _format_attachments(attachments)
+    decide_thread = f"{thread}\n{file_context}" if file_context else thread
+
+    decision = await _decide(decide_thread, latest)
     start_task = decision["kind"] == "task"
     instruction = decision["instruction"]
     language = decision["language"]
@@ -268,8 +282,8 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
         start_task=start_task and bool(instruction),
         instruction=instruction,
         member_id=payload.get("member_id"),
-        # Worker already posted the conversational ack — skip the boilerplate
-        # second "On it!" message from start_chat_task.
+        message_id=payload.get("message_id"),
+        attachments=attachments if start_task else None,
         skip_ack=True,
         language=language,
         stream_id=stream_id,

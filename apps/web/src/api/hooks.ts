@@ -1133,21 +1133,17 @@ export function useSendAgentChatMessage(agentId: string) {
       });
     },
     onSuccess: (result) => {
-      const convId = result.data.conversation_id ?? null;
-      const key = ["agent-chat", workspaceId, agentId, convId];
-      queryClient.setQueryData<Envelope<AgentChatMessage[]>>(key, (prev) => {
+      const msg = result.data;
+      const append = (prev: Envelope<AgentChatMessage[]> | undefined) => {
         if (!prev) return prev;
-        if (prev.data.some((m) => m.id === result.data.id)) return prev;
-        return { ...prev, data: [...prev.data, result.data] };
-      });
-      const legacyKey = ["agent-chat", workspaceId, agentId, null];
-      if (convId) {
-        queryClient.setQueryData<Envelope<AgentChatMessage[]>>(legacyKey, (prev) => {
-          if (!prev) return prev;
-          if (prev.data.some((m) => m.id === result.data.id)) return prev;
-          return { ...prev, data: [...prev.data, result.data] };
-        });
-      }
+        if (prev.data.some((m) => m.id === msg.id)) return prev;
+        return { ...prev, data: [...prev.data, msg] };
+      };
+
+      queryClient.setQueriesData<Envelope<AgentChatMessage[]>>(
+        { queryKey: ["agent-chat", workspaceId, agentId] },
+        append,
+      );
       queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
     },
   });

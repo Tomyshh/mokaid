@@ -28,13 +28,15 @@ defmodule Mokaid.AI.Workers.AgentChatWorker do
     if agent == nil or stale_trigger?(workspace_id, agent_id, args["message_id"]) do
       :ok
     else
+      attachments = args["attachments"] || []
+
       payload = %{
         type: "agent_chat",
         workspace_id: workspace_id,
         agent_id: agent.id,
-        # Who initiated the thread — attributed as task creator if the worker
-        # judges the message an actionable work request.
         member_id: args["member_id"],
+        message_id: args["message_id"],
+        attachments: attachments,
         agent: %{
           display_name: agent.display_name,
           role_title: agent.role_title,

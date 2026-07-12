@@ -180,16 +180,17 @@ defmodule MokaidWeb.WorkerResourceController do
     member = member_id && Mokaid.Members.get_member(workspace_id, member_id)
     language = params["language"]
     skip_ack? = params["skip_ack"] != false
+    attachments = recover_attachments(workspace_id, params)
 
     if member && instruction != "" do
-      pseudo_message = %Mokaid.AgentChat.ChatMessage{body: instruction, attachments: []}
+      pseudo_message = %Mokaid.AgentChat.ChatMessage{body: instruction, attachments: attachments}
 
       Mokaid.AgentChat.resume_or_start_chat_task(
         workspace_id,
         agent,
         member,
         pseudo_message,
-        [],
+        attachments,
         skip_ack: skip_ack?,
         language: language
       )
@@ -205,6 +206,27 @@ defmodule MokaidWeb.WorkerResourceController do
   end
 
   defp maybe_start_chat_task(_workspace_id, _agent, _params), do: :ok
+
+  # Recover file attachments: prefer the ones forwarded by the worker, fall
+  # back to looking up the original member message by ID.
+  defp recover_attachments(workspace_id, params) do
+    case params["attachments"] do
+      [_ | _] = atts ->
+        atts
+
+      _ ->
+        case params["message_id"] do
+          id when is_binary(id) ->
+            case Mokaid.Repo.get(Mokaid.AgentChat.ChatMessage, id) do
+              %{workspace_id: ^workspace_id, attachments: atts} when is_list(atts) -> atts
+              _ -> []
+            end
+
+          _ ->
+            []
+        end
+    end
+  end
 
   @doc """
   Stores a mission memory as agent-scoped knowledge. The ingestion pipeline

@@ -61,5 +61,10 @@ htmlcov/
 .postgres-data/
 .clickhouse-data/
 
+# Raw Meshy source dumps (bake locally — too large for git)
+assets/raw/corporate/
+assets/raw/feminine/
+assets/raw/feminine_finance/
+
 # Python build artifacts
 *.egg-info/
