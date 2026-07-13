@@ -69,7 +69,7 @@ defmodule MokaidWeb.JSON do
       role_title: agent.role_title,
       department: agent.department,
       status: agent.status,
-      presence_status: agent.presence_status,
+      presence_status: presence_status_for(agent),
       control_mode: agent.control_mode,
       ai_enabled: agent.ai_enabled,
       human_takeover_enabled: agent.human_takeover_enabled,
@@ -90,6 +90,18 @@ defmodule MokaidWeb.JSON do
       inserted_at: agent.inserted_at
     }
   end
+
+  # AI employees are always "at the office" — presence only tracks humans who
+  # may step away. Archived agents stay offline in the UI.
+  defp presence_status_for(%{status: "archived"}), do: "offline"
+  defp presence_status_for(%{kind: "human_linked", presence_status: presence}), do: presence
+
+  defp presence_status_for(%{presence_status: "away"} = agent)
+       when agent.kind in ["ai", "hybrid"],
+       do: "online"
+
+  defp presence_status_for(%{kind: kind}) when kind in ["ai", "hybrid"], do: "online"
+  defp presence_status_for(%{presence_status: presence}), do: presence || "online"
 
   def task(task) do
     project = loaded(task.project)

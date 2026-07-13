@@ -48,15 +48,18 @@ function toSceneAgents(
         agent.avatar_cdn_path ||
         (agent.avatar_asset_id && assetCdnById.get(agent.avatar_asset_id)) ||
         DEFAULT_AVATAR_CDN_PATH;
+      // AI staff are always present; only human-linked agents can be offline.
+      const presence =
+        agent.kind === "human_linked" ? agent.presence_status : ("online" as const);
       return {
         id: agent.id,
         name: agent.display_name,
         kind: agent.kind,
         status: agent.status,
-        presenceStatus: agent.presence_status,
+        presenceStatus: presence,
         visualState: isTyping
           ? "typing"
-          : toVisualState(agent.status, agent.presence_status, {
+          : toVisualState(agent.status, presence, {
               has_task: Boolean(agent.current_task_id),
             }),
         color: agent.avatar_config?.primary_color ?? "#7c5cff",

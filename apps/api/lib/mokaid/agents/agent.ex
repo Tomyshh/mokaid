@@ -22,7 +22,7 @@ defmodule Mokaid.Agents.Agent do
     field :role_title, :string
     field :department, :string
     field :status, :string, default: "idle"
-    field :presence_status, :string, default: "offline"
+    field :presence_status, :string, default: "online"
     field :control_mode, :string, default: "ai_controlled"
     field :ai_enabled, :boolean, default: false
     field :human_takeover_enabled, :boolean, default: false

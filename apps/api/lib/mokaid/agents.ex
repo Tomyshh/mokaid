@@ -46,10 +46,13 @@ defmodule Mokaid.Agents do
     result =
       %Agent{}
       |> Agent.changeset(
-        Map.merge(attrs, %{
-          "workspace_id" => workspace_id,
-          "created_by_member_id" => created_by && created_by.id
-        })
+        Map.merge(
+          %{"presence_status" => "online"},
+          Map.merge(attrs, %{
+            "workspace_id" => workspace_id,
+            "created_by_member_id" => created_by && created_by.id
+          })
+        )
       )
       |> Repo.insert()
 
@@ -113,13 +116,20 @@ defmodule Mokaid.Agents do
       Realtime.broadcast_workspace(updated.workspace_id, "agent.status_changed", %{
         agent_id: agent.id,
         status: new_status,
-        presence_status: updated.presence_status,
+        presence_status: public_presence(updated),
         current_task_id: updated.current_task_id
       })
 
       {:ok, updated}
     end
   end
+
+  # AI / hybrid agents are always present in the office. Only human-linked
+  # teammates expose a real presence (online/away/offline).
+  defp public_presence(%Agent{status: "archived"}), do: "offline"
+  defp public_presence(%Agent{kind: "human_linked", presence_status: p}), do: p
+  defp public_presence(%Agent{kind: kind}) when kind in ["ai", "hybrid"], do: "online"
+  defp public_presence(%Agent{presence_status: p}), do: p || "online"
 
   def link_user(%Agent{} = agent, user_id, member_id, actor) do
     if agent.kind == "ai" do

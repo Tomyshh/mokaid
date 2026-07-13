@@ -28,6 +28,11 @@ function ChatHead({
 }) {
   const typing = useChatStore((s) => s.typingAgentIds.includes(agent.id));
   const busy = agent.status === "busy" || agent.status === "active" || typing;
+  // AI employees are always "in the office"; only human-linked agents can be offline.
+  const online =
+    agent.kind !== "human_linked"
+      ? agent.status !== "archived"
+      : agent.presence_status === "online";
   const unread = summary?.unread_count ?? 0;
 
   return (
@@ -60,7 +65,7 @@ function ChatHead({
             "pointer-events-none absolute z-20 h-2.5 w-2.5 ring-2 ring-bg [corner-shape:round]",
             busy
               ? "bg-warning"
-              : agent.presence_status === "online"
+              : online
                 ? "bg-success"
                 : "bg-text-disabled",
           )}

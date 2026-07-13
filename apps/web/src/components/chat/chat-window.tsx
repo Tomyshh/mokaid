@@ -198,7 +198,11 @@ export function ChatWindow({ agent }: { agent: Agent }) {
     if (files.length > 0) void uploadFiles(files);
   };
 
-  const online = agent.presence_status === "online";
+  // AI employees are always online at the desk; only human-linked can go offline.
+  const online =
+    agent.kind !== "human_linked"
+      ? agent.status !== "archived"
+      : agent.presence_status === "online";
   const busy = agent.status === "busy" || agent.status === "active" || typing;
 
   const viewingArchived = useMemo(() => {
