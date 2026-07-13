@@ -37,7 +37,7 @@ defmodule MokaidWeb.KnowledgeController do
   """
   def upload(conn, params) do
     uploads =
-      (List.wrap(params["files"] || params["file"]))
+      List.wrap(params["files"] || params["file"])
       |> Enum.filter(&match?(%Plug.Upload{}, &1))
 
     if uploads == [] do

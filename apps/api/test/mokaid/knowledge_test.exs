@@ -68,14 +68,18 @@ defmodule Mokaid.KnowledgeTest do
 
       Knowledge.insert_chunks(item, [
         # Semantically close AND contains the query term.
-        %{content: "Le patient souffre d'hypertension chronique", embedding: axis_embedding(0, 1.0)},
+        %{
+          content: "Le patient souffre d'hypertension chronique",
+          embedding: axis_embedding(0, 1.0)
+        },
         # Semantically closest but no lexical match.
         %{content: "Analyse sanguine dans les normes", embedding: axis_embedding(0, 0.99)},
         # Lexical match only, semantically far.
         %{content: "hypertension mentionnée en passant", embedding: axis_embedding(9)}
       ])
 
-      [top | _] = Knowledge.search_chunks(workspace.id, axis_embedding(0), 3, query: "hypertension")
+      [top | _] =
+        Knowledge.search_chunks(workspace.id, axis_embedding(0), 3, query: "hypertension")
 
       assert top.chunk.content =~ "patient souffre d'hypertension"
       assert top.score > 0

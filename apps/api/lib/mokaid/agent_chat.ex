@@ -493,7 +493,10 @@ defmodule Mokaid.AgentChat do
               t.inserted_at >= ^since,
           order_by: [desc: t.updated_at],
           limit: 10,
-          preload: [execution_runs: ^from(r in Mokaid.Tasks.TaskExecutionRun, order_by: [desc: r.inserted_at])]
+          preload: [
+            execution_runs:
+              ^from(r in Mokaid.Tasks.TaskExecutionRun, order_by: [desc: r.inserted_at])
+          ]
       )
 
     Enum.find(tasks, fn task ->
