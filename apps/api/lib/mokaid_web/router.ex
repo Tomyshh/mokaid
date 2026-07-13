@@ -161,6 +161,7 @@ defmodule MokaidWeb.Router do
 
     post "/knowledge/search", WorkerResourceController, :search_knowledge
     post "/knowledge/:id/chunks", WorkerResourceController, :knowledge_chunks
+    post "/knowledge/:id/failed", WorkerResourceController, :knowledge_failed
     post "/tasks/:id/update", WorkerResourceController, :update_task
     post "/tasks/:id/subtasks", WorkerResourceController, :create_subtasks
     post "/tasks/:id/comment", WorkerResourceController, :create_comment

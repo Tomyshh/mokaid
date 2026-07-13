@@ -8,6 +8,8 @@ import {
   Clock,
   Copy,
   Download,
+  Eye,
+  EyeOff,
   FileText,
   FolderInput,
   Image as ImageIcon,
@@ -26,6 +28,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { fetchDriveFileBlob } from "@/api/client";
+import { isTextPreviewable } from "@/lib/file-parsers";
 import type { TaskAttachment, TaskRunToolCall } from "@/api/types";
 import {
   useAgents,
@@ -196,7 +199,10 @@ function FileRow({ file }: { file: TaskAttachment }) {
     file.mime_type === "text/html" ||
     file.name.toLowerCase().endsWith(".html") ||
     file.name.toLowerCase().endsWith(".htm");
+  const isText = !isHtml && isTextPreviewable(file.name, file.mime_type);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [previewText, setPreviewText] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // File bytes come through the authenticated API (same origin), never from
   // the object store directly — browsers may not be able to reach it.
@@ -248,8 +254,35 @@ function FileRow({ file }: { file: TaskAttachment }) {
     }
   };
 
-  // Row click: images / HTML open in a new tab; other files download.
+  const togglePreview = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (previewOpen) {
+      setPreviewOpen(false);
+      return;
+    }
+    if (previewText == null) {
+      setBusy(true);
+      try {
+        const blob = await fetchDriveFileBlob(file.id);
+        const text = await blob.text();
+        setPreviewText(text.slice(0, 6000));
+      } catch {
+        setError(true);
+        setBusy(false);
+        return;
+      }
+      setBusy(false);
+    }
+    setPreviewOpen(true);
+  };
+
+  // Row click: text deliverables expand inline; images / HTML open in a new
+  // tab; other files download.
   const open = async () => {
+    if (isText) {
+      void togglePreview();
+      return;
+    }
     if (isImage && blobUrl) {
       window.open(blobUrl, "_blank");
       return;
@@ -300,6 +333,17 @@ function FileRow({ file }: { file: TaskAttachment }) {
           <AlertTriangle size={13} className="shrink-0 text-danger" />
         ) : (
           <span className="flex shrink-0 items-center gap-0.5">
+            {isText && (
+              <button
+                type="button"
+                onClick={togglePreview}
+                aria-label={previewOpen ? `Hide preview of ${file.name}` : `Preview ${file.name}`}
+                title={previewOpen ? "Hide preview" : "Preview content"}
+                className="rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text mk-focus-ring"
+              >
+                {previewOpen ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+            )}
             <button
               type="button"
               onClick={(e) => {
@@ -330,6 +374,14 @@ function FileRow({ file }: { file: TaskAttachment }) {
         itemIds={[file.id]}
         itemLabel={file.name}
       />
+      {previewOpen && previewText != null && (
+        <div className="border-t border-border/50 bg-bg-deep/40 px-3.5 py-2.5">
+          <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words text-[11px] leading-relaxed text-text-muted">
+            {previewText}
+            {previewText.length >= 6000 && "\n… (truncated — download for the full file)"}
+          </pre>
+        </div>
+      )}
       {isImage && blobUrl && (
         <button
           type="button"

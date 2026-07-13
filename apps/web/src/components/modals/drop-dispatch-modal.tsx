@@ -31,6 +31,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useActiveProjectId, useProjectStore } from "@/stores/project-store";
 import { useUiStore } from "@/stores/ui-store";
 import { cn } from "@/lib/cn";
+import { parserForFile } from "@/lib/file-parsers";
 
 type Step = "describe" | "recommend" | "done";
 
@@ -332,14 +333,35 @@ export function DropDispatchModal({
             <div className="flex flex-wrap gap-2">
               {files.map((file, index) => {
                 const Icon = fileIcon(file);
+                const parser = parserForFile(file.name, file.type);
                 return (
                   <span
                     key={`${file.name}-${index}`}
                     className="flex items-center gap-2 rounded-md border border-border bg-surface-raised px-2.5 py-1.5"
+                    title={
+                      parser.method === "native"
+                        ? `Read natively by agents (${parser.label} parser)`
+                        : parser.method === "ai"
+                          ? `Processed with AI (${parser.label})`
+                          : "Format not directly readable — agents will try AI vision"
+                    }
                   >
                     <Icon size={14} className="text-primary-light" />
                     <span className="max-w-[160px] truncate text-[11px] font-medium text-text">{file.name}</span>
                     <span className="text-[10px] text-text-muted">{formatSize(file.size)}</span>
+                    <span
+                      className={cn(
+                        "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                        parser.method === "native"
+                          ? "bg-success/15 text-success"
+                          : parser.method === "ai"
+                            ? "bg-info/15 text-info"
+                            : "bg-warning/15 text-warning",
+                      )}
+                    >
+                      {parser.method === "native" && <Check size={9} strokeWidth={3} />}
+                      {parser.label}
+                    </span>
                   </span>
                 );
               })}

@@ -43,7 +43,7 @@ async def _handle_message(body: dict[str, Any]) -> None:
 
     elif kind == "resume":
         request = ResumeRequest.model_validate(body)
-        if not runner.resume_run(request):
+        if not await runner.resume_run(request):
             log.warning("sqs_resume_no_waiting_run", run_id=request.run_id)
 
     elif kind == "cancel":

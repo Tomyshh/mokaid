@@ -522,12 +522,18 @@ module "worker_service" {
   max_count       = 3
 
   environment = {
-    PHOENIX_API_URL   = "http://${module.alb.alb_dns_name}"
-    AWS_REGION        = var.aws_region
-    AI_RUNS_QUEUE_URL = module.sqs_ai_runs.queue_url
+    PHOENIX_API_URL     = "http://${module.alb.alb_dns_name}"
+    AWS_REGION          = var.aws_region
+    AI_RUNS_QUEUE_URL   = module.sqs_ai_runs.queue_url
+    # LangSmith stays opt-in: set LANGSMITH_API_KEY as an SSM/Secrets override
+    # out-of-band when you want tracing; the worker enables it only if present.
+    LANGSMITH_PROJECT   = "mokaid-ai-worker"
   }
 
   secrets = {
+    # Same ecto:// DSN as the API — the Python worker rewrites the scheme to
+    # postgresql:// for psycopg / LangGraph checkpoints (run persistence).
+    DATABASE_URL      = module.rds.database_url_secret_arn
     WORKER_AUTH_TOKEN = module.secrets.secret_arns["worker_auth_token"]
     OPENAI_API_KEY    = module.secrets.secret_arns["openai_api_key"]
     ANTHROPIC_API_KEY = module.secrets.secret_arns["anthropic_api_key"]

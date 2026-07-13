@@ -22,6 +22,7 @@ from pathlib import PurePosixPath
 from typing import Any
 
 import structlog
+from pydantic import BaseModel, Field
 
 from app import llm
 from app.agents import colleagues as colleagues_mod
@@ -37,6 +38,24 @@ log = structlog.get_logger()
 DELIVERABLES_DIR = "/deliverables/"
 MEMORIES_DIR = "/memories/"
 RECURSION_LIMIT = 100
+
+class MissionLearnings(BaseModel):
+    """Structured post-mission memory consolidation."""
+
+    worth_remembering: bool = Field(
+        description="False when the mission produced nothing reusable to remember."
+    )
+    facts: list[str] = Field(
+        default_factory=list,
+        description="Domain facts discovered during the mission (verified, reusable).",
+    )
+    approach: str = Field(
+        default="", description="The approach that worked, in one or two sentences."
+    )
+    pitfalls: list[str] = Field(
+        default_factory=list, description="Pitfalls or mistakes to avoid next time."
+    )
+
 
 _MIME_BY_EXT = {
     ".md": "text/markdown",
@@ -260,27 +279,36 @@ class _Engine:
         if not requires_approval(tool_name):
             return True, tool_input
 
-        risk = risk_for_tool(tool_name)
-        self.state.status = RunStatus.WAITING_FOR_APPROVAL
-        self.state.pending_tool = ToolCall(tool=tool_name, input=tool_input, risk=risk)
+        # Recovery path: the worker restarted while this run waited for its
+        # approval, and the resume endpoint seeded the human decision before
+        # re-attaching to the checkpointed thread. Apply it directly instead
+        # of opening a duplicate approval request.
+        from app.agents import runner as runner_mod
 
-        created = await self.phoenix.request_approval(
-            self.request.run_id,
-            tool_name,
-            tool_input,
-            risk.value,
-            proposed_action=_describe_action(tool_name, tool_input),
-        )
-        if created is None:
-            raise RuntimeError(f"could not create the approval request for {tool_name}")
+        decision = runner_mod.take_seeded_decision(self.request.run_id)
 
-        await self.phoenix.update_run_status(self.request.run_id, self.state.status.value)
-        log.info("deep_run_waiting_approval", run_id=self.request.run_id, tool=tool_name)
+        if decision is None:
+            risk = risk_for_tool(tool_name)
+            self.state.status = RunStatus.WAITING_FOR_APPROVAL
+            self.state.pending_tool = ToolCall(tool=tool_name, input=tool_input, risk=risk)
 
-        decision = await self.wait_for_decision(self.request.run_id)
-        self.state.pending_tool = None
-        self.state.status = RunStatus.RUNNING
-        await self.phoenix.update_run_status(self.request.run_id, self.state.status.value)
+            created = await self.phoenix.request_approval(
+                self.request.run_id,
+                tool_name,
+                tool_input,
+                risk.value,
+                proposed_action=_describe_action(tool_name, tool_input),
+            )
+            if created is None:
+                raise RuntimeError(f"could not create the approval request for {tool_name}")
+
+            await self.phoenix.update_run_status(self.request.run_id, self.state.status.value)
+            log.info("deep_run_waiting_approval", run_id=self.request.run_id, tool=tool_name)
+
+            decision = await self.wait_for_decision(self.request.run_id)
+            self.state.pending_tool = None
+            self.state.status = RunStatus.RUNNING
+            await self.phoenix.update_run_status(self.request.run_id, self.state.status.value)
 
         if decision.decision == "rejected":
             return False, tool_input
@@ -413,8 +441,10 @@ class _Engine:
             )
 
         async def extract_document_text(file_url: str = "", original_filename: str = "") -> Any:
-            """Extracts the text of a PDF or document file. Pass the attached
-            file's download_url as file_url when known."""
+            """Extracts the text of a document file: PDF, Word (docx), Excel
+            (xlsx/xls — sheets come back as markdown tables), PowerPoint
+            (pptx), RTF, CSV, plain text. Pass the attached file's
+            download_url as file_url when known."""
             return await engine._run_tool(
                 "extract_document_text",
                 {"file_url": file_url, "original_filename": original_filename},
@@ -629,9 +659,11 @@ class _Engine:
     async def _save_mission_memory(
         self, final_state: dict[str, Any], artifacts: list[str], summary: str
     ) -> None:
-        """Auto-ingests a "mission memory" (what was asked, what was delivered)
-        as agent-scoped knowledge, even when the agent wrote no /memories/ file
-        itself — every mission enriches the employee's vectorized experience."""
+        """Auto-ingests a "mission memory" as agent-scoped knowledge, even when
+        the agent wrote no /memories/ file itself — every mission enriches the
+        employee's vectorized experience. A structured consolidation pass
+        distills reusable learnings (facts, approach, pitfalls) instead of
+        archiving the raw closing message."""
         if not self.request.agent_id or not summary:
             return
 
@@ -641,40 +673,102 @@ class _Engine:
         if wrote_memories:
             return  # The agent's own notes are richer than an auto-summary.
 
-        parts = [f"Mission: {self.request.task_title or 'Untitled'}", "", summary]
-        if artifacts:
-            parts += ["", "Deliverables: " + ", ".join(artifacts[:10])]
-        if self.consultations:
-            consulted = ", ".join(c["colleague"] for c in self.consultations)
-            parts += [f"Consulted colleagues: {consulted}"]
+        content = await self._consolidate_learnings(artifacts, summary)
+        if content is None:
+            # Consolidation judged there was nothing reusable to remember.
+            return
 
         try:
             await self.phoenix.save_agent_memory(
                 self.request.workspace_id,
                 self.request.agent_id,
                 f"Souvenir — {self.request.task_title or 'mission'}",
-                "\n".join(parts),
+                content,
             )
         except Exception as exc:  # noqa: BLE001 — memory is a bonus
             log.warning("mission_memory_failed", run_id=self.request.run_id, error=str(exc))
 
+    async def _consolidate_learnings(self, artifacts: list[str], summary: str) -> str | None:
+        """Distills the mission into a structured, retrieval-friendly memory.
+        Falls back to a plain summary when the LLM pass fails; returns None
+        when there is genuinely nothing worth remembering."""
+        fallback_parts = [f"Mission: {self.request.task_title or 'Untitled'}", "", summary]
+        if artifacts:
+            fallback_parts += ["", "Deliverables: " + ", ".join(artifacts[:10])]
+        if self.consultations:
+            consulted = ", ".join(c["colleague"] for c in self.consultations)
+            fallback_parts += [f"Consulted colleagues: {consulted}"]
+        fallback = "\n".join(fallback_parts)
+
+        tools_used = list(dict.fromkeys(c.tool for c in self.state.tool_calls))[:12]
+
+        try:
+            learnings: MissionLearnings = await llm.chat_structured(
+                system=(
+                    "You consolidate an AI employee's mission into long-term memory. "
+                    "Extract only REUSABLE learnings: domain facts discovered, the "
+                    "approach that worked, pitfalls to avoid, and user/workspace "
+                    "preferences observed. Write in the language of the mission. "
+                    "Set worth_remembering=false for trivial missions with nothing "
+                    "reusable. Never invent facts."
+                ),
+                user=(
+                    f"Mission: {self.request.task_title or 'Untitled'}\n"
+                    f"Brief: {self.request.task_description or '(none)'}\n"
+                    f"Closing summary: {summary}\n"
+                    f"Tools used: {', '.join(tools_used) or '(none)'}\n"
+                    f"Deliverables: {', '.join(artifacts[:10]) or '(none)'}\n"
+                    f"Colleagues consulted: "
+                    f"{', '.join(c['colleague'] for c in self.consultations) or '(none)'}"
+                ),
+                schema=MissionLearnings,
+                usage=self.ctx.usage,
+                max_tokens=700,
+            )
+        except Exception as exc:  # noqa: BLE001 — plain fallback keeps memory flowing
+            log.warning("learning_consolidation_failed", run_id=self.request.run_id, error=str(exc))
+            return fallback
+
+        if not learnings.worth_remembering:
+            return None
+
+        lines = [f"Mission: {self.request.task_title or 'Untitled'}"]
+        if learnings.facts:
+            lines += ["", "Faits / Facts:"] + [f"- {fact}" for fact in learnings.facts[:8]]
+        if learnings.approach:
+            lines += ["", f"Approche / Approach: {learnings.approach}"]
+        if learnings.pitfalls:
+            lines += ["", "Pièges / Pitfalls:"] + [f"- {p}" for p in learnings.pitfalls[:6]]
+        if artifacts:
+            lines += ["", "Deliverables: " + ", ".join(artifacts[:10])]
+        return "\n".join(lines)
+
     # ---------- Main loop ----------
 
-    async def run(self) -> dict[str, Any]:
+    async def run(self, resume: bool = False) -> dict[str, Any]:
         from deepagents import create_deep_agent
         from langchain_core.callbacks import UsageMetadataCallbackHandler
+
+        from app import persistence
+
+        # Postgres checkpointer (thread_id = run_id): the graph state survives
+        # worker restarts, so paused approvals can re-attach and continue.
+        checkpointer = await persistence.get_checkpointer()
 
         agent = create_deep_agent(
             model=_build_model(),
             tools=self._build_tools(),
             system_prompt=_system_prompt(self.request),
+            checkpointer=checkpointer,
         )
 
         usage_handler = UsageMetadataCallbackHandler()
-        config = {
+        config: dict[str, Any] = {
             "recursion_limit": RECURSION_LIMIT,
             "callbacks": [usage_handler],
         }
+        if checkpointer is not None:
+            config["configurable"] = {"thread_id": self.request.run_id}
 
         instruction = (
             self.request.input.get("instruction")
@@ -683,10 +777,17 @@ class _Engine:
             or "Complete the mission described in your instructions."
         )
 
+        # Resume: input=None continues the checkpointed thread from where it
+        # stopped (the pending tool node re-executes and consumes the seeded
+        # approval decision).
+        graph_input: Any = {"messages": [{"role": "user", "content": instruction}]}
+        if resume and checkpointer is not None:
+            graph_input = None
+
         final_state: dict[str, Any] = {}
         try:
             async for chunk in agent.astream(
-                {"messages": [{"role": "user", "content": instruction}]},
+                graph_input,
                 stream_mode="values",
                 config=config,
             ):
@@ -769,6 +870,7 @@ async def execute(
     toolbox: McpToolbox,
     mcp_tools: list[dict[str, Any]],
     wait_for_decision: Callable[[str], Awaitable[Any]],
+    resume: bool = False,
 ) -> dict[str, Any]:
     """Runs the mission with the deep-agent engine. Raises on fatal errors
     (the caller handles run failure); cancellation propagates as usual.
@@ -778,4 +880,4 @@ async def execute(
     that are genuinely stuck.
     """
     engine = _Engine(request, ctx, state, phoenix, toolbox, mcp_tools, wait_for_decision)
-    return await engine.run()
+    return await engine.run(resume=resume)

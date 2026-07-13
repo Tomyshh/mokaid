@@ -13,9 +13,10 @@ control line out of a token stream.
 
 import re
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 import structlog
+from pydantic import BaseModel, Field
 
 from app import llm
 from app.clients.phoenix import PhoenixClient
@@ -23,6 +24,26 @@ from app.clients.phoenix import PhoenixClient
 log = structlog.get_logger()
 
 _FLUSH_CHARS = 24
+
+
+class ChatDecision(BaseModel):
+    """Structured routing decision for a teammate's DM."""
+
+    kind: Literal["chat", "task"] = Field(
+        description=(
+            "'chat' for conversation (questions, status checks, small talk, "
+            "questions about attached files); 'task' when the teammate wants "
+            "a produced deliverable saved as a file."
+        )
+    )
+    instruction: str = Field(
+        default="",
+        description="Self-contained one-line brief when kind=task, else empty.",
+    )
+    language: Literal["fr", "en"] = Field(
+        description="Language of the teammate's latest message."
+    )
+
 
 _DECIDE_SYSTEM = """You are routing a teammate's DM for an AI employee.
 
@@ -33,13 +54,6 @@ Decide whether the latest teammate message is:
 (b) an actionable work request — they want a PRODUCED deliverable
     (document, report, website/landing page, analysis, edited image,
     transcription…) that should be saved as a file.
-
-Respond with JSON only:
-{{
-  "kind": "chat" | "task",
-  "instruction": string,   // self-contained brief when kind=task, else ""
-  "language": "fr" | "en"  // language of the teammate's latest message
-}}
 
 Rules:
 - Use "task" ONLY when they clearly want a saved deliverable an AI employee
@@ -126,15 +140,18 @@ def _language_name(code: str) -> str:
 async def _decide(
     thread: str, latest: str, usage: llm.UsageTracker | None = None
 ) -> dict[str, Any]:
-    """Structured chat-vs-task decision, never mixed into the visible reply."""
+    """Structured chat-vs-task decision, never mixed into the visible reply.
+    Provider-enforced Pydantic output (with_structured_output) — no JSON
+    parsing out of free text."""
     language = detect_language(latest)
     try:
-        result = await llm.chat_json(
+        decision: ChatDecision = await llm.chat_structured(
             system=_DECIDE_SYSTEM,
             user=(
                 f"Latest teammate message:\n{latest}\n\n"
                 f"Recent thread (most recent last):\n{thread}"
             ),
+            schema=ChatDecision,
             usage=usage,
             max_tokens=250,
             quality="fast",
@@ -143,16 +160,10 @@ async def _decide(
         log.warning("direct_chat_decide_failed", error=str(exc))
         return {"kind": "chat", "instruction": "", "language": language}
 
-    kind = str(result.get("kind") or "chat").strip().lower()
-    if kind not in ("chat", "task"):
-        kind = "chat"
-    instruction = str(result.get("instruction") or "").strip()
-    lang = str(result.get("language") or language).strip().lower()
-    if lang not in ("fr", "en"):
-        lang = language
-    if kind == "task" and not instruction:
+    instruction = decision.instruction.strip()
+    if decision.kind == "task" and not instruction:
         instruction = latest
-    return {"kind": kind, "instruction": instruction, "language": lang}
+    return {"kind": decision.kind, "instruction": instruction, "language": decision.language}
 
 
 async def _stream_reply(

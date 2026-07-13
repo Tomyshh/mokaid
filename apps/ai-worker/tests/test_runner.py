@@ -42,7 +42,7 @@ async def test_high_risk_tool_waits_for_approval_then_runs(phoenix):
     assert state.pending_tool is not None
     assert state.pending_tool.tool == "send_email"
 
-    assert runner.resume_run(ResumeRequest(run_id="run-hi", decision="approved"))
+    assert await runner.resume_run(ResumeRequest(run_id="run-hi", decision="approved"))
     state = await task
 
     assert state.status == RunStatus.COMPLETED
@@ -62,7 +62,7 @@ async def test_rejected_tool_is_skipped(phoenix):
         if state and state.status == RunStatus.WAITING_FOR_APPROVAL:
             break
 
-    assert runner.resume_run(ResumeRequest(run_id="run-rej", decision="rejected"))
+    assert await runner.resume_run(ResumeRequest(run_id="run-rej", decision="rejected"))
     state = await task
 
     assert state.status == RunStatus.COMPLETED
@@ -72,7 +72,7 @@ async def test_rejected_tool_is_skipped(phoenix):
 
 
 async def test_resume_unknown_run_returns_false():
-    assert runner.resume_run(ResumeRequest(run_id="missing", decision="approved")) is False
+    assert await runner.resume_run(ResumeRequest(run_id="missing", decision="approved")) is False
 
 
 async def test_run_posts_conversational_acknowledgement(phoenix):
@@ -86,7 +86,7 @@ async def test_run_posts_conversational_acknowledgement(phoenix):
 
 
 async def test_deep_website_forces_generate_and_completes(phoenix, monkeypatch):
-    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn):
+    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn, resume=False):
         return {"summary": "Besoin de précisions ?", "artifacts": []}
 
     async def fake_force(request, ctx, state, tool_name):
@@ -131,7 +131,7 @@ async def test_deep_website_forces_generate_and_completes(phoenix, monkeypatch):
 
 
 async def test_deep_producer_without_artifact_fails(phoenix, monkeypatch):
-    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn):
+    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn, resume=False):
         state.tool_calls.append(
             ToolCall(tool="search_knowledge", input={"query": "x"}, output={"chunks": []})
         )
@@ -164,7 +164,7 @@ async def test_deep_producer_without_artifact_fails(phoenix, monkeypatch):
 
 
 async def test_deep_analysis_without_file_waits_for_user(phoenix, monkeypatch):
-    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn):
+    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn, resume=False):
         return {"summary": "Need the file", "artifacts": []}
 
     monkeypatch.setattr(runner.deep_runner, "is_available", lambda: True)
@@ -209,7 +209,7 @@ def test_is_refusal_detects_ethics_and_policy_messages():
 
 
 async def test_deep_refusal_without_tools_fails(phoenix, monkeypatch):
-    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn):
+    async def fake_deep(request, ctx, state, phoenix_client, toolbox, mcp_tools, wait_fn, resume=False):
         return {
             "summary": (
                 "I understand the request, but I cannot help with this task "

@@ -98,14 +98,16 @@ def test_producer_tool_failed_without_file():
 
 @pytest.mark.asyncio
 async def test_decide_returns_structured_task(monkeypatch):
-    async def fake_json(**_kwargs):
-        return {
-            "kind": "task",
-            "instruction": "Créer un site internet pour résumer la semaine",
-            "language": "fr",
-        }
+    from app.agents.direct_chat import ChatDecision
 
-    monkeypatch.setattr("app.agents.direct_chat.llm.chat_json", fake_json)
+    async def fake_structured(**_kwargs):
+        return ChatDecision(
+            kind="task",
+            instruction="Créer un site internet pour résumer la semaine",
+            language="fr",
+        )
+
+    monkeypatch.setattr("app.agents.direct_chat.llm.chat_structured", fake_structured)
     decision = await _decide("prev", "Tu peux me créer un site internet ?")
     assert decision == {
         "kind": "task",
@@ -115,11 +117,11 @@ async def test_decide_returns_structured_task(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_decide_malformed_falls_back_to_chat(monkeypatch):
-    async def fake_json(**_kwargs):
-        return {"kind": "weird", "instruction": "", "language": "xx"}
+async def test_decide_failure_falls_back_to_chat(monkeypatch):
+    async def fake_structured(**_kwargs):
+        raise ValueError("structured output parse failed")
 
-    monkeypatch.setattr("app.agents.direct_chat.llm.chat_json", fake_json)
+    monkeypatch.setattr("app.agents.direct_chat.llm.chat_structured", fake_structured)
     decision = await _decide("prev", "Tu peux me créer un site internet ?")
     assert decision["kind"] == "chat"
     assert decision["language"] == "fr"

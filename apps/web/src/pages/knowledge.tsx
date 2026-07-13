@@ -28,6 +28,20 @@ const statusTone: Record<string, "success" | "warning" | "muted" | "danger" | "d
   failed: "danger",
 };
 
+const indexingTone: Record<string, "success" | "warning" | "muted" | "danger" | "default"> = {
+  indexed: "success",
+  indexing: "warning",
+  failed: "danger",
+  not_indexed: "muted",
+};
+
+const indexingLabel: Record<string, string> = {
+  indexed: "indexed",
+  indexing: "indexing…",
+  failed: "failed",
+  not_indexed: "not indexed",
+};
+
 export function KnowledgePage() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -168,8 +182,8 @@ export function KnowledgePage() {
                         <Badge tone={statusTone[item.status] ?? "default"}>{item.status}</Badge>
                       </td>
                       <td className="px-3 py-3">
-                        <Badge tone={item.indexing_status === "indexed" ? "success" : "muted"}>
-                          {item.indexing_status.replace("_", " ")}
+                        <Badge tone={indexingTone[item.indexing_status] ?? "muted"}>
+                          {indexingLabel[item.indexing_status] ?? item.indexing_status.replace("_", " ")}
                         </Badge>
                       </td>
                       <td className="px-5 py-3 text-text-muted">

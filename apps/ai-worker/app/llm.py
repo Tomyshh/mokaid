@@ -309,6 +309,57 @@ async def chat_json(
         return {}
 
 
+async def chat_structured(
+    system: str,
+    user: str,
+    schema: type,
+    usage: UsageTracker | None = None,
+    max_tokens: int = 1500,
+    quality: Quality = "fast",
+) -> Any:
+    """Strongly-typed structured output (Pydantic) via LangChain's
+    `with_structured_output` — provider-enforced tool calling instead of
+    parsing JSON out of free text. Raises when parsing fails so callers can
+    fall back explicitly."""
+    settings = get_settings()
+
+    if _use_anthropic():
+        from langchain_anthropic import ChatAnthropic
+
+        model_name = _anthropic_model(quality)
+        model = ChatAnthropic(
+            model=model_name,
+            api_key=settings.anthropic_api_key,
+            max_tokens=max_tokens,
+        )
+    else:
+        from langchain_openai import ChatOpenAI
+
+        model_name = settings.openai_model
+        model = ChatOpenAI(
+            model=model_name,
+            api_key=settings.openai_api_key,
+            use_responses_api=False,
+        )
+
+    structured = model.with_structured_output(schema, include_raw=True)
+    result = await structured.ainvoke([("system", system), ("human", user)])
+
+    raw = result.get("raw")
+    if usage and raw is not None and getattr(raw, "usage_metadata", None):
+        meta = raw.usage_metadata
+        usage.add(
+            model_name,
+            int(meta.get("input_tokens", 0)),
+            int(meta.get("output_tokens", 0)),
+        )
+
+    parsed = result.get("parsed")
+    if parsed is None:
+        raise ValueError(f"structured output parse failed: {result.get('parsing_error')}")
+    return parsed
+
+
 async def vision(
     system: str,
     user_text: str,

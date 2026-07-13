@@ -1,4 +1,5 @@
 import asyncio
+import os
 from contextlib import asynccontextmanager
 
 import structlog
@@ -17,8 +18,22 @@ from app.tools.registry import list_tools
 log = structlog.get_logger()
 
 
+def _configure_langsmith() -> None:
+    """Env-gated LangSmith tracing: with a key set, every deep-agent run,
+    LLM call and tool call is traced (LangChain picks the env vars up
+    natively). Fully off otherwise — zero overhead."""
+    settings = get_settings()
+    if not settings.langsmith_api_key:
+        return
+    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault("LANGSMITH_API_KEY", settings.langsmith_api_key)
+    os.environ.setdefault("LANGSMITH_PROJECT", settings.langsmith_project)
+    log.info("langsmith_tracing_enabled", project=settings.langsmith_project)
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    _configure_langsmith()
     consumer: asyncio.Task | None = None
     if get_settings().ai_runs_queue_url:
         consumer = asyncio.create_task(consume_forever())
@@ -143,7 +158,7 @@ async def resume(
 
     if request.run_id != run_id:
         raise HTTPException(status_code=400, detail="run_id mismatch")
-    if not runner.resume_run(request):
+    if not await runner.resume_run(request):
         raise HTTPException(status_code=404, detail="no run waiting for a decision")
     return {"resumed": True}
 

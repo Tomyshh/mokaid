@@ -8,35 +8,67 @@ module is unavailable (no API key, worker down), so this only implements the
 LLM path.
 """
 
-from typing import Any
+from typing import Any, Literal
 
 import structlog
+from pydantic import BaseModel, Field
 
 from app import llm
 
 log = structlog.get_logger()
 
+
+class DispatchTask(BaseModel):
+    title: str = Field(description="Max 80 chars, same language as the instruction.")
+    description: str = Field(description="Actionable brief for the agent.")
+    priority: Literal["low", "medium", "high", "urgent"] = "medium"
+
+
+class SkillSpec(BaseModel):
+    name: str
+    level: int = Field(default=50, ge=0, le=100)
+
+
+class CustomAgentSpec(BaseModel):
+    display_name: str
+    role_title: str
+    department: str = ""
+    skills: list[SkillSpec] = Field(default_factory=list)
+
+
+class AgentAlternative(BaseModel):
+    agent_id: str
+    confidence: int = Field(default=0, ge=0, le=100)
+    reason: str = ""
+
+
+class DispatchRecommendation(BaseModel):
+    mode: Literal["existing_agent", "custom_agent", "user_choice"]
+    agent_id: str | None = None
+    confidence: int = Field(default=50, ge=0, le=100)
+    reason: str = Field(
+        default="", description="1-2 sentences, user-facing, mention the agent by name."
+    )
+    alternatives: list[AgentAlternative] = Field(default_factory=list)
+    custom_agent: CustomAgentSpec | None = None
+
+
+class McpSuggestion(BaseModel):
+    server_key: str
+    reason: str = Field(default="", description="User-facing, explain the speedup.")
+
+
+class DispatchAnalysis(BaseModel):
+    """Full triage decision: task framing, agent routing, MCP suggestions."""
+
+    task: DispatchTask
+    recommendation: DispatchRecommendation
+    mcp_suggestions: list[McpSuggestion] = Field(default_factory=list)
+
+
 _DISPATCH_SYSTEM = """You are the dispatch coordinator of a team of AI agents inside a
 work workspace. A user dropped files and/or typed an instruction. Decide who should
 handle it.
-
-Respond with a single JSON object:
-{
-  "task": {"title": string (max 80 chars, same language as the instruction),
-           "description": string (actionable brief for the agent),
-           "priority": "low"|"medium"|"high"|"urgent"},
-  "recommendation": {
-    "mode": "existing_agent" | "custom_agent" | "user_choice",
-    "agent_id": string|null,
-    "confidence": integer 0-100,
-    "reason": string (1-2 sentences, user-facing, mention the agent by name),
-    "alternatives": [{"agent_id": string, "confidence": integer, "reason": string}],
-    "custom_agent": {"display_name": string, "role_title": string,
-                     "department": string,
-                     "skills": [{"name": string, "level": integer 0-100}]} | null
-  },
-  "mcp_suggestions": [{"server_key": string, "reason": string (user-facing, explain the speedup)}]
-}
 
 Decision rules:
 - "existing_agent": one agent clearly has the right skills. Do NOT propose a
@@ -101,18 +133,33 @@ async def analyze(payload: dict[str, Any]) -> dict[str, Any]:
         or "(none)"
     )
 
-    result = await llm.chat_json(
-        system=_DISPATCH_SYSTEM,
-        user=(
-            f"Instruction: {payload.get('instruction') or '(none — files only)'}\n\n"
-            f"Dropped files:\n{files_block}\n\n"
-            f"Agent roster:\n{agents_block}\n\n"
-            f"MCP servers already connected to the workspace:\n{connected_block}\n\n"
-            f"MCP servers available in the catalog (not connected):\n{available_block}"
-        ),
-        usage=usage,
-        max_tokens=900,
+    user_block = (
+        f"Instruction: {payload.get('instruction') or '(none — files only)'}\n\n"
+        f"Dropped files:\n{files_block}\n\n"
+        f"Agent roster:\n{agents_block}\n\n"
+        f"MCP servers already connected to the workspace:\n{connected_block}\n\n"
+        f"MCP servers available in the catalog (not connected):\n{available_block}"
     )
+
+    # Provider-enforced structured output (Pydantic). chat_json stays as a
+    # fallback so a schema hiccup can't take intelligent dispatch down.
+    try:
+        analysis: DispatchAnalysis = await llm.chat_structured(
+            system=_DISPATCH_SYSTEM,
+            user=user_block,
+            schema=DispatchAnalysis,
+            usage=usage,
+            max_tokens=900,
+        )
+        result = analysis.model_dump()
+    except Exception as exc:  # noqa: BLE001
+        log.warning("dispatch_structured_failed", error=str(exc))
+        result = await llm.chat_json(
+            system=_DISPATCH_SYSTEM,
+            user=user_block,
+            usage=usage,
+            max_tokens=900,
+        )
 
     log.info(
         "dispatch_analyzed",

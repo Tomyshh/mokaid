@@ -372,6 +372,19 @@ export function useCreateKnowledge() {
   });
 }
 
+export function useUploadKnowledgeFiles() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ files, categoryId }: { files: File[]; categoryId?: string }) => {
+      const formData = new FormData();
+      for (const file of files) formData.append("files[]", file);
+      if (categoryId) formData.append("category_id", categoryId);
+      return apiUpload<Envelope<KnowledgeItem[]>>("/api/knowledge/upload", formData);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["knowledge"] }),
+  });
+}
+
 /* ---------- Drive ---------- */
 
 export function useDriveItems(parentId: string | null) {

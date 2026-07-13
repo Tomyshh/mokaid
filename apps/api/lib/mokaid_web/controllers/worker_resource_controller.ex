@@ -16,22 +16,25 @@ defmodule MokaidWeb.WorkerResourceController do
     limit = min(params["limit"] || 5, 20)
 
     # Three-level retrieval: general knowledge + the run's project + agent.
+    # Hybrid: the raw query text feeds the lexical (full-text) branch.
     results =
       Knowledge.search_chunks(workspace_id, embedding, limit,
         project_id: presence(params["project_id"]),
-        agent_id: presence(params["agent_id"])
+        agent_id: presence(params["agent_id"]),
+        query: params["query"]
       )
 
     json(conn, %{
       data:
-        Enum.map(results, fn %{chunk: chunk, item_title: title, scope: scope, distance: distance} ->
+        Enum.map(results, fn %{chunk: chunk, item_title: title, scope: scope} = result ->
           %{
             knowledge_item_id: chunk.knowledge_item_id,
             title: title,
             content: chunk.content,
             chunk_index: chunk.chunk_index,
             scope: scope,
-            score: 1.0 - distance
+            score: result.distance && 1.0 - result.distance,
+            rrf_score: result.score
           }
         end)
     })
@@ -60,6 +63,22 @@ defmodule MokaidWeb.WorkerResourceController do
         conn
         |> put_status(:not_found)
         |> json(%{error: %{code: "not_found", message: "knowledge item not found"}})
+    end
+  end
+
+  @doc "Marks a knowledge item's indexing as failed (unreadable/unsupported file)."
+  def knowledge_failed(conn, %{"id" => id, "workspace_id" => workspace_id} = params) do
+    with %{} = item <- Knowledge.get_item(workspace_id, id),
+         {:ok, updated} <- Knowledge.mark_failed(item, params["error"]) do
+      json(conn, %{data: %{knowledge_item_id: updated.id, indexing_status: "failed"}})
+    else
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "knowledge item not found"}})
+
+      error ->
+        error
     end
   end
 

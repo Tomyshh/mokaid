@@ -74,6 +74,63 @@ defmodule Mokaid.Knowledge do
     end
   end
 
+  @doc """
+  Creates a knowledge item from an uploaded file. The blob is always stored
+  (S3/MinIO); readable text formats also get their content inlined as `body`.
+  Binary formats (PDF, DOCX, XLSX, PPTX…) are indexed asynchronously — the AI
+  worker downloads the file, extracts the text, chunks and embeds it.
+  """
+  def create_from_upload(workspace_id, %Plug.Upload{} = upload, member \\ nil, opts \\ []) do
+    body = inline_body(upload)
+
+    file =
+      case Mokaid.Files.create_from_upload(workspace_id, upload, member) do
+        {:ok, file} -> file
+        {:error, _} -> nil
+      end
+
+    will_index? = body != nil or (file != nil and extractable_filename?(upload.filename))
+
+    create_item(
+      workspace_id,
+      %{
+        "title" => upload.filename,
+        "type" => "file",
+        "agent_id" => opts[:agent_id],
+        "project_id" => opts[:project_id],
+        "category_id" => opts[:category_id],
+        "file_id" => file && file.id,
+        "body" => body,
+        "status" => if(will_index?, do: "processing", else: "published"),
+        "metadata" =>
+          Map.merge(
+            %{
+              "original_filename" => upload.filename,
+              "content_type" => upload.content_type
+            },
+            opts[:metadata] || %{}
+          )
+      },
+      member
+    )
+  end
+
+  # Inline the content of plain-text formats so they're readable immediately;
+  # binary formats go through the worker's extractors instead.
+  @inline_extensions ~w(txt md markdown csv tsv json html htm xml yaml yml)
+
+  defp inline_body(%Plug.Upload{} = upload) do
+    extension = upload.filename |> Path.extname() |> String.trim_leading(".") |> String.downcase()
+
+    with true <- extension in @inline_extensions,
+         {:ok, content} <- File.read(upload.path),
+         true <- String.valid?(content) do
+      content
+    else
+      _ -> nil
+    end
+  end
+
   def update_item(%KnowledgeItem{} = item, attrs) do
     old_body = item.body
 
@@ -88,9 +145,37 @@ defmodule Mokaid.Knowledge do
     end
   end
 
-  defp maybe_enqueue_ingestion(%KnowledgeItem{body: body}) when body in [nil, ""], do: :ok
+  # File formats the AI worker can extract text from (see the worker's
+  # app/memory/extractors.py — keep both lists in sync). Anything else with
+  # no inline body is stored but not indexed.
+  @extractable_extensions ~w(pdf docx xlsx xlsm xls pptx rtf txt md markdown csv tsv json html htm xml yaml yml)
+
+  def extractable_extensions, do: @extractable_extensions
+
+  @doc "True when a filename has a format the AI worker can extract text from."
+  def extractable_filename?(filename) when is_binary(filename) do
+    extension = filename |> Path.extname() |> String.trim_leading(".") |> String.downcase()
+    extension in @extractable_extensions
+  end
+
+  def extractable_filename?(_), do: false
 
   defp maybe_enqueue_ingestion(%KnowledgeItem{} = item) do
+    cond do
+      item.body not in [nil, ""] -> enqueue_ingestion(item)
+      ingestable_file?(item) -> enqueue_ingestion(item)
+      true -> :ok
+    end
+  end
+
+  # A linked file we can extract text from (binary formats: pdf, docx, xlsx…).
+  defp ingestable_file?(%KnowledgeItem{} = item) do
+    filename = item.metadata["original_filename"] || item.title
+
+    (item.file_id != nil or item.drive_item_id != nil) and extractable_filename?(filename)
+  end
+
+  defp enqueue_ingestion(%KnowledgeItem{} = item) do
     item
     |> Ecto.Changeset.change(indexing_status: "indexing")
     |> Repo.update()
@@ -110,6 +195,27 @@ defmodule Mokaid.Knowledge do
 
     with {:ok, updated} <- result do
       Realtime.broadcast_workspace(item.workspace_id, "knowledge.indexed", %{item_id: item.id})
+      {:ok, updated}
+    end
+  end
+
+  def mark_failed(%KnowledgeItem{} = item, error \\ nil) do
+    metadata =
+      if is_binary(error) and error != "",
+        do: Map.put(item.metadata || %{}, "indexing_error", String.slice(error, 0, 500)),
+        else: item.metadata
+
+    result =
+      item
+      |> Ecto.Changeset.change(indexing_status: "failed", status: "failed", metadata: metadata)
+      |> Repo.update()
+
+    with {:ok, updated} <- result do
+      Realtime.broadcast_workspace(item.workspace_id, "knowledge.indexed", %{
+        item_id: item.id,
+        failed: true
+      })
+
       {:ok, updated}
     end
   end
@@ -143,8 +249,18 @@ defmodule Mokaid.Knowledge do
     insert_chunks(item, chunks)
   end
 
+  # Reciprocal Rank Fusion constant (standard value from the literature) and
+  # per-branch candidate pool for hybrid retrieval.
+  @rrf_k 60
+  @candidate_pool 20
+
   @doc """
-  Nearest-neighbor search over knowledge chunks (cosine distance, pgvector).
+  Hybrid search over knowledge chunks: semantic nearest-neighbor (cosine,
+  pgvector HNSW) fused with lexical full-text search (Postgres tsvector) via
+  Reciprocal Rank Fusion. Lexical matching catches exact terms (names, SKUs,
+  legal references…) that embeddings blur, while the vector half handles
+  paraphrase. When no `:query` text is provided this degrades gracefully to
+  pure semantic search.
 
   Retrieval spans three knowledge levels: general workspace knowledge
   (no project, no agent), plus — when `opts` provide them — the knowledge
@@ -152,16 +268,30 @@ defmodule Mokaid.Knowledge do
   other projects/agents is never leaked into a run.
   """
   def search_chunks(workspace_id, embedding, limit \\ 5, opts \\ []) do
-    vector = Pgvector.new(embedding)
     project_id = Keyword.get(opts, :project_id)
     agent_id = Keyword.get(opts, :agent_id)
+    query_text = presence(Keyword.get(opts, :query))
+
+    pool = max(@candidate_pool, limit)
+
+    semantic = semantic_search(workspace_id, embedding, pool, project_id, agent_id)
+    lexical = lexical_search(workspace_id, query_text, pool, project_id, agent_id)
+
+    fuse_results(semantic, lexical, limit)
+  end
+
+  defp presence(value) when is_binary(value) and value != "", do: value
+  defp presence(_), do: nil
+
+  defp semantic_search(workspace_id, embedding, pool, project_id, agent_id) do
+    vector = Pgvector.new(embedding)
 
     from(c in KnowledgeChunk,
       join: i in assoc(c, :knowledge_item),
       where: c.workspace_id == ^workspace_id and not is_nil(c.embedding),
       where: i.status == "published",
       order_by: cosine_distance(c.embedding, ^vector),
-      limit: ^limit,
+      limit: ^pool,
       select: %{
         chunk: c,
         item_title: i.title,
@@ -176,6 +306,74 @@ defmodule Mokaid.Knowledge do
     )
     |> scope_filter(project_id, agent_id)
     |> Repo.all()
+  end
+
+  defp lexical_search(_workspace_id, nil, _pool, _project_id, _agent_id), do: []
+
+  defp lexical_search(workspace_id, query_text, pool, project_id, agent_id) do
+    from(c in KnowledgeChunk,
+      join: i in assoc(c, :knowledge_item),
+      where: c.workspace_id == ^workspace_id,
+      where: i.status == "published",
+      where:
+        fragment(
+          "to_tsvector('simple', ?) @@ websearch_to_tsquery('simple', ?)",
+          c.content,
+          ^query_text
+        ),
+      order_by: [
+        desc:
+          fragment(
+            "ts_rank(to_tsvector('simple', ?), websearch_to_tsquery('simple', ?))",
+            c.content,
+            ^query_text
+          )
+      ],
+      limit: ^pool,
+      select: %{
+        chunk: c,
+        item_title: i.title,
+        scope:
+          fragment(
+            "CASE WHEN ? IS NOT NULL THEN 'agent' WHEN ? IS NOT NULL THEN 'project' ELSE 'general' END",
+            i.agent_id,
+            i.project_id
+          ),
+        distance: nil
+      }
+    )
+    |> scope_filter(project_id, agent_id)
+    |> Repo.all()
+  end
+
+  # Reciprocal Rank Fusion: each branch contributes 1/(k + rank) per chunk;
+  # chunks found by both branches accumulate both contributions and float up.
+  defp fuse_results(semantic, lexical, limit) do
+    scored =
+      [semantic, lexical]
+      |> Enum.reduce(%{}, fn results, acc ->
+        results
+        |> Enum.with_index(1)
+        |> Enum.reduce(acc, fn {result, rank}, inner ->
+          contribution = 1.0 / (@rrf_k + rank)
+
+          Map.update(
+            inner,
+            result.chunk.id,
+            Map.put(result, :score, contribution),
+            fn existing ->
+              existing
+              |> Map.update!(:score, &(&1 + contribution))
+              |> Map.update(:distance, result.distance, &(&1 || result.distance))
+            end
+          )
+        end)
+      end)
+
+    scored
+    |> Map.values()
+    |> Enum.sort_by(& &1.score, :desc)
+    |> Enum.take(limit)
   end
 
   defp scope_filter(query, nil, nil) do

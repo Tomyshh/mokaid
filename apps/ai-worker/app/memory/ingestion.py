@@ -1,6 +1,9 @@
 """Document ingestion pipeline.
 
-fetch text -> chunk -> embed (OpenAI text-embedding-3-small, 1536 dims) ->
+fetch text (inline, or downloaded + extracted from a presigned file URL) ->
+structure-aware chunking (LangChain RecursiveCharacterTextSplitter, markdown
+separators first) -> contextual enrichment (document title prefixed to each
+chunk before embedding) -> embed (OpenAI text-embedding-3-small, 1536 dims) ->
 POST chunks back to the Phoenix API which stores them in pgvector and marks
 the knowledge item as indexed. Without an OpenAI key the pipeline still
 chunks (embeddings skipped) so dev/tests work offline.
@@ -8,10 +11,12 @@ chunks (embeddings skipped) so dev/tests work offline.
 
 from typing import Any
 
+import httpx
 import structlog
 
 from app import llm
 from app.clients.phoenix import PhoenixClient
+from app.memory import extractors
 
 log = structlog.get_logger()
 
@@ -19,19 +24,93 @@ CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 150
 EMBED_BATCH_SIZE = 64
 
+# Split along document structure first (markdown headings, paragraphs,
+# sentences) so chunks align with semantic boundaries instead of cutting
+# mid-sentence. Our extractors emit markdown headings for DOCX/XLSX/PPTX.
+_SEPARATORS = [
+    "\n## ",
+    "\n### ",
+    "\n\n",
+    "\n",
+    ". ",
+    "? ",
+    "! ",
+    "; ",
+    ", ",
+    " ",
+    "",
+]
+
 
 def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+    """Structure-aware chunking via LangChain's recursive splitter."""
     if not text:
         return []
-    chunks: list[str] = []
-    start = 0
-    while start < len(text):
-        end = min(start + size, len(text))
-        chunks.append(text[start:end])
-        if end == len(text):
-            break
-        start = end - overlap
-    return chunks
+
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=size,
+        chunk_overlap=overlap,
+        separators=_SEPARATORS,
+        keep_separator=True,
+    )
+    return [chunk for chunk in splitter.split_text(text) if chunk.strip()]
+
+
+def contextualize(chunks: list[str], title: str | None) -> list[str]:
+    """Prefix each chunk with its document title before embedding.
+
+    Retrieval quality improves markedly when the embedding carries the
+    document context ("[Document: Q3 accounts] | revenue table…") instead of
+    an anonymous fragment.
+    """
+    clean_title = (title or "").strip()
+    if not clean_title:
+        return chunks
+    prefix = f"[Document: {clean_title[:120]}]\n"
+    return [prefix + chunk for chunk in chunks]
+
+
+async def _download(url: str) -> bytes:
+    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        return resp.content
+
+
+async def _resolve_text(payload: dict[str, Any]) -> tuple[str, str | None]:
+    """Return (text, error). Inline text wins; otherwise download the file
+    from its presigned URL and extract text with the format parsers."""
+    text = (payload.get("text") or "").strip()
+    if text:
+        return text, None
+
+    file_url = (payload.get("file_url") or "").strip()
+    if not file_url:
+        return "", None
+
+    filename = payload.get("filename") or payload.get("original_filename") or ""
+    mime_type = payload.get("mime_type")
+
+    try:
+        data = await _download(file_url)
+    except Exception as exc:
+        log.warning("ingest_download_failed", error=str(exc))
+        return "", f"download failed: {exc}"
+
+    result = extractors.extract_bytes(data, filename=filename, mime_type=mime_type)
+    if result is None:
+        log.warning("ingest_extraction_failed", filename=filename, mime_type=mime_type)
+        return "", f"unsupported or unreadable format: {filename or mime_type or 'unknown'}"
+
+    log.info(
+        "ingest_extracted",
+        filename=filename,
+        format=result.format,
+        chars=len(result.text),
+    )
+    return result.text, None
 
 
 async def ingest_document(
@@ -40,7 +119,19 @@ async def ingest_document(
     """Ingest a knowledge item. Returns chunk/embedding stats."""
     item_id = payload.get("knowledge_item_id")
     workspace_id = payload.get("workspace_id")
-    text = payload.get("text", "")
+
+    text, error = await _resolve_text(payload)
+    if error:
+        if item_id and workspace_id:
+            phoenix = phoenix or PhoenixClient()
+            await phoenix.mark_knowledge_failed(item_id, workspace_id, error)
+        return {
+            "knowledge_item_id": item_id,
+            "chunk_count": 0,
+            "embedded": False,
+            "status": "failed",
+            "error": error,
+        }
 
     chunks = chunk_text(text)
     log.info("document_chunked", item_id=item_id, chunks=len(chunks))
@@ -61,9 +152,11 @@ async def ingest_document(
             "status": "chunked",
         }
 
+    embed_inputs = contextualize(chunks, payload.get("title"))
+
     embeddings: list[list[float]] = []
-    for start in range(0, len(chunks), EMBED_BATCH_SIZE):
-        batch = chunks[start : start + EMBED_BATCH_SIZE]
+    for start in range(0, len(embed_inputs), EMBED_BATCH_SIZE):
+        batch = embed_inputs[start : start + EMBED_BATCH_SIZE]
         embeddings.extend(await llm.embed(batch))
 
     log.info("document_embedded", item_id=item_id, vectors=len(embeddings))

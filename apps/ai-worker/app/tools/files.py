@@ -15,13 +15,30 @@ import structlog
 from PIL import Image, ImageEnhance, ImageFilter
 
 from app import llm
+from app.memory import extractors
 from app.tools.registry import RunContext, tool
 
 log = structlog.get_logger()
 
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff", ".tif", ".ico")
 _AUDIO_EXTS = (".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aac", ".webm", ".mp4", ".mov")
-_DOC_EXTS = (".pdf", ".txt", ".md", ".doc", ".docx", ".rtf", ".csv", ".json")
+_DOC_EXTS = (
+    ".pdf",
+    ".txt",
+    ".md",
+    ".doc",
+    ".docx",
+    ".rtf",
+    ".csv",
+    ".tsv",
+    ".json",
+    ".xlsx",
+    ".xlsm",
+    ".xls",
+    ".pptx",
+    ".html",
+    ".htm",
+)
 
 
 def _mime_matches(mime: str | None, prefixes: tuple[str, ...]) -> bool:
@@ -368,90 +385,15 @@ async def transcribe_audio(params: dict[str, Any], ctx: RunContext) -> Any:
     return {"transcript": transcript, "filename": filename}
 
 
-def _looks_like_text(value: str) -> bool:
-    """True when the string is mostly clean text (not decoded binary).
-
-    A raw PDF/binary decoded as UTF-8 is dominated by control chars and the
-    U+FFFD replacement character — we must never return that as "extracted
-    text": it pollutes the run output and PostgreSQL rejects NUL bytes.
-    """
-    if not value:
-        return False
-    sample = value[:4000]
-    # Replacement chars mark bytes that couldn't be decoded — lots of them
-    # means we decoded binary, not text.
-    if sample.count("�") / len(sample) > 0.1:
-        return False
-    clean = sum(1 for ch in sample if (ch.isprintable() and ch != "�") or ch in "\t\n\r")
-    return clean / len(sample) >= 0.85
-
-
 # Extracted text is truncated so a huge document can't blow the LLM context
 # or the run output payload.
 _MAX_EXTRACTED_CHARS = 20000
 
 
-def _extract_pdf_annotations(doc_bytes: bytes) -> str:
-    """Extract text from PDF annotations (FreeText, stamps, signatures).
-
-    Standard text extraction only reads the page content stream, missing
-    annotations such as FreeText overlays, filled form fields, and digital
-    signature names. This function extracts those separately.
-    """
-    try:
-        import io as _io
-
-        from pypdf import PdfReader
-
-        reader = PdfReader(_io.BytesIO(doc_bytes))
-    except Exception:
-        return ""
-
-    lines: list[str] = []
-    for page_num, page in enumerate(reader.pages, 1):
-        if "/Annots" not in page:
-            continue
-        try:
-            annots_ref = page["/Annots"]
-            annots = (
-                annots_ref.get_object()
-                if hasattr(annots_ref, "get_object")
-                else annots_ref
-            )
-            if not isinstance(annots, list):
-                continue
-        except Exception:
-            continue
-
-        for a in annots:
-            try:
-                ao = a.get_object() if hasattr(a, "get_object") else a
-                subtype = str(ao.get("/Subtype", ""))
-                contents = ao.get("/Contents", "")
-
-                if subtype == "/FreeText" and contents:
-                    lines.append(f"[Page {page_num} annotation] {contents}")
-
-                if str(ao.get("/FT", "")) == "/Sig":
-                    v = ao.get("/V")
-                    if v:
-                        sig = v.get_object() if hasattr(v, "get_object") else v
-                        name = sig.get("/Name", "")
-                        reason = sig.get("/Reason", "")
-                        if name:
-                            lines.append(
-                                f"[Page {page_num} digital signature] Signer: {name}"
-                                + (f", Reason: {reason}" if reason else "")
-                            )
-            except Exception:
-                continue
-
-    return "\n".join(lines)
-
-
 @tool("extract_document_text")
 async def extract_document_text(params: dict[str, Any], ctx: RunContext) -> Any:
-    """Extract text content from a document (PDF, etc.) for further processing."""
+    """Extract text content from a document (PDF, Word, Excel, PowerPoint, RTF,
+    plain text…) for further processing."""
     file_url, resolved_name = resolve_file_url(
         params,
         mime_prefixes=("application/pdf", "text/", "application/msword", "application/vnd"),
@@ -467,50 +409,11 @@ async def extract_document_text(params: dict[str, Any], ctx: RunContext) -> Any:
         return {"error": f"Could not download the document: {exc}"}
 
     filename = resolved_name or params.get("original_filename") or "document"
-    is_pdf = filename.lower().endswith(".pdf") or doc_bytes[:5] == b"%PDF-"
-    text = ""
 
-    # 1) PyMuPDF (best quality) if available.
-    if is_pdf:
-        try:
-            import fitz  # PyMuPDF — optional
+    result = extractors.extract_bytes(doc_bytes, filename=filename)
+    text = result.text if result else ""
 
-            doc = fitz.open(stream=doc_bytes, filetype="pdf")
-            text = "\n\n".join(page.get_text() for page in doc)
-            doc.close()
-        except ImportError:
-            text = ""
-        except Exception as exc:
-            log.warning("pdf_fitz_failed", error=str(exc))
-            text = ""
-
-        # 2) pypdf fallback (pure-python, always available).
-        if not text.strip():
-            try:
-                import io
-
-                from pypdf import PdfReader
-
-                reader = PdfReader(io.BytesIO(doc_bytes))
-                text = "\n\n".join((page.extract_text() or "") for page in reader.pages)
-            except Exception as exc:
-                log.warning("pdf_pypdf_failed", error=str(exc))
-                text = ""
-
-        # 2b) Annotations: FreeText overlays, filled fields, and digital
-        # signatures live outside the page content stream and are invisible
-        # to standard text extraction.
-        annot_text = _extract_pdf_annotations(doc_bytes)
-        if annot_text:
-            text = text + "\n\n--- Annotations & Signatures ---\n" + annot_text
-
-    # 3) Plain-text documents: decode, but only keep it if it reads as text.
-    if not text.strip():
-        decoded = doc_bytes.decode("utf-8", errors="replace")
-        if _looks_like_text(decoded):
-            text = decoded
-
-    # 4) Last resort: OCR the document with vision (never returns binary).
+    # Last resort: OCR the document with vision (never returns binary).
     if not text.strip() and llm.is_configured():
         try:
             img_url = f"data:application/octet-stream;base64,{base64.b64encode(doc_bytes).decode()}"
@@ -530,6 +433,7 @@ async def extract_document_text(params: dict[str, Any], ctx: RunContext) -> Any:
     return {
         "text": text[:_MAX_EXTRACTED_CHARS],
         "filename": filename,
+        "format": result.format if result else "ocr",
         "char_count": len(text),
         "truncated": len(text) > _MAX_EXTRACTED_CHARS,
     }

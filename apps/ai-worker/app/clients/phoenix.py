@@ -144,6 +144,16 @@ class PhoenixClient:
         )
         return result is not None
 
+    async def mark_knowledge_failed(
+        self, knowledge_item_id: str, workspace_id: str, error: str
+    ) -> bool:
+        """Marks a knowledge item's indexing as failed (unreadable file…)."""
+        result = await self._post(
+            f"/api/worker/knowledge/{knowledge_item_id}/failed",
+            {"workspace_id": workspace_id, "error": error},
+        )
+        return result is not None
+
     async def update_task(
         self, workspace_id: str, task_id: str, attrs: dict[str, Any]
     ) -> dict[str, Any] | None:

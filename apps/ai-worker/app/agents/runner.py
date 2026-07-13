@@ -18,6 +18,7 @@ import re
 
 import structlog
 
+from app import persistence
 from app.agents import deep_runner
 from app.agents.acknowledge import post_acknowledgement
 from app.agents.planner import plan_steps
@@ -33,6 +34,10 @@ _RUNS: dict[str, RunState] = {}
 _RESUME_EVENTS: dict[str, asyncio.Event] = {}
 _RESUME_DECISIONS: dict[str, ResumeRequest] = {}
 
+# Human decisions seeded ahead of a recovered run (worker restarted while the
+# run was paused): the approval gate consumes these instead of re-asking.
+_SEEDED_DECISIONS: dict[str, ResumeRequest] = {}
+
 # asyncio task handles of in-flight runs, so a human can abort any mission
 # at any moment (shared by the HTTP endpoint and the SQS consumer).
 _RUN_TASKS: dict[str, asyncio.Task] = {}
@@ -40,6 +45,14 @@ _RUN_TASKS: dict[str, asyncio.Task] = {}
 
 def get_run(run_id: str) -> RunState | None:
     return _RUNS.get(run_id)
+
+
+def seed_decision(request: ResumeRequest) -> None:
+    _SEEDED_DECISIONS[request.run_id] = request
+
+
+def take_seeded_decision(run_id: str) -> ResumeRequest | None:
+    return _SEEDED_DECISIONS.pop(run_id, None)
 
 
 def register_run_task(run_id: str, task: asyncio.Task) -> None:
@@ -57,7 +70,9 @@ def cancel_run_task(run_id: str) -> bool:
     return True
 
 
-async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None) -> RunState:
+async def execute_run(
+    request: RunRequest, phoenix: PhoenixClient | None = None, resume: bool = False
+) -> RunState:
     phoenix = phoenix or PhoenixClient()
     state = RunState(run_id=request.run_id, status=RunStatus.RUNNING)
     _RUNS[request.run_id] = state
@@ -75,7 +90,12 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
     )
 
     await phoenix.update_run_status(request.run_id, RunStatus.RUNNING.value)
-    log.info("run_started", run_id=request.run_id, task_id=request.task_id)
+    log.info("run_started", run_id=request.run_id, task_id=request.task_id, resume=resume)
+
+    # Persist the request so a paused run can be recovered (and re-attached
+    # to its LangGraph checkpoint) after a worker restart.
+    if not resume and persistence.is_configured():
+        await persistence.save_run_request(request.run_id, request.model_dump(mode="json"))
 
     # Granted MCP servers: discover their tools so the planner can decide,
     # on its own, whether any external tool helps with this task.
@@ -85,13 +105,18 @@ async def execute_run(request: RunRequest, phoenix: PhoenixClient | None = None)
     # Conversational acknowledgement in the task thread. Skipped for tasks
     # launched from the chat dock — that thread already got its "on it" reply,
     # and we don't want a second conversation living in the task menu.
-    if not request.input.get("chat_task"):
+    if not resume and not request.input.get("chat_task"):
         await post_acknowledgement(request, phoenix, ctx.usage, mcp_tools)
 
     # Deep-agent engine (LangChain deepagents): the default whenever an LLM
     # key is configured. The legacy loop below remains the offline path.
     if deep_runner.is_available():
-        return await _execute_deep(request, state, ctx, phoenix, toolbox, mcp_tools)
+        final = await _execute_deep(
+            request, state, ctx, phoenix, toolbox, mcp_tools, resume=resume
+        )
+        if final.status in (RunStatus.COMPLETED, RunStatus.FAILED):
+            await persistence.delete_run_request(request.run_id)
+        return final
 
     try:
         for step in await plan_steps(request, ctx.usage, mcp_tools):
@@ -205,6 +230,7 @@ async def _execute_deep(
     phoenix: PhoenixClient,
     toolbox: McpToolbox,
     mcp_tools: list,
+    resume: bool = False,
 ) -> RunState:
     """Runs the mission on the deepagents engine and reports the outcome."""
     from app.agents.mission_kind import (
@@ -217,7 +243,7 @@ async def _execute_deep(
 
     try:
         output = await deep_runner.execute(
-            request, ctx, state, phoenix, toolbox, mcp_tools, _wait_for_decision
+            request, ctx, state, phoenix, toolbox, mcp_tools, _wait_for_decision, resume=resume
         )
 
         # Legacy artifact extraction still applies: draft_document /
@@ -631,10 +657,34 @@ async def _wait_for_decision(run_id: str) -> ResumeRequest:
     return _RESUME_DECISIONS.pop(run_id)
 
 
-def resume_run(request: ResumeRequest) -> bool:
+async def resume_run(request: ResumeRequest) -> bool:
+    """Delivers a human approval decision to its paused run.
+
+    Normal path: the run's asyncio task is waiting on an in-memory event.
+    Recovery path: the worker restarted since the approval was requested —
+    when run persistence is configured, the saved RunRequest is reloaded, the
+    decision is seeded, and the mission re-attaches to its LangGraph Postgres
+    checkpoint and continues instead of being lost.
+    """
     event = _RESUME_EVENTS.get(request.run_id)
-    if event is None:
+    if event is not None:
+        _RESUME_DECISIONS[request.run_id] = request
+        event.set()
+        return True
+
+    payload = await persistence.load_run_request(request.run_id)
+    if payload is None:
         return False
-    _RESUME_DECISIONS[request.run_id] = request
-    event.set()
+
+    try:
+        run_request = RunRequest.model_validate(payload)
+    except Exception as exc:  # noqa: BLE001 — corrupt payload: fall back to Phoenix recovery
+        log.warning("run_recovery_invalid_payload", run_id=request.run_id, error=str(exc))
+        return False
+
+    seed_decision(request)
+    log.info("run_recovery_started", run_id=request.run_id)
+
+    task = asyncio.create_task(execute_run(run_request, resume=True))
+    register_run_task(request.run_id, task)
     return True

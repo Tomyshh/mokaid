@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     s3_access_key_id: str = "mokaid"
     s3_secret_access_key: str = "mokaid_dev_password"
 
+    # Postgres DSN for run persistence (LangGraph checkpointer + saved run
+    # requests). Empty = in-memory only (runs don't survive a worker restart).
+    database_url: str = ""
+
+    # LangSmith tracing — set langsmith_api_key (and optionally
+    # langsmith_project) to trace every agent run. Fully off otherwise.
+    langsmith_api_key: str = ""
+    langsmith_project: str = "mokaid-ai-worker"
+
     # SQS consumption (production). Empty in dev: dispatch happens over HTTP.
     ai_runs_queue_url: str = ""
     aws_region: str = ""
