@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     anthropic_fast_model: str = "claude-haiku-4-5"
     anthropic_smart_model: str = "claude-sonnet-5"
 
+    # DeepSeek — cheapest tier for bulk/background work (extraction,
+    # summaries, classification) via the OpenAI-compatible API. V4-Flash is
+    # ~50× cheaper than Claude on output tokens.
+    deepseek_api_key: str = ""
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_fast_model: str = "deepseek-v4-flash"
+    deepseek_smart_model: str = "deepseek-v4-pro"
+
     s3_endpoint: str = "http://localhost:9000"
     s3_access_key_id: str = "mokaid"
     s3_secret_access_key: str = "mokaid_dev_password"

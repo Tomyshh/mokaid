@@ -1,13 +1,17 @@
-"""Multi-provider LLM wrapper: text goes to Anthropic (Claude) when a key is
-configured, with OpenAI as fallback; embeddings, images and audio stay on
-OpenAI. Every helper degrades gracefully when no API key is configured so the
-worker keeps functioning (deterministic fallbacks) in offline dev/tests.
+"""Multi-provider LLM wrapper with 3-tier cost routing.
 
-Model routing keeps quality high and unit costs low:
-- "fast"  → claude-haiku-4-5 — conversational replies, acknowledgements,
-  triage, summaries.
-- "smart" → claude-sonnet-5 — mission planning and customer-visible
-  deliverables (documents, websites).
+Provider priority (text):
+  1. DeepSeek — cheapest, used for "fast" quality when configured (chat
+     replies, triage, extraction, summaries).  V4-Flash output is ~$0.28/M
+     vs Claude Haiku ~$5/M.
+  2. Anthropic (Claude) — high quality, used for "smart" quality (mission
+     planning, customer-visible deliverables) and as "fast" fallback when
+     DeepSeek is not configured.
+  3. OpenAI — last resort text fallback; always used for embeddings, images
+     and audio (no DeepSeek/Anthropic equivalent).
+
+DeepSeek exposes an OpenAI-compatible API so the existing AsyncOpenAI SDK
+works with a different base_url — no new dependency needed.
 """
 
 import json
@@ -36,16 +40,19 @@ _PRICES: dict[str, dict[str, float]] = {
     "dall-e-3": {"input": 0.0, "output": 0.0},
     "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
     "claude-sonnet-5": {"input": 3.00, "output": 15.00},
+    "deepseek-v4-flash": {"input": 0.14, "output": 0.28},
+    "deepseek-v4-pro": {"input": 0.435, "output": 0.87},
     EMBEDDING_MODEL: {"input": 0.02, "output": 0.0},
 }
 
 _client: AsyncOpenAI | None = None
 _anthropic: AsyncAnthropic | None = None
+_deepseek: AsyncOpenAI | None = None
 
 
 def is_configured() -> bool:
     settings = get_settings()
-    return bool(settings.anthropic_api_key or settings.openai_api_key)
+    return bool(settings.deepseek_api_key or settings.anthropic_api_key or settings.openai_api_key)
 
 
 def _get_client() -> AsyncOpenAI:
@@ -62,8 +69,28 @@ def _get_anthropic() -> AsyncAnthropic:
     return _anthropic
 
 
+def _get_deepseek() -> AsyncOpenAI:
+    global _deepseek
+    if _deepseek is None:
+        settings = get_settings()
+        _deepseek = AsyncOpenAI(
+            api_key=settings.deepseek_api_key,
+            base_url=settings.deepseek_base_url,
+        )
+    return _deepseek
+
+
+def _use_deepseek() -> bool:
+    return bool(get_settings().deepseek_api_key)
+
+
 def _use_anthropic() -> bool:
     return bool(get_settings().anthropic_api_key)
+
+
+def _deepseek_model(quality: Quality) -> str:
+    settings = get_settings()
+    return settings.deepseek_smart_model if quality == "smart" else settings.deepseek_fast_model
 
 
 def _anthropic_model(quality: Quality) -> str:
@@ -198,6 +225,27 @@ class UsageTracker:
         }
 
 
+async def _deepseek_chat(
+    system: str,
+    user: str,
+    usage: UsageTracker | None,
+    max_tokens: int,
+    quality: Quality,
+) -> str:
+    model = _deepseek_model(quality)
+    response = await _get_deepseek().chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        max_tokens=max_tokens,
+    )
+    if usage and response.usage:
+        usage.add(model, response.usage.prompt_tokens, response.usage.completion_tokens)
+    return response.choices[0].message.content or ""
+
+
 async def chat(
     system: str,
     user: str,
@@ -205,9 +253,22 @@ async def chat(
     max_tokens: int = 1500,
     quality: Quality = "fast",
 ) -> str:
-    """Single-turn chat completion. Returns the assistant text."""
+    """Single-turn chat completion. Returns the assistant text.
+
+    Routing: fast → DeepSeek (cheapest) → Anthropic → OpenAI.
+             smart → Anthropic (highest quality) → DeepSeek → OpenAI.
+    """
+    if quality == "fast" and _use_deepseek():
+        try:
+            return await _deepseek_chat(system, user, usage, max_tokens, quality)
+        except Exception as exc:
+            log.warning("deepseek_chat_failed_fallback", error=str(exc))
+
     if _use_anthropic():
         return await _anthropic_chat(system, user, usage, max_tokens, quality)
+
+    if quality == "smart" and _use_deepseek():
+        return await _deepseek_chat(system, user, usage, max_tokens, quality)
 
     model = get_settings().openai_model
     response = await _get_client().chat.completions.create(
@@ -223,35 +284,18 @@ async def chat(
     return response.choices[0].message.content or ""
 
 
-async def chat_stream(
+async def _openai_compat_stream(
+    client: AsyncOpenAI,
+    model: str,
     system: str,
     user: str,
-    usage: UsageTracker | None = None,
-    max_tokens: int = 1500,
-    quality: Quality = "fast",
+    usage: UsageTracker | None,
+    max_tokens: int,
 ) -> AsyncIterator[str]:
-    """Single-turn chat completion, streamed as text deltas. Used for chat
-    replies so the UI can render tokens as they are produced."""
-    if _use_anthropic():
-        model = _anthropic_model(quality)
-        async with _get_anthropic().messages.stream(
-            model=model,
-            max_tokens=max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        ) as stream:
-            async for delta in stream.text_stream:
-                if delta:
-                    yield delta
-            response = await stream.get_final_message()
-        if usage:
-            usage.add(model, response.usage.input_tokens, response.usage.output_tokens)
-        return
-
-    model = get_settings().openai_model
+    """Shared streaming impl for OpenAI-compatible APIs (OpenAI + DeepSeek)."""
     prompt_tokens = 0
     completion_tokens = 0
-    stream = await _get_client().chat.completions.create(
+    stream = await client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": system},
@@ -271,26 +315,58 @@ async def chat_stream(
         usage.add(model, prompt_tokens, completion_tokens)
 
 
-async def chat_json(
+async def chat_stream(
     system: str,
     user: str,
     usage: UsageTracker | None = None,
     max_tokens: int = 1500,
     quality: Quality = "fast",
-) -> dict[str, Any]:
-    """Chat completion constrained to a JSON object response."""
+) -> AsyncIterator[str]:
+    """Single-turn chat completion, streamed as text deltas. Used for chat
+    replies so the UI can render tokens as they are produced.
+
+    Routing mirrors ``chat``: fast→DeepSeek, smart→Anthropic."""
+    if quality == "fast" and _use_deepseek():
+        model = _deepseek_model(quality)
+        async for delta in _openai_compat_stream(
+            _get_deepseek(), model, system, user, usage, max_tokens
+        ):
+            yield delta
+        return
+
     if _use_anthropic():
-        content = await _anthropic_chat(
-            system + "\n\nRespond with a single valid JSON object and nothing else.",
-            user,
-            usage,
-            max_tokens,
-            quality,
-        )
-        return _extract_json(content or "{}")
+        model = _anthropic_model(quality)
+        async with _get_anthropic().messages.stream(
+            model=model,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+        ) as stream:
+            async for delta in stream.text_stream:
+                if delta:
+                    yield delta
+            response = await stream.get_final_message()
+        if usage:
+            usage.add(model, response.usage.input_tokens, response.usage.output_tokens)
+        return
 
     model = get_settings().openai_model
-    response = await _get_client().chat.completions.create(
+    async for delta in _openai_compat_stream(
+        _get_client(), model, system, user, usage, max_tokens
+    ):
+        yield delta
+
+
+async def _openai_compat_json(
+    client: AsyncOpenAI,
+    model: str,
+    system: str,
+    user: str,
+    usage: UsageTracker | None,
+    max_tokens: int,
+) -> dict[str, Any]:
+    """JSON-mode completion via any OpenAI-compatible API."""
+    response = await client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": system},
@@ -309,6 +385,34 @@ async def chat_json(
         return {}
 
 
+async def chat_json(
+    system: str,
+    user: str,
+    usage: UsageTracker | None = None,
+    max_tokens: int = 1500,
+    quality: Quality = "fast",
+) -> dict[str, Any]:
+    """Chat completion constrained to a JSON object response."""
+    if quality == "fast" and _use_deepseek():
+        return await _openai_compat_json(
+            _get_deepseek(), _deepseek_model(quality), system, user, usage, max_tokens
+        )
+
+    if _use_anthropic():
+        content = await _anthropic_chat(
+            system + "\n\nRespond with a single valid JSON object and nothing else.",
+            user,
+            usage,
+            max_tokens,
+            quality,
+        )
+        return _extract_json(content or "{}")
+
+    return await _openai_compat_json(
+        _get_client(), get_settings().openai_model, system, user, usage, max_tokens
+    )
+
+
 async def chat_structured(
     system: str,
     user: str,
@@ -323,7 +427,17 @@ async def chat_structured(
     fall back explicitly."""
     settings = get_settings()
 
-    if _use_anthropic():
+    if quality == "fast" and _use_deepseek():
+        from langchain_openai import ChatOpenAI
+
+        model_name = _deepseek_model(quality)
+        model = ChatOpenAI(
+            model=model_name,
+            api_key=settings.deepseek_api_key,
+            base_url=settings.deepseek_base_url,
+            use_responses_api=False,
+        )
+    elif _use_anthropic():
         from langchain_anthropic import ChatAnthropic
 
         model_name = _anthropic_model(quality)

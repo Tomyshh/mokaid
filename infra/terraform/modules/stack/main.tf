@@ -295,6 +295,7 @@ module "secrets" {
     worker_auth_token        = "CHANGE_ME"
     openai_api_key           = "CHANGE_ME"
     anthropic_api_key        = "CHANGE_ME"
+    deepseek_api_key         = "CHANGE_ME"
     payme_seller_id          = "CHANGE_ME"
     figma_client_id          = "CHANGE_ME"
     figma_client_secret      = "CHANGE_ME"
@@ -537,6 +538,7 @@ module "worker_service" {
     WORKER_AUTH_TOKEN = module.secrets.secret_arns["worker_auth_token"]
     OPENAI_API_KEY    = module.secrets.secret_arns["openai_api_key"]
     ANTHROPIC_API_KEY = module.secrets.secret_arns["anthropic_api_key"]
+    DEEPSEEK_API_KEY  = module.secrets.secret_arns["deepseek_api_key"]
   }
 
   task_policy_json   = data.aws_iam_policy_document.worker_task.json

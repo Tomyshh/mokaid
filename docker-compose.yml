@@ -102,6 +102,7 @@ services:
       WORKER_AUTH_TOKEN: dev-worker-token
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       # Run persistence: LangGraph checkpoints + saved run requests, so
       # missions paused on approvals survive worker restarts.
       DATABASE_URL: postgresql://mokaid:mokaid_dev_password@postgres/mokaid_dev

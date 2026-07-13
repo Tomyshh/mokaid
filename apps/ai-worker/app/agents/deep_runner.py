@@ -162,8 +162,25 @@ def is_available() -> bool:
     return True
 
 
-def _build_model() -> Any:
+def _build_model(quality: str = "smart") -> Any:
+    """Build the LangChain chat model for a mission.
+
+    "smart" missions use Anthropic (Claude) for the highest quality. When
+    Anthropic is unavailable, falls to DeepSeek V4-Pro, then OpenAI.
+    "fast" quality (used for sub-agent delegation) prefers DeepSeek V4-Flash.
+    """
     settings = get_settings()
+
+    if quality == "fast" and settings.deepseek_api_key:
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=settings.deepseek_fast_model,
+            api_key=settings.deepseek_api_key,
+            base_url=settings.deepseek_base_url,
+            use_responses_api=False,
+        )
+
     if settings.anthropic_api_key:
         from langchain_anthropic import ChatAnthropic
 
@@ -171,6 +188,16 @@ def _build_model() -> Any:
             model=settings.anthropic_smart_model,
             api_key=settings.anthropic_api_key,
             max_tokens=8000,
+        )
+
+    if settings.deepseek_api_key:
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=settings.deepseek_smart_model,
+            api_key=settings.deepseek_api_key,
+            base_url=settings.deepseek_base_url,
+            use_responses_api=False,
         )
 
     from langchain_openai import ChatOpenAI
