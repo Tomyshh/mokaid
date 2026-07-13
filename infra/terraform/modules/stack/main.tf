@@ -522,12 +522,12 @@ module "worker_service" {
   max_count       = 3
 
   environment = {
-    PHOENIX_API_URL     = "http://${module.alb.alb_dns_name}"
-    AWS_REGION          = var.aws_region
-    AI_RUNS_QUEUE_URL   = module.sqs_ai_runs.queue_url
+    PHOENIX_API_URL   = "http://${module.alb.alb_dns_name}"
+    AWS_REGION        = var.aws_region
+    AI_RUNS_QUEUE_URL = module.sqs_ai_runs.queue_url
     # LangSmith stays opt-in: set LANGSMITH_API_KEY as an SSM/Secrets override
     # out-of-band when you want tracing; the worker enables it only if present.
-    LANGSMITH_PROJECT   = "mokaid-ai-worker"
+    LANGSMITH_PROJECT = "mokaid-ai-worker"
   }
 
   secrets = {
