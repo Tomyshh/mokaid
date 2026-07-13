@@ -24,6 +24,7 @@ Respond with a JSON object: {"steps": [{"tool": string, "input": object}]}
 
 Available tools:
 - search_knowledge {query}: semantic search in the workspace knowledge base
+- web_search {query, max_results}: search the public internet (titles, URLs, snippets) — use for research / lookup / who-is / company questions
 - summarize {text}: summarize text
 - draft_document {title, brief, context}: write a Markdown document
 - generate_report {period}: produce a structured work report
@@ -40,8 +41,9 @@ Available tools:
 Rules:
 - 1 to %(max_steps)d steps, ordered.
 - Only use listed tools. Prefer the minimal plan that completes the task.
-- Start with search_knowledge when workspace context would help.
+- Start with web_search for public-web research; use search_knowledge when workspace context would help.
 - Only include send_email/post_social if the task explicitly asks for it.
+- Research / lookup without an explicit written-report ask: web_search only (possibly summarize). Do NOT add draft_document, transform_image, or generate_website.
 
 File processing (HIGHEST PRIORITY):
 - When the task involves modifying, analyzing, or processing an attached file,
@@ -70,10 +72,11 @@ Iteration & continuity (CRITICAL):
   after a file processing tool.
 
 Text-only tasks (no attached files, or files already processed):
-- Every plan MUST end with a step that produces a reviewable deliverable:
-  draft_document for written work (briefs, specs, plans, creative direction…)
-  or generate_report for reporting tasks. search_knowledge or summarize alone
-  is never a complete plan — the user must receive a concrete output file.
+- Research / info lookup: end with web_search (and optional summarize). That
+  IS enough — do not invent a report file.
+- Other written work MUST end with a reviewable deliverable: draft_document
+  (briefs, specs, plans…) or generate_report for reporting tasks.
+  search_knowledge or summarize alone is never a complete plan for those.
 
 Websites & landing pages:
 - When the task asks for a website, landing page, page de vente, portfolio,

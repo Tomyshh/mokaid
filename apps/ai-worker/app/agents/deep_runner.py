@@ -92,13 +92,7 @@ Conversation so far (most recent last — follow the latest human instructions):
    and keep it updated as you progress — your teammates watch this checklist
    live. Keep todos short and in {language_name}.
 2. Use your tools; offload long intermediate content to files.
-3. Write every final deliverable as a file under `{deliverables_dir}`
-   (e.g. `{deliverables_dir}rapport-onboarding.md`). Documents in Markdown,
-   data in JSON/CSV, web pages in HTML. Deliverables saved there are handed
-   to your teammate automatically — a mission without a deliverable file is
-   an unfinished mission, UNLESS a specialized tool (transform_image,
-   generate_website, transcribe_audio) already produced the deliverable
-   itself.
+3. {deliverable_rule}
 4. {mission_kind_rule}
 5. When another AI employee's specialty would clearly enrich the result,
    consult them with `consult_colleague` — only when genuinely useful, at
@@ -115,8 +109,8 @@ Conversation so far (most recent last — follow the latest human instructions):
 - Files labeled [agent output] are results of your previous runs. When the
   conversation asks to adjust a previous result, start from the MOST RECENT
   [agent output] file — never restart from the original input unless asked.
-- Never invent facts, metrics or sources. Search the workspace knowledge
-  base when workspace context would help.
+- Never invent facts, metrics or sources. Use `web_search` for public-web
+  facts and the workspace knowledge base when workspace context would help.
 - Do NOT end the mission with clarifying questions alone. Produce a first
   version with sensible defaults; your teammate can ask for revisions after.
 
@@ -125,8 +119,47 @@ person, no markdown, in {language_name}) summarizing what you delivered —
 it is relayed to your teammate in chat."""
 
 
+def _deliverable_rule(kind: str, language: str) -> str:
+    fr = language == "fr"
+    if kind == "research":
+        return (
+            "This is RESEARCH. Call `web_search` (several queries if needed) and "
+            "answer with sourced facts in your closing chat message. A file under "
+            f"`{DELIVERABLES_DIR}` is OPTIONAL — only write one if the teammate "
+            "explicitly asked for a written report. Do NOT invent companies, "
+            "people, or URLs. Do NOT generate/edit logos or websites unless they "
+            "explicitly asked for branding."
+            if not fr
+            else "Mission RECHERCHE. Appelle `web_search` (plusieurs requêtes si "
+            "besoin) et réponds avec des faits sourcés dans ton message de fin. "
+            f"Un fichier sous `{DELIVERABLES_DIR}` est OPTIONNEL — seulement si "
+            "le collègue a demandé un rapport écrit. N'invente JAMAIS. "
+            "N'édite/génère PAS de logos ou sites sauf demande explicite de branding."
+        )
+    return (
+        f"Write every final deliverable as a file under `{DELIVERABLES_DIR}` "
+        f"(e.g. `{DELIVERABLES_DIR}rapport-onboarding.md`). Documents in Markdown, "
+        "data in JSON/CSV, web pages in HTML. Deliverables saved there are handed "
+        "to your teammate automatically — a mission without a deliverable file is "
+        "an unfinished mission, UNLESS a specialized tool (transform_image, "
+        "generate_website, transcribe_audio) already produced the deliverable "
+        "itself, OR the mission kind is research (chat answer is enough)."
+    )
+
+
 def _mission_kind_rule(kind: str, language: str) -> str:
     fr = language == "fr"
+    if kind == "research":
+        return (
+            "RESEARCH mission: MUST call `web_search` before closing. Prefer a "
+            "short sourced answer over .md spam. Attached images (e.g. a logo) "
+            "are context only — do NOT call `transform_image` unless asked to edit."
+            if not fr
+            else "Mission RECHERCHE : tu DOIS appeler `web_search` avant de conclure. "
+            "Préfère une réponse courte sourcée au spam de .md. Une image jointe "
+            "(ex. logo) est du contexte — n'appelle PAS `transform_image` sauf "
+            "demande d'édition."
+        )
     if kind == "website":
         return (
             "This is a WEBSITE mission. You MUST call `generate_website` with a "
@@ -147,7 +180,8 @@ def _mission_kind_rule(kind: str, language: str) -> str:
         )
     return (
         "Produce a concrete deliverable when the mission asks for one — "
-        "never close with questions alone."
+        "never close with questions alone. For pure info lookup, prefer "
+        "`web_search` + a chat summary over inventing files."
     )
 
 
@@ -264,12 +298,12 @@ def _system_prompt(request: RunRequest) -> str:
         priority=request.task_priority or "medium",
         due=request.task_due_at or "(none)",
         mission_kind=kind,
+        deliverable_rule=_deliverable_rule(kind, language),
         mission_kind_rule=_mission_kind_rule(kind, language),
         language_name="French" if language == "fr" else "English",
         files_block=_files_block(request),
         conversation_block=_conversation_block(request),
         colleagues_block=_colleagues_block(request),
-        deliverables_dir=DELIVERABLES_DIR,
         memories_dir=MEMORIES_DIR,
     )
 
@@ -391,6 +425,14 @@ class _Engine:
             project + your own experience). Use when workspace context helps."""
             return await engine._run_tool("search_knowledge", {"query": query})
 
+        async def web_search(query: str, max_results: int = 5) -> Any:
+            """Search the public internet for current facts (companies, people,
+            news). Returns titles, URLs and snippets. MUST use for research /
+            lookup / \"who is\" questions — never invent sources."""
+            return await engine._run_tool(
+                "web_search", {"query": query, "max_results": max_results}
+            )
+
         async def draft_document(title: str, brief: str = "", context: str = "") -> Any:
             """Writes a complete, professional Markdown document with the
             long-form generator. Prefer this for large polished documents;
@@ -496,6 +538,7 @@ class _Engine:
 
         native = [
             search_knowledge,
+            web_search,
             draft_document,
             generate_report,
             update_task,

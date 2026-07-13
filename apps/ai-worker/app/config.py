@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     deepseek_fast_model: str = "deepseek-v4-flash"
     deepseek_smart_model: str = "deepseek-v4-pro"
 
+    # Optional Tavily key — when set, web_search prefers Tavily over DuckDuckGo.
+    tavily_api_key: str = ""
+
     s3_endpoint: str = "http://localhost:9000"
     s3_access_key_id: str = "mokaid"
     s3_secret_access_key: str = "mokaid_dev_password"

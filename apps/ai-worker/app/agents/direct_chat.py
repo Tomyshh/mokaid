@@ -19,11 +19,30 @@ import structlog
 from pydantic import BaseModel, Field
 
 from app import llm
+from app.agents.mission_kind import looks_like_research
 from app.clients.phoenix import PhoenixClient
 
 log = structlog.get_logger()
 
 _FLUSH_CHARS = 24
+
+_EXPLICIT_FILE_DELIVERABLE_RE = re.compile(
+    r"\b("
+    r"rédige|redige|écris|ecris|write|draft|"
+    r"crée\s+(?:un|le|une|la)\s+(?:rapport|doc|document|pdf|deck|site)|"
+    r"create\s+(?:a\s+)?(?:report|doc|document|pdf|deck|website|landing)|"
+    r"génère\s+(?:un\s+)?(?:rapport|pdf|doc|site)|"
+    r"generate\s+(?:a\s+)?(?:report|pdf|document|website)|"
+    r"modifie\s+(?:le\s+|cet?\s+)?(?:logo|image|avatar)|"
+    r"(?:edit|change|transform)\s+(?:the\s+)?(?:logo|image|avatar)"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def asks_for_file_deliverable(text: str) -> bool:
+    """True when the teammate explicitly wants a saved file / branding edit."""
+    return bool(text and _EXPLICIT_FILE_DELIVERABLE_RE.search(text))
 
 
 class ChatDecision(BaseModel):
@@ -49,8 +68,9 @@ _DECIDE_SYSTEM = """You are routing a teammate's DM for an AI employee.
 
 Decide whether the latest teammate message is:
 (a) conversation — a question, status check, small talk, clarification,
-    or a QUESTION about an attached file (e.g. "who signed this?",
-    "summarize this", "what does section 3 say?"); or
+    a QUESTION about an attached file, OR a research / lookup request
+    ("recherche", "look up", "who is", "fouille", "find info", "enquête",
+    "dis-moi ce que tu trouves") WITHOUT an explicit ask for a saved file; or
 (b) an actionable work request — they want a PRODUCED deliverable
     (document, report, website/landing page, analysis, edited image,
     transcription…) that should be saved as a file.
@@ -59,8 +79,12 @@ Rules:
 - Use "task" ONLY when they clearly want a saved deliverable an AI employee
   can produce. Questions or conversational requests about attached files stay
   "chat" — the agent will answer inline.
+- Research / info lookup WITHOUT an explicit file ask ("rédige un rapport",
+  "crée un doc", "génère un PDF", "write a report") is ALWAYS "chat".
+  Mentioning a logo/image as context for research is still "chat".
 - "Create a website / landing page / site internet" is always "task", even if
   details are incomplete — the worker will fill sensible defaults.
+- "Rédige un rapport / write a report about X" is "task" (document deliverable).
 - instruction must capture the full ask in ONE line, same language as the
   teammate.
 - Never invent facts."""
@@ -161,9 +185,14 @@ async def _decide(
         return {"kind": "chat", "instruction": "", "language": language}
 
     instruction = decision.instruction.strip()
-    if decision.kind == "task" and not instruction:
+    kind = decision.kind
+    # Hard override: pure research/lookup without an explicit file ask stays chat.
+    if kind == "task" and looks_like_research(latest) and not asks_for_file_deliverable(latest):
+        kind = "chat"
+        instruction = ""
+    if kind == "task" and not instruction:
         instruction = latest
-    return {"kind": decision.kind, "instruction": instruction, "language": decision.language}
+    return {"kind": kind, "instruction": instruction, "language": decision.language}
 
 
 async def _stream_reply(
@@ -403,6 +432,32 @@ async def _load_attachment_previews(attachments: list[dict[str, Any]]) -> str:
     )
 
 
+async def _web_research_context(query: str) -> str:
+    """Run web_search and format hits for the chat reply prompt."""
+    try:
+        import app.tools.web  # noqa: F401 — ensure tool registration
+        from app.tools.registry import RunContext
+        from app.tools.web import format_results_for_llm, web_search
+
+        ctx = RunContext(
+            run_id="direct-chat",
+            workspace_id="",
+            task_id="",
+            task_title=query[:200],
+        )
+        payload = await web_search({"query": query, "max_results": 5}, ctx)
+        body = format_results_for_llm(payload)
+        return (
+            "Web search results (use ONLY these facts; cite source URLs):\n" + body
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("direct_chat_web_search_failed", error=str(exc))
+        return (
+            "Web search results: (unavailable — say you could not look this up "
+            f"live, do not invent facts. Error: {exc})"
+        )
+
+
 async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -> bool:
     """Streams the agent's DM reply (and possibly starts a task) via Phoenix."""
     if not llm.is_configured():
@@ -442,6 +497,13 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
             "shortly. Do NOT ask blocking clarifying questions — start with sensible "
             f"defaults if details are missing.\nBrief you will execute: {instruction}"
         )
+    elif looks_like_research(latest):
+        intent_block = (
+            "This is a RESEARCH / lookup question. Answer inline in 1-3 short "
+            "paragraphs using ONLY the web search results provided in the user "
+            "message. Cite sources by URL. Do not invent facts. Do not start a "
+            "task, write a report file, or edit/generate logos."
+        )
     else:
         intent_block = (
             "This is a conversational message. Answer it directly using any "
@@ -471,6 +533,11 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
     )
     if file_preview:
         user_prompt = f"{user_prompt}\n\n{file_preview}"
+
+    if not start_task and looks_like_research(latest):
+        web_block = await _web_research_context(latest)
+        if web_block:
+            user_prompt = f"{user_prompt}\n\n{web_block}"
 
     text = await _stream_reply(
         system=system,

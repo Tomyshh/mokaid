@@ -589,6 +589,27 @@ defmodule Mokaid.AgentChat do
       Regex.match?(~r/\b(site|website|landing|page web|html|vitrine)\b/iu, t) ->
         "website"
 
+      # Research before image: "recherche X + logo" must not force transform_image.
+      Regex.match?(
+               ~r/\b(recherche|research|look\s*up|fouille|enquête|enquete|who\s+is|find\s+(info|out)|infos?\s+sur)\b/iu,
+               t
+             ) and
+             not Regex.match?(
+               ~r/\b(rédige|redige|écris|ecris|write|draft|génère\s+(un\s+)?rapport|generate\s+(a\s+)?report)\b/iu,
+               t
+             ) ->
+        "research"
+
+      Regex.match?(
+               ~r/\b(recherche|research|look\s*up|fouille|enquête|enquete)\b/iu,
+               t
+             ) and
+             Regex.match?(
+               ~r/\b(rédige|redige|écris|ecris|write|draft|rapport|report)\b/iu,
+               t
+             ) ->
+        "document"
+
       Regex.match?(~r/\b(image|logo|photo|picture|design|visuel|avatar)\b/iu, t) ->
         "image"
 

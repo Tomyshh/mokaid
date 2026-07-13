@@ -2,11 +2,18 @@
 
 import pytest
 
-from app.agents.direct_chat import _decide, _latest_teammate_message, detect_language, reply
+from app.agents.direct_chat import (
+    _decide,
+    _latest_teammate_message,
+    asks_for_file_deliverable,
+    detect_language,
+    reply,
+)
 from app.agents.mission_kind import (
     PRODUCER_KINDS,
     detect_mission_kind,
     language_for_request,
+    looks_like_research,
     producer_tool_succeeded,
     required_tool_for_kind,
 )
@@ -94,6 +101,70 @@ def test_producer_tool_failed_without_file():
         ),
     ]
     assert producer_tool_succeeded(calls) is False
+
+
+def test_mission_kind_research_before_logo():
+    req = RunRequest(
+        run_id="r1",
+        workspace_id="w1",
+        task_id="t1",
+        input={"instruction": "Recherche BNG CPA France Israel — voici le logo"},
+    )
+    assert detect_mission_kind(req) == "research"
+    assert required_tool_for_kind("research") is None
+    assert "research" not in PRODUCER_KINDS
+
+
+def test_mission_kind_research_report_is_document():
+    req = RunRequest(
+        run_id="r1",
+        workspace_id="w1",
+        task_id="t1",
+        input={"instruction": "Recherche BNG CPA et rédige un rapport markdown"},
+    )
+    assert detect_mission_kind(req) == "document"
+
+
+def test_looks_like_research_helpers():
+    assert looks_like_research("fouille sur BNG CPA")
+    assert looks_like_research("look up Acme")
+    assert not looks_like_research("fais-moi un café")
+    assert asks_for_file_deliverable("rédige un rapport sur BNG")
+    assert not asks_for_file_deliverable("recherche BNG CPA avec ce logo")
+
+
+@pytest.mark.asyncio
+async def test_decide_research_forced_to_chat(monkeypatch):
+    from app.agents.direct_chat import ChatDecision
+
+    async def fake_structured(**_kwargs):
+        return ChatDecision(
+            kind="task",
+            instruction="Recherche BNG CPA",
+            language="fr",
+        )
+
+    monkeypatch.setattr("app.agents.direct_chat.llm.chat_structured", fake_structured)
+    decision = await _decide("prev", "Recherche BNG CPA Israel avec ce logo")
+    assert decision["kind"] == "chat"
+    assert decision["instruction"] == ""
+
+
+@pytest.mark.asyncio
+async def test_decide_report_request_stays_task(monkeypatch):
+    from app.agents.direct_chat import ChatDecision
+
+    async def fake_structured(**_kwargs):
+        return ChatDecision(
+            kind="task",
+            instruction="Rédige un rapport sur BNG CPA",
+            language="fr",
+        )
+
+    monkeypatch.setattr("app.agents.direct_chat.llm.chat_structured", fake_structured)
+    decision = await _decide("prev", "Rédige un rapport sur BNG CPA")
+    assert decision["kind"] == "task"
+    assert "rapport" in decision["instruction"].lower()
 
 
 @pytest.mark.asyncio

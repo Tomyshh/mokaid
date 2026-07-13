@@ -18,6 +18,18 @@ defmodule Mokaid.AgentChatTest do
       assert AgentChat.detect_mission_kind("Analyse ce fichier PDF") == "analysis"
     end
 
+    test "classifies research before logo/image keywords" do
+      assert AgentChat.detect_mission_kind("Recherche BNG CPA Israel avec ce logo") ==
+               "research"
+
+      assert AgentChat.detect_mission_kind("look up Acme Corp") == "research"
+    end
+
+    test "classifies research + written report as document" do
+      assert AgentChat.detect_mission_kind("Recherche BNG CPA et rédige un rapport") ==
+               "document"
+    end
+
     test "classifies avatar image requests" do
       assert AgentChat.detect_mission_kind("Modifie cet avatar") == "image"
     end
