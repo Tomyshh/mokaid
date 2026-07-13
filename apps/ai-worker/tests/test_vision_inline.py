@@ -2,8 +2,8 @@
 
 import asyncio
 
-from app.llm import _as_vision_image_url, _is_private_image_host
 from app.agents.direct_chat import _pdf_pages_needing_vision
+from app.llm import _as_vision_image_url, _is_private_image_host
 
 
 def test_private_hosts_detected():
