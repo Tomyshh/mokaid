@@ -131,17 +131,25 @@ export function Topbar() {
 
       <div
         className="flex items-center gap-1.5 rounded-full border border-border bg-surface-raised/60 py-1 pl-2 pr-1.5"
-        title={soundEnabled ? "Sounds on" : "Sounds muted"}
+        title={
+          soundEnabled
+            ? "Sounds on — toasts play a cue on task start/finish"
+            : "Sounds muted — click to re-enable task & chat sounds"
+        }
       >
         {soundEnabled ? (
           <Volume2 size={13} className="text-text-secondary" aria-hidden />
         ) : (
-          <VolumeX size={13} className="text-text-muted" aria-hidden />
+          <VolumeX size={13} className="text-warning" aria-hidden />
         )}
         <Switch.Root
           checked={soundEnabled}
           onCheckedChange={setSoundEnabled}
-          aria-label={soundEnabled ? "Mute sounds" : "Unmute sounds"}
+          aria-label={
+            soundEnabled
+              ? "Mute sounds"
+              : "Unmute sounds — currently muted, no task/chat cues"
+          }
           className="relative h-5 w-9 shrink-0 rounded-full bg-surface-overlay transition-colors data-[state=checked]:bg-primary mk-focus-ring"
         >
           <Switch.Thumb className="block h-4 w-4 translate-x-0.5 rounded-full bg-white shadow-sm transition-transform data-[state=checked]:translate-x-[18px]" />

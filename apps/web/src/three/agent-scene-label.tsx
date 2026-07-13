@@ -13,7 +13,7 @@ const stateText: Partial<Record<SceneAgent["visualState"], string>> = {
 };
 
 const stateColor: Partial<Record<SceneAgent["visualState"], string>> = {
-  typing: "var(--mk-success)",
+  typing: "var(--mk-warning)",
   working: "var(--mk-warning)",
   waiting: "var(--mk-warning)",
   idle: "var(--mk-info)",

@@ -26,7 +26,8 @@ function ChatHead({
   active: boolean;
   onClick: () => void;
 }) {
-  const busy = agent.status === "busy" || agent.status === "active";
+  const typing = useChatStore((s) => s.typingAgentIds.includes(agent.id));
+  const busy = agent.status === "busy" || agent.status === "active" || typing;
   const unread = summary?.unread_count ?? 0;
 
   return (
@@ -101,6 +102,7 @@ export function FloatingChatDock() {
   const openChatIds = useChatStore((s) => s.openChatIds);
   const openChat = useChatStore((s) => s.openChat);
   const closeChat = useChatStore((s) => s.closeChat);
+  const typingAgentIds = useChatStore((s) => s.typingAgentIds);
   const detailPanelOpen = useUiStore((s) => s.detailPanelCount > 0);
 
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -211,7 +213,9 @@ export function FloatingChatDock() {
                   {agent.role_title ?? "Generalist"}
                 </span>
               </span>
-              {(agent.status === "busy" || agent.status === "active") && (
+              {(agent.status === "busy" ||
+                agent.status === "active" ||
+                typingAgentIds.includes(agent.id)) && (
                 <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-warning" />
               )}
             </button>

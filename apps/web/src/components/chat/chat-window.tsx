@@ -199,7 +199,7 @@ export function ChatWindow({ agent }: { agent: Agent }) {
   };
 
   const online = agent.presence_status === "online";
-  const busy = agent.status === "busy" || agent.status === "active";
+  const busy = agent.status === "busy" || agent.status === "active" || typing;
 
   const viewingArchived = useMemo(() => {
     if (!activeConvId) return false;
@@ -265,7 +265,11 @@ export function ChatWindow({ agent }: { agent: Agent }) {
             </span>
           </Tooltip>
           <span className="block truncate text-[11px] text-text-muted">
-            {busy ? "Working on a task…" : agent.role_title ?? "AI teammate"}
+            {busy
+              ? typing && agent.status !== "busy" && agent.status !== "active"
+                ? "Typing…"
+                : "Working on a task…"
+              : agent.role_title ?? "AI teammate"}
           </span>
         </span>
         <span className="flex items-center gap-0.5">

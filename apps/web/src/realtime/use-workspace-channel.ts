@@ -158,6 +158,7 @@ function maybeToast(event: string, payload: EventPayload): void {
     case "task.created": {
       if (!title) return;
       const agentName = str(payload, "assigned_agent_name");
+      playSound("task-start");
       toast({
         tone: "info",
         title: "Task created",

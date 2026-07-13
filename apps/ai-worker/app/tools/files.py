@@ -132,10 +132,19 @@ async def analyze_file(params: dict[str, Any], ctx: RunContext) -> Any:
             "note": "offline fallback",
         }
 
+    # Download first so Vision gets a data URL — OpenAI cannot reach localhost MinIO.
+    try:
+        image_bytes = await _download(file_url)
+    except Exception as exc:
+        return {"analysis": "", "error": f"Could not download the file: {exc}"}
+
+    mime = params.get("mime_type") or ""
     analysis = await llm.vision(
         system="You are a helpful assistant. Analyze the provided file/image and answer the user's question thoroughly. Reply in the same language as the question.",
         user_text=question,
         image_url=file_url,
+        image_bytes=image_bytes,
+        mime_type=mime or None,
         usage=ctx.usage,
         max_tokens=1500,
     )

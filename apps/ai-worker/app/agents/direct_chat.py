@@ -221,6 +221,7 @@ def _format_attachments(attachments: list[dict[str, Any]]) -> str:
 
 _PREVIEW_CHARS = 12_000
 _IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
+_PDF_VISION_PAGES = 2
 
 
 async def _download_bytes(url: str) -> bytes:
@@ -230,6 +231,91 @@ async def _download_bytes(url: str) -> bytes:
         resp = await client.get(url)
         resp.raise_for_status()
         return resp.content
+
+
+def _pdf_pages_needing_vision(data: bytes) -> list[int]:
+    """Return 0-based page indices that have embedded images or signature widgets."""
+    try:
+        import fitz
+    except ImportError:
+        return []
+
+    try:
+        doc = fitz.open(stream=data, filetype="pdf")
+    except Exception:  # noqa: BLE001
+        return []
+
+    pages: list[int] = []
+    for i, page in enumerate(doc):
+        has_images = bool(page.get_images(full=True))
+        has_sig_widget = False
+        for w in page.widgets() or []:
+            wtype = (getattr(w, "field_type_string", None) or "").lower()
+            wname = (getattr(w, "field_name", None) or "").lower()
+            if "sign" in wtype or "sign" in wname:
+                has_sig_widget = True
+                break
+        if has_images or has_sig_widget:
+            pages.append(i)
+    return pages[:_PDF_VISION_PAGES]
+
+
+def _render_pdf_page_png(data: bytes, page_index: int) -> bytes | None:
+    try:
+        import fitz
+    except ImportError:
+        return None
+    try:
+        doc = fitz.open(stream=data, filetype="pdf")
+        if page_index < 0 or page_index >= doc.page_count:
+            return None
+        page = doc[page_index]
+        # ~150 dpi — enough for signatures without huge payloads
+        pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5), alpha=False)
+        return pix.tobytes("png")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("pdf_page_render_failed", page=page_index, error=str(exc))
+        return None
+
+
+async def _vision_pdf_signature_pages(name: str, data: bytes) -> str:
+    """Vision-read PDF pages that contain images/signature fields (max 2)."""
+    pages = _pdf_pages_needing_vision(data)
+    if not pages:
+        return ""
+
+    chunks: list[str] = []
+    for page_index in pages:
+        png = _render_pdf_page_png(data, page_index)
+        if not png:
+            continue
+        try:
+            description = await llm.vision(
+                system=(
+                    "You are reading a scanned/signed PDF page. Focus on signature "
+                    "blocks, handwritten marks, stamps, and printed names near "
+                    "signature lines. Identify EACH party (discloser/recipient/"
+                    "מגלה/מקבל/etc.) and say clearly whether their signature is "
+                    "present, blank, or unclear. Quote any visible names and IDs. "
+                    "Reply in the document's primary language when possible."
+                ),
+                user_text=(
+                    f"PDF «{name}» page {page_index + 1}: describe all signatures "
+                    "and signed parties on this page."
+                ),
+                image_url="page.png",
+                image_bytes=png,
+                mime_type="image/png",
+                max_tokens=900,
+            )
+            if description and description.strip():
+                chunks.append(f"[Vision page {page_index + 1}]\n{description.strip()}")
+        except Exception as exc:  # noqa: BLE001
+            log.warning("pdf_signature_vision_failed", page=page_index, error=str(exc))
+
+    if not chunks:
+        return ""
+    return "### Visual signature scan\n" + "\n\n".join(chunks)
 
 
 async def _load_attachment_previews(attachments: list[dict[str, Any]]) -> str:
@@ -267,11 +353,13 @@ async def _load_attachment_previews(attachments: list[dict[str, Any]]) -> str:
                     system=(
                         "Describe this image thoroughly for a colleague who cannot "
                         "see it. Extract any visible text, signatures, names, dates, "
-                        "and key visual details. Reply in the language of any text "
-                        "you find on the image, otherwise English."
+                        "logos, brand marks, and key visual details. Reply in the "
+                        "language of any text you find on the image, otherwise English."
                     ),
                     user_text=f"Analyze the attached image «{name}».",
                     image_url=url,
+                    image_bytes=data,
+                    mime_type=mime or None,
                     max_tokens=1000,
                 )
                 parts.append(f"### {name} (image)\n{(description or '(empty)').strip()}")
@@ -282,12 +370,25 @@ async def _load_attachment_previews(attachments: list[dict[str, Any]]) -> str:
 
         if extractors.is_extractable(name, mime):
             result = extractors.extract_bytes(data, filename=name, mime_type=mime)
+            block_parts: list[str] = []
             if result and result.text.strip():
                 preview = result.text.strip()[:_PREVIEW_CHARS]
                 truncated = "…" if len(result.text) > _PREVIEW_CHARS else ""
-                parts.append(f"### {name} ({result.format})\n{preview}{truncated}")
+                block_parts.append(
+                    f"### {name} ({result.format})\n{preview}{truncated}"
+                )
             else:
-                parts.append(f"### {name}\n(no extractable text)")
+                block_parts.append(f"### {name}\n(no extractable text)")
+
+            if (ext == ".pdf" or mime == "application/pdf"):
+                from app.config import get_settings
+
+                if get_settings().openai_api_key:
+                    vision_extra = await _vision_pdf_signature_pages(name, data)
+                    if vision_extra:
+                        block_parts.append(vision_extra)
+
+            parts.append("\n\n".join(block_parts))
             continue
 
         parts.append(f"### {name}\n(unsupported format for inline reading)")
@@ -296,7 +397,9 @@ async def _load_attachment_previews(attachments: list[dict[str, Any]]) -> str:
         return ""
     return (
         "Attached file contents (use these to answer the teammate's question "
-        "directly — do not ask which document they mean):\n\n" + "\n\n".join(parts)
+        "directly — do not ask which document they mean). When a visual "
+        "signature scan is present, TRUST it over empty printed signature lines:\n\n"
+        + "\n\n".join(parts)
     )
 
 

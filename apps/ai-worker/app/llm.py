@@ -474,9 +474,22 @@ async def vision(
     image_url: str,
     usage: UsageTracker | None = None,
     max_tokens: int = 1500,
+    *,
+    image_bytes: bytes | None = None,
+    mime_type: str | None = None,
 ) -> str:
-    """GPT-4o vision: analyze an image with a text prompt."""
+    """GPT-4o vision: analyze an image with a text prompt.
+
+    Private URLs (localhost MinIO, RFC1918, Docker hostnames) are converted to
+    data URLs so OpenAI can read them — their servers cannot reach our store.
+    Pass ``image_bytes`` when already downloaded to skip a second fetch.
+    """
     if not get_settings().openai_api_key:
+        return ""
+    resolved = await _as_vision_image_url(
+        image_url, image_bytes=image_bytes, mime_type=mime_type
+    )
+    if not resolved:
         return ""
     model = "gpt-4o"
     response = await _get_client().chat.completions.create(
@@ -485,7 +498,7 @@ async def vision(
             {"role": "system", "content": system},
             {"role": "user", "content": [
                 {"type": "text", "text": user_text},
-                {"type": "image_url", "image_url": {"url": image_url, "detail": "high"}},
+                {"type": "image_url", "image_url": {"url": resolved, "detail": "high"}},
             ]},
         ],
         max_tokens=max_tokens,
@@ -493,6 +506,67 @@ async def vision(
     if usage and response.usage:
         usage.add(model, response.usage.prompt_tokens, response.usage.completion_tokens)
     return response.choices[0].message.content or ""
+
+
+def _is_private_image_host(url: str) -> bool:
+    """True when OpenAI cannot fetch the URL (local MinIO, Docker, LAN)."""
+    from urllib.parse import urlparse
+
+    try:
+        host = (urlparse(url).hostname or "").lower()
+    except Exception:  # noqa: BLE001
+        return True
+    if not host:
+        return True
+    if host in ("localhost", "127.0.0.1", "::1", "minio", "host.docker.internal"):
+        return True
+    if host.endswith(".local") or host.endswith(".internal"):
+        return True
+    # RFC1918
+    if host.startswith(("10.", "192.168.", "172.")):
+        return True
+    return False
+
+
+async def _as_vision_image_url(
+    image_url: str,
+    *,
+    image_bytes: bytes | None = None,
+    mime_type: str | None = None,
+) -> str:
+    """Return a URL OpenAI Vision can fetch — data URL for private hosts."""
+    import base64
+    import mimetypes
+
+    if image_url.startswith("data:"):
+        return image_url
+
+    need_inline = image_bytes is not None or _is_private_image_host(image_url)
+    if not need_inline:
+        return image_url
+
+    data = image_bytes
+    if data is None:
+        import httpx
+
+        try:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+                resp = await client.get(image_url)
+                resp.raise_for_status()
+                data = resp.content
+                mime_type = mime_type or resp.headers.get("content-type")
+        except Exception as exc:  # noqa: BLE001
+            log.warning("vision_inline_download_failed", url=image_url[:120], error=str(exc))
+            return ""
+
+    if not data:
+        return ""
+
+    mime = (mime_type or "").split(";")[0].strip() or mimetypes.guess_type(image_url)[0] or "image/png"
+    if not mime.startswith("image/"):
+        mime = "image/png"
+    b64 = base64.b64encode(data).decode("ascii")
+    return f"data:{mime};base64,{b64}"
 
 
 async def generate_image(
