@@ -13,65 +13,66 @@ defmodule Mokaid.Assets3d do
   @all_clips ~w(
     idle walking typing working thinking talking waiting blocked
     celebrating away offline reviewing learning requesting_approval
+    sitting preparing_coffee playing_foosball
   )
 
   @catalog [
     %{
       "slug" => "avatar_male",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_male.fb67abfedaea.glb",
-      "cdn_path" => "/assets3d/avatar_male.fb67abfedaea.glb",
-      "sha256" => "fb67abfedaea32d84a10ad18575598223b3ffeebfc2fb1b00805d04464d43307",
-      "byte_size" => 4_178_208,
+      "storage_key" => "assets3d/avatar_male.fb08cdc0ddf0.glb",
+      "cdn_path" => "/assets3d/avatar_male.fb08cdc0ddf0.glb",
+      "sha256" => "fb08cdc0ddf095d0507bcf215ca0cac8450e17dc441ee46a985aa0fde63cb4fc",
+      "byte_size" => 4_233_500,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Male character",
         "target_height_m" => 1.75,
-        "source" => "fiverr + procedural bake"
+        "source" => "fiverr + procedural bake + POI clips"
       }
     },
     %{
       "slug" => "avatar_female",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_female.dbad3a7ec430.glb",
-      "cdn_path" => "/assets3d/avatar_female.dbad3a7ec430.glb",
-      "sha256" => "dbad3a7ec430bb9728ca5929d5271e0ace5d0c5275766ab07e847ee27a0422ee",
-      "byte_size" => 575_432,
+      "storage_key" => "assets3d/avatar_female.c8ff304eeb2a.glb",
+      "cdn_path" => "/assets3d/avatar_female.c8ff304eeb2a.glb",
+      "sha256" => "c8ff304eeb2a2577ce5564384a3020e46fe650923032096a64e1714befa4197c",
+      "byte_size" => 628_520,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Female character",
         "target_height_m" => 1.65,
-        "source" => "fiverr walking + procedural bake",
+        "source" => "fiverr walking + procedural bake + POI clips",
         "skeleton" => "mixamo_biped"
       }
     },
     %{
       "slug" => "avatar_finance",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_finance.9b8810aace2c.glb",
-      "cdn_path" => "/assets3d/avatar_finance.9b8810aace2c.glb",
-      "sha256" => "9b8810aace2cb11fa8d63c85b6d55a048f4c51d6935db173f8c9c1291b75c9e5",
-      "byte_size" => 945_372,
+      "storage_key" => "assets3d/avatar_finance.dc620edbd8c2.glb",
+      "cdn_path" => "/assets3d/avatar_finance.dc620edbd8c2.glb",
+      "sha256" => "dc620edbd8c2f7b8cd59a20de0e3bebf40f0fd1a2d220bd43e0f95e0a3bd3b05",
+      "byte_size" => 998_532,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Female finance",
         "target_height_m" => 1.65,
-        "source" => "meshy biped + mapped AgentVisualState clips",
+        "source" => "meshy biped + mapped AgentVisualState clips + POI clips",
         "skeleton" => "mixamo_biped"
       }
     },
     %{
       "slug" => "avatar_corporate",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_corporate.cbbd97eecc61.glb",
-      "cdn_path" => "/assets3d/avatar_corporate.cbbd97eecc61.glb",
-      "sha256" => "cbbd97eecc61b97c906e54d533e295f10646310f550220a39f09f93f33b8bde0",
-      "byte_size" => 660_308,
+      "storage_key" => "assets3d/avatar_corporate.95f6a0768673.glb",
+      "cdn_path" => "/assets3d/avatar_corporate.95f6a0768673.glb",
+      "sha256" => "95f6a0768673f437a6fbdfecab7747b8d259006ae1d95e7675c2ce20576ccd9a",
+      "byte_size" => 713_404,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Corporate",
         "target_height_m" => 1.70,
-        "source" => "meshy corporate walking + procedural bake",
+        "source" => "meshy corporate walking + procedural bake + POI clips",
         "skeleton" => "mixamo_biped"
       }
     }

@@ -12,9 +12,9 @@ import { UploadCloud } from "lucide-react";
 import type { Agent } from "@/api/types";
 import { useAssets3d } from "@/api/hooks";
 import { env } from "@/lib/env";
+import { useAuthStore } from "@/stores/auth-store";
 import { useSceneStore } from "@/stores/scene-store";
 import { useChatStore } from "@/stores/chat-store";
-import { OfficeScene } from "./office-scene";
 import type { SceneAgent } from "./types";
 import { AgentSceneLabel } from "./agent-scene-label";
 import { applyLabelPositions } from "./label-overlay";
@@ -23,6 +23,12 @@ import { Avatar } from "@/components/ui/avatar";
 import { DropDispatchModal } from "@/components/modals/drop-dispatch-modal";
 import { DEFAULT_AVATAR_CDN_PATH } from "./agent-model";
 import { MAX_OFFICE_SEATS, type SecondaryActivity } from "./office-navdata";
+import {
+  attachOfficeHost,
+  detachOfficeHost,
+  getOfficeHostScene,
+  updateOfficeHostAgents,
+} from "./office-scene-host";
 
 interface BubblePosition {
   x: number;
@@ -52,7 +58,13 @@ function toSceneAgents(
 ): SceneAgent[] {
   const typing = new Set(typingIds);
   return agents
-    .filter((a) => a.status !== "archived" && a.seat_index != null && a.seat_index >= 0 && a.seat_index < MAX_OFFICE_SEATS)
+    .filter(
+      (a) =>
+        a.status !== "archived" &&
+        a.seat_index != null &&
+        a.seat_index >= 0 &&
+        a.seat_index < MAX_OFFICE_SEATS,
+    )
     .map((agent) => {
       const isTyping = typing.has(agent.id);
       const avatarCdnPath =
@@ -170,7 +182,13 @@ function OfficeDropzone({ children }: { children: ReactNode }) {
 }
 
 /** 2D fallback when WebGL is unavailable or 3D is disabled. */
-function FallbackOffice({ agents, onSelectAgent }: { agents: Agent[]; onSelectAgent: (id: string) => void }) {
+function FallbackOffice({
+  agents,
+  onSelectAgent,
+}: {
+  agents: Agent[];
+  onSelectAgent: (id: string) => void;
+}) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 bg-bg-deep p-6">
       <p className="text-xs text-text-muted">3D view unavailable, showing team status</p>
@@ -207,16 +225,16 @@ export function OfficeCanvas({
   selectedAgentId?: string | null;
   onSelectAgent: (id: string | null) => void;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sceneRef = useRef<OfficeScene | null>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
   const labelRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const [webglFailed, setWebglFailed] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [officeReady, setOfficeReady] = useState(false);
+  const [officeReady, setOfficeReady] = useState(() => getOfficeHostScene()?.isReady() ?? false);
   const [localActivities, setLocalActivities] = useState<Map<string, SecondaryActivity>>(
     () => new Map(),
   );
 
+  const workspaceId = useAuthStore((s) => s.workspaceId);
   const fps = useSceneStore((s) => s.fps);
   const setFps = useSceneStore((s) => s.setFps);
 
@@ -233,7 +251,7 @@ export function OfficeCanvas({
     () => toSceneAgents(agents, typingAgentIds, assetCdnById, localActivities),
     [agents, typingAgentIds, assetCdnById, localActivities],
   );
-  const disable3d = env.VITE_DISABLE_3D || webglFailed;
+  const disable3d = env.VITE_DISABLE_3D || webglFailed || !workspaceId;
 
   const registerLabel = useCallback((agentId: string, node: HTMLButtonElement | null) => {
     if (node) labelRefs.current.set(agentId, node);
@@ -251,15 +269,13 @@ export function OfficeCanvas({
     });
   }, []);
 
-  // Create the scene once; never re-create on React re-renders.
+  // Attach/reuse the singleton scene — never dispose on route leave.
   useEffect(() => {
-    if (disable3d || !canvasRef.current || sceneRef.current) return;
+    if (disable3d || !hostRef.current || !workspaceId) return;
 
-    setLoadProgress(0);
-    setOfficeReady(false);
-
+    const container = hostRef.current;
     try {
-      sceneRef.current = new OfficeScene(canvasRef.current, {
+      const scene = attachOfficeHost(container, workspaceId, {
         onSelectAgent,
         onFps: setFps,
         onBubblePositions: (positions: Map<string, BubblePosition>) => {
@@ -269,22 +285,26 @@ export function OfficeCanvas({
         onOfficeReady: (ok) => setOfficeReady(ok),
         onAgentActivity,
       });
+      if (scene.isReady()) {
+        setOfficeReady(true);
+        setLoadProgress(1);
+      }
     } catch (error) {
       console.warn("[3d] WebGL initialization failed, using fallback", error);
       setWebglFailed(true);
     }
 
     return () => {
-      sceneRef.current?.dispose();
-      sceneRef.current = null;
+      detachOfficeHost(container);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disable3d]);
+  }, [disable3d, workspaceId]);
 
-  // Push agent updates into the running scene.
+  // Push agent updates into the running scene (singleton survives remounts).
   useEffect(() => {
-    sceneRef.current?.updateAgents(sceneAgents);
-  }, [sceneAgents]);
+    if (disable3d) return;
+    updateOfficeHostAgents(sceneAgents);
+  }, [sceneAgents, disable3d]);
 
   if (disable3d) {
     return (
@@ -305,7 +325,7 @@ export function OfficeCanvas({
   return (
     <OfficeDropzone>
       <div className="relative h-full w-full overflow-hidden">
-        <canvas ref={canvasRef} className="h-full w-full outline-none" aria-label="3D office view" />
+        <div ref={hostRef} className="h-full w-full" />
 
         {/* Status bubbles overlay — positions updated imperatively each frame */}
         {labeledAgents.map((agent) => (

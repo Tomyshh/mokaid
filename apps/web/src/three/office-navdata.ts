@@ -47,6 +47,8 @@ export interface OfficePoiSlot {
   /** Radians, Babylon Y rotation (0 faces +Z). */
   facing: number;
   animation: SecondaryActivity;
+  /** Vertical root offset while seated (meters). Sit clip handles hip drop. */
+  lift?: number;
 }
 
 export interface OfficePoi {
@@ -58,6 +60,11 @@ export interface OfficePoi {
   approach: NavPoint[];
   /** Optional queue positions when all slots are taken. */
   queueSlots?: NavPoint[];
+}
+
+export interface FindPathOptions {
+  /** Allow the final point inside an obstacle (sofa sit snap). */
+  allowGoalInObstacle?: boolean;
 }
 
 /** Agent collision radius used to inflate obstacle AABBs (meters). */
@@ -96,9 +103,11 @@ export const OFFICE_WALKABLE_POLYGON: NavPoint[] = [
   { x: -6.2, z: 5.6 },
 ];
 
+const R = AGENT_RADIUS;
+
 /**
  * Furniture AABBs inflated by AGENT_RADIUS. Agents must not path through these.
- * Curated from the main desk clusters / sofa / foosball / meeting table.
+ * Calibrated from office.blend mesh bounds (glTF Y-up).
  */
 export const OFFICE_OBSTACLES: Aabb2[] = [
   // Left desk cluster (keep aisles at x≈-5.6 and z≈-0.8 clear)
@@ -109,15 +118,20 @@ export const OFFICE_OBSTACLES: Aabb2[] = [
   // Center desks
   { minX: 0.4, maxX: 1.4, minZ: -0.3, maxZ: 0.9 },
   { minX: 1.5, maxX: 2.6, minZ: -3.3, maxZ: -2.2 },
-  // Right desks / meeting (leave e_aisle free)
+  // Right desks
   { minX: 5.1, maxX: 6.3, minZ: -0.4, maxZ: 0.8 },
-  { minX: 4.7, maxX: 6.4, minZ: 2.5, maxZ: 4.8 },
-  // Sofas (back-left wall)
-  { minX: -6.0, maxX: -0.8, minZ: -6.4, maxZ: -5.6 },
-  // Foosball table
-  { minX: 1.2, maxX: 2.5, minZ: 4.0, maxZ: 5.3 },
-  // Coffee counter area
-  { minX: 5.5, maxX: 6.6, minZ: 2.7, maxZ: 3.6 },
+  // Kitchenette counter Cube.002
+  { minX: -3.25 - R, maxX: -0.73 + R, minZ: -6.44 - R, maxZ: -5.65 + R },
+  // Main sofa Cube.021
+  { minX: 0.92 - R, maxX: 2.66 + R, minZ: -6.35 - R, maxZ: -5.64 + R },
+  // Back-left shelving / secondary sofa Cube.012
+  { minX: -6.49 - R, maxX: -4.46 + R, minZ: -6.38 - R, maxZ: -5.74 + R },
+  // Back-right Rack
+  { minX: 5.12 - R, maxX: 7.14 + R, minZ: -6.48 - R, maxZ: -5.8 + R },
+  // Foosball soccer table.001 (center ≈ 1.85, 4.67)
+  { minX: 1.42 - R, maxX: 2.27 + R, minZ: 4.13 - R, maxZ: 5.21 + R },
+  // Meeting table 2 + surrounding chairs / photocopier
+  { minX: 3.9, maxX: 6.55, minZ: 2.4, maxZ: 5.1 },
 ];
 
 /** Graph nodes covering every aisle agents can patrol. */
@@ -125,6 +139,7 @@ export const OFFICE_NAV_NODES: NavNode[] = [
   { id: "nw", x: -5.6, z: -5.2 },
   { id: "n_lounge", x: -3.5, z: -5.2 },
   { id: "n_mid", x: -0.5, z: -5.2 },
+  { id: "n_sofa", x: 1.8, z: -5.2 },
   { id: "ne", x: 5.4, z: -5.2 },
   { id: "w_aisle", x: -5.6, z: -0.8 },
   { id: "mid_w", x: -3.0, z: -1.6 },
@@ -135,13 +150,16 @@ export const OFFICE_NAV_NODES: NavNode[] = [
   { id: "s_mid", x: -1.0, z: 3.4 },
   { id: "s_coffee", x: 2.2, z: 3.4 },
   { id: "se", x: 4.6, z: 2.6 },
-  { id: "foosball_a", x: 0.95, z: 4.67 },
-  { id: "foosball_b", x: 2.75, z: 4.67 },
-  { id: "foosball_q", x: 1.85, z: 3.65 },
-  { id: "sofa_a", x: -2.75, z: -5.55 },
-  { id: "sofa_b", x: -1.95, z: -5.55 },
-  { id: "sofa_c", x: -1.15, z: -5.55 },
-  { id: "coffee", x: 5.2, z: 3.0 },
+  // Foosball: stand on short (X) sides — long axis is Z.
+  { id: "foosball_a", x: 0.97, z: 4.67 },
+  { id: "foosball_b", x: 2.72, z: 4.67 },
+  { id: "foosball_q", x: 1.85, z: 3.55 },
+  // Standing points in front of the main sofa cushions (aisle, walkable)
+  { id: "sofa_a", x: 1.27, z: -5.25 },
+  { id: "sofa_b", x: 1.79, z: -5.25 },
+  { id: "sofa_c", x: 2.31, z: -5.25 },
+  // In front of the kitchenette / coffee machine
+  { id: "coffee", x: -1.99, z: -5.2 },
   // Desk approach nodes (near each seat, in aisle)
   { id: "desk0", x: -4.6, z: 0.76 },
   { id: "desk1", x: -4.6, z: -2.0 },
@@ -154,11 +172,12 @@ export const OFFICE_NAV_NODES: NavNode[] = [
   { id: "desk8", x: -2.2, z: 2.56 },
 ];
 
-/** Undirected edges between nav nodes (aisles only). */
+/** Undirected edges between nav nodes (aisles only — never through furniture). */
 export const OFFICE_NAV_EDGES: NavEdge[] = [
   { from: "nw", to: "n_lounge" },
   { from: "n_lounge", to: "n_mid" },
-  { from: "n_mid", to: "ne" },
+  { from: "n_mid", to: "n_sofa" },
+  { from: "n_sofa", to: "ne" },
   { from: "nw", to: "w_aisle" },
   { from: "ne", to: "e_aisle" },
   { from: "w_aisle", to: "mid_w" },
@@ -170,13 +189,17 @@ export const OFFICE_NAV_EDGES: NavEdge[] = [
   { from: "s_mid", to: "s_coffee" },
   { from: "s_coffee", to: "se" },
   { from: "se", to: "e_aisle" },
+  // Foosball approach from south only — no edge through the table.
   { from: "s_coffee", to: "foosball_q" },
   { from: "foosball_q", to: "foosball_a" },
   { from: "foosball_q", to: "foosball_b" },
-  { from: "n_lounge", to: "sofa_a" },
+  { from: "n_sofa", to: "sofa_a" },
+  { from: "n_sofa", to: "sofa_b" },
+  { from: "n_sofa", to: "sofa_c" },
   { from: "sofa_a", to: "sofa_b" },
   { from: "sofa_b", to: "sofa_c" },
-  { from: "se", to: "coffee" },
+  { from: "n_lounge", to: "coffee" },
+  { from: "n_mid", to: "coffee" },
   { from: "w_aisle", to: "desk0" },
   { from: "w_aisle", to: "desk1" },
   { from: "mid_w", to: "desk2" },
@@ -195,18 +218,19 @@ export const OFFICE_POIS: OfficePoi[] = [
     id: "foosball",
     kind: "foosball",
     capacity: 2,
-    approach: [{ x: 1.85, z: 3.65 }],
-    queueSlots: [{ x: 1.85, z: 3.2 }],
+    // soccer table.001 center ≈ (1.85, 4.67); long axis Z — players on ±X.
+    approach: [{ x: 1.85, z: 3.55 }],
+    queueSlots: [{ x: 1.0, z: 3.3 }],
     slots: [
       {
         id: "foosball_a",
-        position: { x: 0.95, z: 4.67 },
+        position: { x: 0.97, z: 4.67 },
         facing: Math.PI / 2,
         animation: "playing_foosball",
       },
       {
         id: "foosball_b",
-        position: { x: 2.75, z: 4.67 },
+        position: { x: 2.72, z: 4.67 },
         facing: -Math.PI / 2,
         animation: "playing_foosball",
       },
@@ -216,25 +240,29 @@ export const OFFICE_POIS: OfficePoi[] = [
     id: "sofa_main",
     kind: "sofa",
     capacity: 3,
-    approach: [{ x: -2.0, z: -4.6 }],
+    // Cube.021 cushions; approach stays in the walkable aisle.
+    approach: [{ x: 1.79, z: -5.2 }],
     slots: [
       {
         id: "sofa_a",
-        position: { x: -2.75, z: -5.55 },
+        position: { x: 1.27, z: -6.07 },
         facing: 0,
         animation: "sitting_sofa",
+        lift: 0.05,
       },
       {
         id: "sofa_b",
-        position: { x: -1.95, z: -5.55 },
+        position: { x: 1.79, z: -6.07 },
         facing: 0,
         animation: "sitting_sofa",
+        lift: 0.05,
       },
       {
         id: "sofa_c",
-        position: { x: -1.15, z: -5.55 },
+        position: { x: 2.31, z: -6.07 },
         facing: 0,
         animation: "sitting_sofa",
+        lift: 0.05,
       },
     ],
   },
@@ -242,16 +270,16 @@ export const OFFICE_POIS: OfficePoi[] = [
     id: "coffee",
     kind: "coffee",
     capacity: 1,
-    approach: [{ x: 4.6, z: 2.6 }],
+    approach: [{ x: -1.99, z: -4.7 }],
     queueSlots: [
-      { x: 4.2, z: 2.2 },
-      { x: 3.8, z: 2.0 },
+      { x: -1.0, z: -4.6 },
+      { x: -0.5, z: -4.3 },
     ],
     slots: [
       {
         id: "coffee_active",
-        position: { x: 5.2, z: 3.0 },
-        facing: Math.PI * 0.15,
+        position: { x: -1.99, z: -5.2 },
+        facing: Math.PI,
         animation: "preparing_coffee",
       },
     ],
@@ -301,6 +329,27 @@ export function segmentIsWalkable(a: NavPoint, b: NavPoint, steps = 8): boolean 
   return true;
 }
 
+/**
+ * Push a candidate point out of the nearest obstacle AABB (axis-aligned slide).
+ * Returns the original point when already clear.
+ */
+export function resolveCollision(p: NavPoint, obstacles: Aabb2[] = OFFICE_OBSTACLES): NavPoint {
+  let { x, z } = p;
+  for (const o of obstacles) {
+    if (x < o.minX || x > o.maxX || z < o.minZ || z > o.maxZ) continue;
+    const left = x - o.minX;
+    const right = o.maxX - x;
+    const bottom = z - o.minZ;
+    const top = o.maxZ - z;
+    const min = Math.min(left, right, bottom, top);
+    if (min === left) x = o.minX - 0.02;
+    else if (min === right) x = o.maxX + 0.02;
+    else if (min === bottom) z = o.minZ - 0.02;
+    else z = o.maxZ + 0.02;
+  }
+  return { x, z };
+}
+
 function buildAdjacency(): Map<string, string[]> {
   const map = new Map<string, string[]>();
   for (const n of OFFICE_NAV_NODES) map.set(n.id, []);
@@ -329,11 +378,11 @@ export function nearestNavNode(x: number, z: number, preferWalkable = true): Nav
 }
 
 /** A* on the curated aisle graph. Returns polyline of world points including start. */
-export function findPath(from: NavPoint, to: NavPoint): NavPoint[] {
+export function findPath(from: NavPoint, to: NavPoint, opts: FindPathOptions = {}): NavPoint[] {
   const start = nearestNavNode(from.x, from.z);
   const goal = nearestNavNode(to.x, to.z);
   if (start.id === goal.id) {
-    return [from, to];
+    return finishPath([from], to, opts);
   }
 
   const open = new Set<string>([start.id]);
@@ -359,8 +408,7 @@ export function findPath(from: NavPoint, to: NavPoint): NavPoint[] {
         const n = NODE_BY_ID.get(id)!;
         pts.push({ x: n.x, z: n.z });
       }
-      pts.push(to);
-      return pts;
+      return finishPath(pts, to, opts);
     }
 
     open.delete(current);
@@ -377,8 +425,17 @@ export function findPath(from: NavPoint, to: NavPoint): NavPoint[] {
     }
   }
 
-  // Fallback: direct line via nearest nodes.
-  return [from, { x: start.x, z: start.z }, { x: goal.x, z: goal.z }, to];
+  // No graph path — stop at the nearest walkable start node (never cut furniture).
+  return [{ x: from.x, z: from.z }, { x: start.x, z: start.z }];
+}
+
+function finishPath(pts: NavPoint[], to: NavPoint, opts: FindPathOptions): NavPoint[] {
+  if (opts.allowGoalInObstacle || isWalkable(to) || !pointHitsObstacle(to)) {
+    pts.push(to);
+    return pts;
+  }
+  // Goal inside furniture without sit exception: stop at last walkable node.
+  return pts;
 }
 
 export function floorYAt(_x: number, _z: number): number {

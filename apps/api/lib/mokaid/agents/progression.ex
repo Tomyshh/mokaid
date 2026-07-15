@@ -59,7 +59,7 @@ defmodule Mokaid.Agents.Progression do
       "performance_score" => performance_score(agent, missions, level)
     }
 
-    with {:ok, updated} <- Agents.update_agent(agent, attrs) do
+    with {:ok, updated} <- Agents.apply_internal_update(agent, attrs) do
       if leveled_up? do
         Realtime.broadcast_workspace(agent.workspace_id, "agent.level_up", %{
           agent_id: agent.id,

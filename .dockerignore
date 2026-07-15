@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+**/node_modules
+**/_build
+**/deps
+**/.venv
+**/__pycache__
+apps/web/dist
+scratchpad
+assets/raw
+assets/optimized
+*.blend
+*.blend1
+office.glb

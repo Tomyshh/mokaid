@@ -30,7 +30,6 @@ defmodule Mokaid.Agents.Agent do
     field :capabilities, :map, default: %{}
     field :current_task_id, :binary_id
     field :performance_score, :decimal
-    # Gamified progression: missions earn XP; levels unlock as XP accumulates.
     field :level, :integer, default: 1
     field :xp, :integer, default: 0
     field :xp_for_next_level, :integer, default: 100
@@ -38,7 +37,6 @@ defmodule Mokaid.Agents.Agent do
     field :access_scope, :map, default: %{}
     field :last_active_at, :utc_datetime_usec
     field :archived_at, :utc_datetime_usec
-    # 3D office: unique desk 0..8 per workspace; social POI presence is ephemeral.
     field :seat_index, :integer
     field :office_activity, :string
     field :office_poi_id, :string
@@ -55,44 +53,73 @@ defmodule Mokaid.Agents.Agent do
   @office_activities ~w(preparing_coffee playing_foosball sitting_sofa walking scrolling stretching looking_around)
   @office_phases ~w(approaching entering active leaving)
 
-  def changeset(agent, attrs) do
+  # Server-built create payload (archetype/boost applied before insert).
+  @create_fields [
+    :workspace_id,
+    :linked_user_id,
+    :linked_member_id,
+    :kind,
+    :display_name,
+    :slug,
+    :email_alias,
+    :avatar_config,
+    :avatar_asset_id,
+    :role_title,
+    :department,
+    :manager_agent_id,
+    :status,
+    :presence_status,
+    :control_mode,
+    :ai_enabled,
+    :human_takeover_enabled,
+    :skills,
+    :capabilities,
+    :level,
+    :xp,
+    :xp_for_next_level,
+    :missions_completed,
+    :created_by_member_id,
+    :seat_index
+  ]
+
+  # Public PATCH — identity and profile only.
+  @update_fields [
+    :display_name,
+    :email_alias,
+    :avatar_config,
+    :avatar_asset_id,
+    :role_title,
+    :department,
+    :human_takeover_enabled,
+    :status,
+    :presence_status,
+    :control_mode
+  ]
+
+  # Progression / skill learning / system paths.
+  @internal_fields @create_fields ++
+                     [
+                       :current_task_id,
+                       :performance_score,
+                       :access_scope,
+                       :last_active_at,
+                       :office_activity,
+                       :office_poi_id,
+                       :office_slot_id,
+                       :office_activity_phase,
+                       :office_activity_ends_at
+                     ]
+
+  def create_changeset(agent, attrs), do: cast_and_validate(agent, attrs, @create_fields)
+  def update_changeset(agent, attrs), do: cast_and_validate(agent, attrs, @update_fields)
+  def internal_changeset(agent, attrs), do: cast_and_validate(agent, attrs, @internal_fields)
+
+  # Kept for callers that still use the generic name (prefer create/update/internal).
+  def changeset(agent, attrs), do: internal_changeset(agent, attrs)
+
+  defp cast_and_validate(agent, attrs, fields) do
     agent
-    |> cast(attrs, [
-      :workspace_id,
-      :linked_user_id,
-      :linked_member_id,
-      :kind,
-      :display_name,
-      :slug,
-      :email_alias,
-      :avatar_config,
-      :avatar_asset_id,
-      :role_title,
-      :department,
-      :manager_agent_id,
-      :status,
-      :presence_status,
-      :control_mode,
-      :ai_enabled,
-      :human_takeover_enabled,
-      :skills,
-      :capabilities,
-      :current_task_id,
-      :performance_score,
-      :level,
-      :xp,
-      :xp_for_next_level,
-      :missions_completed,
-      :access_scope,
-      :created_by_member_id,
-      :last_active_at,
-      :seat_index,
-      :office_activity,
-      :office_poi_id,
-      :office_slot_id,
-      :office_activity_phase,
-      :office_activity_ends_at
-    ])
+    |> cast(attrs, fields)
     |> validate_required([:workspace_id, :kind, :display_name])
     |> validate_inclusion(:kind, @kinds)
     |> validate_inclusion(:status, @statuses)

@@ -3,15 +3,28 @@ defmodule Mokaid.AI.DispatcherTest do
 
   alias Mokaid.Agents
   alias Mokaid.AI.Dispatcher
+  alias Mokaid.Billing
+
+  setup do
+    Billing.seed_plans()
+    :ok
+  end
 
   defp create_agent(workspace_id, name, role, skills) do
+    Billing.change_plan(workspace_id, "professional")
+
     {:ok, agent} =
       Agents.create_agent(workspace_id, %{
         "kind" => "ai",
         "display_name" => name,
         "role_title" => role,
+        "archetype_key" => "generalist"
+      })
+
+    {:ok, agent} =
+      Agents.apply_internal_update(agent, %{
         "skills" => Enum.map(skills, &%{"name" => &1, "level" => 80}),
-        "ai_enabled" => true
+        "role_title" => role
       })
 
     agent
@@ -50,6 +63,7 @@ defmodule Mokaid.AI.DispatcherTest do
 
       assert analysis.recommendation.mode == "custom_agent"
       assert analysis.recommendation.custom_agent.display_name == "Data Analyst"
+      assert analysis.recommendation.custom_agent.archetype_key == "data_analyst"
     end
 
     test "detects urgency and derives a bounded title" do
@@ -84,8 +98,9 @@ defmodule Mokaid.AI.DispatcherTest do
       assert run.task_id == task.id
     end
 
-    test "creates a custom agent on demand" do
+    test "creates a custom agent on demand via archetype" do
       {workspace, owner} = workspace_fixture()
+      Billing.change_plan(workspace.id, "professional")
       member = owner_member(workspace, owner)
 
       assert {:ok, %{task: task, agent: agent}} =
@@ -94,6 +109,7 @@ defmodule Mokaid.AI.DispatcherTest do
                  "custom_agent" => %{
                    "display_name" => "Data Analyst",
                    "role_title" => "Data Analysis Specialist",
+                   "archetype_key" => "data_analyst",
                    "skills" => [%{"name" => "data-analysis", "level" => 75}]
                  }
                })
@@ -101,6 +117,8 @@ defmodule Mokaid.AI.DispatcherTest do
       assert agent.kind == "ai"
       assert agent.ai_enabled
       assert agent.display_name == "Data Analyst"
+      assert Enum.any?(agent.skills, &(&1["name"] == "data-analysis"))
+      refute Enum.any?(agent.skills, &(&1["level"] == 75))
       assert task.assigned_agent_id == agent.id
     end
 

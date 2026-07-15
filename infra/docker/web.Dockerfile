@@ -16,6 +16,7 @@ COPY apps/web ./apps/web
 ARG VITE_API_URL=
 ARG VITE_WS_URL=/socket
 ENV VITE_API_URL=$VITE_API_URL VITE_WS_URL=$VITE_WS_URL
+ENV NODE_OPTIONS=--max-old-space-size=1536
 
 RUN npm run build --workspace=apps/web
 

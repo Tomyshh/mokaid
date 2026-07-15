@@ -1,10 +1,19 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useAssets3d, useCreateAgent, type Asset3d } from "@/api/hooks";
+import { Link } from "@tanstack/react-router";
+import { Coins, Sparkles } from "lucide-react";
+import {
+  useAgentCatalog,
+  useAssets3d,
+  useBillingOverview,
+  useCreateAgent,
+  type Asset3d,
+} from "@/api/hooks";
+import { ApiError } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
+import { formatNumber } from "@/lib/format";
 
 const AgentPreview3D = lazy(() =>
   import("@/three/agent-preview").then((m) => ({ default: m.AgentPreview3D })),
@@ -16,17 +25,6 @@ interface NewAgentModalProps {
   onCreated?: (agentId: string) => void;
 }
 
-const departments = [
-  "Marketing",
-  "Sales",
-  "Engineering",
-  "Design",
-  "Operations",
-  "Finance",
-  "Support",
-  "HR",
-];
-
 const DEFAULT_ACCENT = "#7c5cff";
 
 function assetLabel(asset: Asset3d): string {
@@ -36,58 +34,72 @@ function assetLabel(asset: Asset3d): string {
 
 export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalProps) {
   const createAgent = useCreateAgent();
+  const { data: catalogData } = useAgentCatalog();
+  const { data: billingData } = useBillingOverview();
   const { data: characterAssets } = useAssets3d("character");
 
   const models = useMemo(() => characterAssets ?? [], [characterAssets]);
   const defaultAssetId = models.find((a) => a.slug === "avatar_male")?.id ?? models[0]?.id ?? "";
+  const archetypes = catalogData?.data.archetypes ?? [];
+  const boosts = catalogData?.data.boosts ?? [];
+  const spendable = billingData?.data.credits.spendable ?? 0;
 
   const [name, setName] = useState("");
-  const [roleTitle, setRoleTitle] = useState("");
-  const [department, setDepartment] = useState<string | undefined>();
-  const [skillsText, setSkillsText] = useState("");
+  const [archetypeKey, setArchetypeKey] = useState("generalist");
+  const [boostKey, setBoostKey] = useState<string | null>(null);
+  const [knowledgeBrief, setKnowledgeBrief] = useState("");
   const [avatarAssetId, setAvatarAssetId] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedArchetype = archetypes.find((a) => a.key === archetypeKey) ?? archetypes[0];
+  const selectedBoost = boosts.find((b) => b.key === boostKey) ?? null;
+  const boostCost = selectedBoost?.credits ?? 0;
+  const canAffordBoost = !selectedBoost || spendable >= boostCost;
 
   useEffect(() => {
     if (!avatarAssetId && defaultAssetId) setAvatarAssetId(defaultAssetId);
   }, [avatarAssetId, defaultAssetId]);
 
+  useEffect(() => {
+    if (open && archetypes.length > 0 && !archetypes.some((a) => a.key === archetypeKey)) {
+      setArchetypeKey(archetypes[0].key);
+    }
+  }, [open, archetypes, archetypeKey]);
+
   const reset = () => {
     setName("");
-    setRoleTitle("");
-    setDepartment(undefined);
-    setSkillsText("");
+    setArchetypeKey("generalist");
+    setBoostKey(null);
+    setKnowledgeBrief("");
     setAvatarAssetId(defaultAssetId);
+    setError(null);
   };
 
   const handleSubmit = async () => {
-    if (!name.trim()) return;
-    const brief = skillsText.trim();
-    // Keep a short skill list for routing; full brief is stored for the AI to summarize.
-    const skills = brief
-      ? brief
-          .split(/[,;\n]+/)
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0 && s.length <= 60)
-          .slice(0, 8)
-          .map((s) => ({ name: s, level: 75 }))
-      : [];
-
-    const created = await createAgent.mutateAsync({
-      display_name: name.trim(),
-      role_title: roleTitle.trim() || undefined,
-      department,
-      kind: "ai",
-      ai_enabled: true,
-      status: "idle",
-      presence_status: "online",
-      skills: (skills.length > 0 ? skills : brief ? [{ name: "generalist", level: 70 }] : []) as never,
-      capabilities: (brief ? { knowledge_brief: brief } : {}) as never,
-      avatar_config: { primary_color: DEFAULT_ACCENT } as never,
-      avatar_asset_id: avatarAssetId || defaultAssetId || null,
-    });
-    reset();
-    onOpenChange(false);
-    onCreated?.(created.data.id);
+    if (!name.trim() || !canAffordBoost) return;
+    setError(null);
+    try {
+      const created = await createAgent.mutateAsync({
+        display_name: name.trim(),
+        kind: "ai",
+        archetype_key: archetypeKey,
+        boost_key: boostKey,
+        knowledge_brief: knowledgeBrief.trim() || undefined,
+        role_title: selectedArchetype?.role_title,
+        department: selectedArchetype?.department,
+        avatar_config: { primary_color: DEFAULT_ACCENT },
+        avatar_asset_id: avatarAssetId || defaultAssetId || null,
+      });
+      reset();
+      onOpenChange(false);
+      onCreated?.(created.data.id);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError(e instanceof Error ? e.message : "Could not create agent.");
+      }
+    }
   };
 
   return (
@@ -95,8 +107,8 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
       open={open}
       onOpenChange={onOpenChange}
       title="New Agent"
-      description="Choose a character, then give your teammate a name and role."
-      className="w-[min(840px,calc(100vw-2rem))]"
+      description="Pick an archetype, optionally accelerate growth with credits, then choose a character."
+      className="w-[min(920px,calc(100vw-2rem))]"
       footer={
         <>
           <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
@@ -105,16 +117,16 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
           <Button
             size="sm"
             loading={createAgent.isPending}
-            disabled={!name.trim()}
+            disabled={!name.trim() || !canAffordBoost}
             onClick={handleSubmit}
           >
             Create Agent
+            {boostCost > 0 ? ` · ${formatNumber(boostCost)} credits` : ""}
           </Button>
         </>
       }
     >
       <div className="grid gap-8 md:grid-cols-[1fr_minmax(280px,340px)] md:gap-10">
-        {/* Left — identity */}
         <div className="space-y-6">
           <Field label="Name" required>
             <input
@@ -126,68 +138,133 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
             />
           </Field>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Role">
-              <input
-                className="mk-input"
-                placeholder="e.g. Marketing Specialist"
-                value={roleTitle}
-                onChange={(e) => setRoleTitle(e.target.value)}
-              />
-            </Field>
-            <Field label="Department">
-              <Select
-                value={department}
-                onValueChange={setDepartment}
-                placeholder="Choose…"
-                options={departments.map((d) => ({ value: d, label: d }))}
-              />
-            </Field>
-          </div>
-
-          <Field label="Type">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="rounded-full bg-primary px-4 py-2 text-left text-white"
-              >
-                <span className="block text-xs font-semibold">AI Agent</span>
-                <span className="block text-[10px] text-white/75">Fully autonomous</span>
-              </button>
-              <button
-                type="button"
-                disabled
-                title="Coming soon"
-                className="cursor-not-allowed rounded-full bg-surface-raised/60 px-4 py-2 text-left opacity-55"
-              >
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
-                  Hybrid
-                  <span className="rounded bg-text-muted/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-text-muted">
-                    Soon
-                  </span>
-                </span>
-                <span className="block text-[10px] text-text-muted">AI + human takeover</span>
-              </button>
+          <Field label="Archetype" hint="Seeds modest skills — specialization still emerges from missions.">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {archetypes.map((archetype) => {
+                const active = archetype.key === archetypeKey;
+                return (
+                  <button
+                    key={archetype.key}
+                    type="button"
+                    onClick={() => setArchetypeKey(archetype.key)}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-left transition-colors",
+                      active
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-surface-raised/40 hover:border-primary/40",
+                    )}
+                  >
+                    <span className="block text-xs font-semibold text-text">{archetype.name}</span>
+                    <span className="mt-0.5 block text-[10px] text-text-muted">
+                      {archetype.description}
+                    </span>
+                    <span className="mt-1.5 flex flex-wrap gap-1">
+                      {archetype.skills.slice(0, 3).map((skill) => (
+                        <span
+                          key={skill.name}
+                          className="rounded bg-surface px-1.5 py-0.5 text-[9px] text-text-secondary"
+                        >
+                          {skill.name} {skill.level}
+                        </span>
+                      ))}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </Field>
 
           <Field
-            label="Skills & background"
-            hint="Describe this teammate in a few sentences — expertise, tools, industries, working style. The AI will summarize it into a first knowledge profile for the agent."
+            label="Head start (optional)"
+            hint={`Balance: ${formatNumber(spendable)} credits`}
+          >
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setBoostKey(null)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left",
+                  boostKey == null
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-surface-raised/40",
+                )}
+              >
+                <span>
+                  <span className="block text-xs font-semibold text-text">Start at level 1</span>
+                  <span className="text-[10px] text-text-muted">Free — learn from missions</span>
+                </span>
+                <span className="text-[10px] font-semibold text-success">0 credits</span>
+              </button>
+              {boosts.map((boost) => {
+                const active = boostKey === boost.key;
+                const affordable = spendable >= boost.credits;
+                return (
+                  <button
+                    key={boost.key}
+                    type="button"
+                    disabled={!affordable}
+                    onClick={() => setBoostKey(boost.key)}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left",
+                      active
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-surface-raised/40",
+                      !affordable && "cursor-not-allowed opacity-50",
+                    )}
+                  >
+                    <span>
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-text">
+                        <Sparkles size={12} className="text-primary" />
+                        {boost.name}
+                      </span>
+                      <span className="text-[10px] text-text-muted">{boost.description}</span>
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] font-semibold text-text-secondary">
+                      <Coins size={11} />
+                      {formatNumber(boost.credits)}
+                    </span>
+                  </button>
+                );
+              })}
+              {!canAffordBoost && (
+                <p className="text-[11px] text-warning">
+                  Not enough credits.{" "}
+                  <Link to="/billing" className="underline" onClick={() => onOpenChange(false)}>
+                    Buy a pack
+                  </Link>
+                </p>
+              )}
+            </div>
+          </Field>
+
+          <Field
+            label="Background (optional)"
+            hint="Stored as private context for this agent — not used to forge skill levels."
           >
             <textarea
-              className="mk-input min-h-[140px] resize-y py-2.5 leading-relaxed"
-              placeholder={
-                "e.g. Expert in B2B SaaS marketing with 8 years of experience. Strong at positioning, landing pages, and LinkedIn outreach. Comfortable with Notion, Figma, and HubSpot. Prefers clear briefs and ships weekly campaign drafts…"
-              }
-              value={skillsText}
-              onChange={(e) => setSkillsText(e.target.value)}
-              rows={6}
+              className="mk-input min-h-[100px] resize-y py-2.5 leading-relaxed"
+              placeholder="e.g. Prefer concise briefs, ship weekly drafts, strong B2B SaaS intuition…"
+              value={knowledgeBrief}
+              onChange={(e) => setKnowledgeBrief(e.target.value)}
+              rows={4}
             />
           </Field>
+
+          {error && (
+            <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+              {error}
+              {error.toLowerCase().includes("limit") && (
+                <>
+                  {" "}
+                  <Link to="/billing" className="underline" onClick={() => onOpenChange(false)}>
+                    Upgrade plan
+                  </Link>
+                </>
+              )}
+            </p>
+          )}
         </div>
 
-        {/* Right — full-body character picker */}
         <div className="space-y-3">
           <div>
             <p className="text-xs font-medium text-text-secondary">3D character</p>

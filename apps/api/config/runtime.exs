@@ -90,7 +90,11 @@ if config_env() == :prod do
 
   config :mokaid, MokaidWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
-    http: [ip: {0, 0, 0, 0}, port: port],
+    http: [
+      ip: {0, 0, 0, 0},
+      port: port,
+      http_1_options: [max_header_length: 65_536, max_request_line_length: 65_536]
+    ],
     secret_key_base: secret_key_base
 
   config :mokaid, :cors_origins, String.split(System.get_env("CORS_ORIGINS", ""), ",", trim: true)

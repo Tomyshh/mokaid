@@ -30,6 +30,11 @@ export function joinChannel(topic: string, params: Record<string, unknown> = {})
   const channel = currentSocket.channel(topic, params);
   channel.join().receive("error", (reason) => {
     console.warn(`[realtime] failed to join ${topic}`, reason);
+    // Drop the failed channel so a later joinChannel call can retry cleanly.
+    if (channels.get(topic) === channel) {
+      channel.leave();
+      channels.delete(topic);
+    }
   });
   channels.set(topic, channel);
   return channel;

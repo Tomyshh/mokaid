@@ -91,6 +91,48 @@ export interface AgentCounts {
   hybrid: number;
   active: number;
   offline: number;
+  /** Plan entitlement for active agents (1 / 3 / 9). */
+  limit: number;
+}
+
+export interface CreateAgentPayload {
+  display_name: string;
+  kind?: "ai" | "human_linked" | "hybrid";
+  role_title?: string;
+  department?: string;
+  avatar_asset_id?: string | null;
+  avatar_config?: Partial<AvatarConfig>;
+  archetype_key?: string;
+  boost_key?: string | null;
+  knowledge_brief?: string;
+  linked_user_id?: string;
+  linked_member_id?: string;
+  human_takeover_enabled?: boolean;
+  email_alias?: string;
+}
+
+export interface AgentArchetype {
+  key: string;
+  name: string;
+  domain: string | null;
+  description: string;
+  role_title: string;
+  department: string;
+  skills: AgentSkill[];
+}
+
+export interface AgentBoostTier {
+  key: string;
+  name: string;
+  description: string;
+  credits: number;
+  target_level: number;
+  skill_bonus: number;
+}
+
+export interface AgentCatalog {
+  archetypes: AgentArchetype[];
+  boosts: AgentBoostTier[];
 }
 
 export interface Subtask {
@@ -540,6 +582,7 @@ export interface DispatchCustomAgent {
   display_name: string;
   role_title: string | null;
   department: string | null;
+  archetype_key?: string | null;
   skills: Array<{ name: string; level: number }>;
 }
 

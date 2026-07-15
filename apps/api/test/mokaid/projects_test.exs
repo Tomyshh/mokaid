@@ -30,10 +30,14 @@ defmodule Mokaid.ProjectsTest do
         Projects.create_project(workspace.id, %{"name" => "Doomed"}, member)
 
       {:ok, task} =
-        Tasks.create_task(workspace.id, %{
-          "title" => "Ship it",
-          "project_id" => project.id
-        }, member)
+        Tasks.create_task(
+          workspace.id,
+          %{
+            "title" => "Ship it",
+            "project_id" => project.id
+          },
+          member
+        )
 
       assert {:ok, _} = Projects.delete_project(project)
 

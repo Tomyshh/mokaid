@@ -22,7 +22,7 @@ import type { AgentVisualState } from "@mokaid/shared-types";
 import { env } from "@/lib/env";
 
 /** Hashed filename matching assets/optimized + S3 upload + asset_3d seed. */
-export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.fb67abfedaea.glb";
+export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.fb08cdc0ddf0.glb";
 
 const VISUAL_STATES: AgentVisualState[] = [
   "idle",
@@ -39,6 +39,9 @@ const VISUAL_STATES: AgentVisualState[] = [
   "reviewing",
   "learning",
   "requesting_approval",
+  "sitting",
+  "preparing_coffee",
+  "playing_foosball",
 ];
 
 /** Clip name aliases → AgentVisualState (GLB + Mixamo + legacy). */
@@ -59,9 +62,21 @@ const CLIP_ALIASES: Record<string, AgentVisualState> = {
   reviewing: "reviewing",
   learning: "learning",
   requesting_approval: "requesting_approval",
+  sitting: "sitting",
+  sitting_sofa: "sitting",
+  sit: "sitting",
+  preparing_coffee: "preparing_coffee",
+  coffee: "preparing_coffee",
+  playing_foosball: "playing_foosball",
+  foosball: "playing_foosball",
 };
 
-export type AgentAnimName = AgentVisualState | "walk";
+export type AgentAnimName =
+  | AgentVisualState
+  | "walk"
+  | "sitting"
+  | "preparing_coffee"
+  | "playing_foosball";
 
 export function resolveAgentGlbUrl(cdnPath?: string | null): string {
   const path = (cdnPath && cdnPath.trim()) || DEFAULT_AVATAR_CDN_PATH;
@@ -248,7 +263,7 @@ function resolveClip(
   avatar: AgentAnimPlayer,
   next: AgentAnimName,
 ): { state: AgentVisualState; group: AnimationGroup | null } {
-  const state: AgentVisualState = next === "walk" ? "walking" : next;
+  const state = (next === "walk" ? "walking" : next) as AgentVisualState;
   const group =
     avatar.anims[state] ??
     (state === "walking" ? avatar.walkAnim : null) ??

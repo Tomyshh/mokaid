@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Bot, Plus, Users } from "lucide-react";
 import { useAgents } from "@/api/hooks";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -46,6 +47,7 @@ export function AgentsPage() {
 
   const counts = data?.meta.counts;
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
+  const atLimit = (counts?.total ?? 0) >= (counts?.limit ?? 1);
 
   return (
     <div className="flex h-full gap-5">
@@ -55,15 +57,35 @@ export function AgentsPage() {
             <h1 className="text-xl font-bold text-text">Agents</h1>
             <p className="text-xs text-text-muted">
               Manage your AI, human-linked and hybrid workforce
+              {counts?.limit != null && (
+                <>
+                  {" "}
+                  · {counts.total}/{counts.limit} seats used
+                </>
+              )}
             </p>
           </div>
-          <Button onClick={() => setShowNewAgent(true)} data-tour="new-agent">
-            <Plus size={14} /> New Agent
-          </Button>
+          {atLimit ? (
+            <Link
+              to="/billing"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-sm shadow-primary/25 hover:bg-primary/90"
+            >
+              <Plus size={14} /> Upgrade for more seats
+            </Link>
+          ) : (
+            <Button onClick={() => setShowNewAgent(true)} data-tour="new-agent">
+              <Plus size={14} /> New Agent
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-          <KpiCard label="Total Agents" value={counts?.total ?? "·"} icon={<Bot size={20} />} tone="primary" />
+          <KpiCard
+            label="Active seats"
+            value={`${counts?.total ?? "·"}/${counts?.limit ?? "·"}`}
+            icon={<Bot size={20} />}
+            tone="primary"
+          />
           <KpiCard label="AI Agents" value={counts?.ai ?? "·"} icon={<Bot size={20} />} tone="info" />
           <KpiCard
             label="Human-linked"

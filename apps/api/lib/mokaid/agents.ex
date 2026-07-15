@@ -3,10 +3,27 @@ defmodule Mokaid.Agents do
 
   import Ecto.Query
 
-  alias Mokaid.Agents.{Agent, AgentStatusEvent}
+  alias Mokaid.Agents.{Agent, AgentStatusEvent, Archetypes}
   alias Mokaid.Audit
+  alias Mokaid.Billing
+  alias Mokaid.Billing.Credits
   alias Mokaid.Realtime
   alias Mokaid.Repo
+
+  # Public create/update must never accept progression or ownership fields.
+  # linked_user_id may still be provided when creating a human_linked agent.
+  @client_forbidden ~w(
+    skills level xp xp_for_next_level missions_completed performance_score
+    capabilities access_scope seat_index workspace_id created_by_member_id
+    manager_agent_id current_task_id archived_at last_active_at
+    ai_enabled control_mode status presence_status
+  )
+
+  @public_update_drop ~w(
+    skills level xp xp_for_next_level missions_completed performance_score
+    capabilities access_scope seat_index workspace_id created_by_member_id
+    kind linked_user_id linked_member_id manager_agent_id
+  )
 
   def get_agent(workspace_id, id) do
     Repo.one(
@@ -35,83 +52,156 @@ defmodule Mokaid.Agents do
   @max_office_seats 9
 
   def create_agent(workspace_id, attrs, created_by \\ nil) do
-    attrs =
-      if blank?(attrs["avatar_asset_id"]) do
-        case Mokaid.Assets3d.default_character() do
-          %{id: id} -> Map.put(attrs, "avatar_asset_id", id)
-          _ -> attrs
+    attrs = stringify_attrs(attrs)
+    archetype_key = attrs["archetype_key"] || "generalist"
+    boost_key = attrs["boost_key"]
+
+    with {:ok, prepared, _archetype, boost} <-
+           Archetypes.build_create_attrs(sanitize_client_attrs(attrs), archetype_key, boost_key) do
+      prepared =
+        if blank?(prepared["avatar_asset_id"]) do
+          case Mokaid.Assets3d.default_character() do
+            %{id: id} -> Map.put(prepared, "avatar_asset_id", id)
+            _ -> prepared
+          end
+        else
+          prepared
         end
-      else
-        attrs
-      end
 
-    result =
-      Repo.transaction(fn ->
-        case next_free_seat(workspace_id) do
-          {:error, :office_full} ->
-            Repo.rollback(:office_full)
+      result =
+        Repo.transaction(fn ->
+          # Same advisory lock as seat allocation — quota + seat stay consistent.
+          Repo.query!("SELECT pg_advisory_xact_lock(hashtext($1::text))", [
+            to_string(workspace_id)
+          ])
 
-          {:ok, seat} ->
-            case %Agent{}
-                 |> Agent.changeset(
-                   Map.merge(
-                     %{"presence_status" => "online", "seat_index" => seat},
-                     Map.merge(attrs, %{
-                       "workspace_id" => workspace_id,
-                       "created_by_member_id" => created_by && created_by.id
-                     })
-                   )
-                 )
-                 |> Repo.insert() do
-              {:ok, agent} -> agent
-              {:error, changeset} -> Repo.rollback(changeset)
+          active = active_agent_count(workspace_id)
+          limit = Billing.agent_limit(workspace_id)
+
+          if active >= limit do
+            Repo.rollback(:agent_limit_reached)
+          end
+
+          seat =
+            case find_free_seat(workspace_id) do
+              nil -> Repo.rollback(:office_full)
+              s -> s
             end
-        end
-      end)
 
-    case result do
-      {:ok, agent} ->
-        Realtime.broadcast_workspace(workspace_id, "agent.created", %{agent_id: agent.id})
-        {:ok, agent}
+          case %Agent{}
+               |> Agent.create_changeset(
+                 Map.merge(prepared, %{
+                   "presence_status" => "online",
+                   "seat_index" => seat,
+                   "workspace_id" => workspace_id,
+                   "created_by_member_id" => created_by && created_by.id
+                 })
+               )
+               |> Repo.insert() do
+            {:ok, agent} ->
+              if boost do
+                case Credits.charge_strict(workspace_id, boost.credits,
+                       kind: "agent_boost",
+                       agent_id: agent.id,
+                       description: "Agent boost: #{boost.name}"
+                     ) do
+                  {:ok, _sub, _credits} -> agent
+                  {:error, reason} -> Repo.rollback(reason)
+                end
+              else
+                agent
+              end
 
-      {:error, :office_full} ->
-        {:error, :office_full}
+            {:error, changeset} ->
+              Repo.rollback(changeset)
+          end
+        end)
 
-      {:error, changeset} ->
-        {:error, changeset}
+      case result do
+        {:ok, agent} ->
+          if boost_key not in [nil, ""], do: Credits.broadcast_balance(workspace_id)
+          Realtime.broadcast_workspace(workspace_id, "agent.created", %{agent_id: agent.id})
+          {:ok, agent}
+
+        {:error, reason} when is_atom(reason) ->
+          {:error, reason}
+
+        {:error, changeset} ->
+          {:error, changeset}
+      end
     end
   end
 
   @doc "First free desk index 0..8 for the workspace, or :office_full."
   def next_free_seat(workspace_id) do
-    # Serialize seat picks per workspace (empty table does not lock any agent rows).
     Repo.query!("SELECT pg_advisory_xact_lock(hashtext($1::text))", [to_string(workspace_id)])
 
+    case find_free_seat(workspace_id) do
+      nil -> {:error, :office_full}
+      seat -> {:ok, seat}
+    end
+  end
+
+  defp find_free_seat(workspace_id) do
     taken =
       from(a in Agent,
-        where: a.workspace_id == ^workspace_id and is_nil(a.archived_at) and not is_nil(a.seat_index),
+        where:
+          a.workspace_id == ^workspace_id and is_nil(a.archived_at) and not is_nil(a.seat_index),
         select: a.seat_index
       )
       |> Repo.all()
       |> MapSet.new()
 
-    case Enum.find(0..(@max_office_seats - 1), &(not MapSet.member?(taken, &1))) do
-      nil -> {:error, :office_full}
-      seat -> {:ok, seat}
-    end
+    Enum.find(0..(@max_office_seats - 1), &(not MapSet.member?(taken, &1)))
+  end
+
+  def active_agent_count(workspace_id) do
+    from(a in Agent, where: a.workspace_id == ^workspace_id and is_nil(a.archived_at))
+    |> Repo.aggregate(:count)
   end
 
   defp blank?(nil), do: true
   defp blank?(""), do: true
   defp blank?(_), do: false
 
+  defp sanitize_client_attrs(attrs) do
+    Map.drop(attrs, @client_forbidden ++ Enum.map(@client_forbidden, &String.to_atom/1))
+  end
+
+  defp stringify_attrs(attrs) when is_map(attrs) do
+    Map.new(attrs, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {k, v}
+    end)
+  end
+
   def update_agent(%Agent{} = agent, attrs) do
-    # Seat assignment is owned by create/archive — strip from generic PATCH.
-    attrs = Map.drop(attrs, ["seat_index", :seat_index])
+    attrs =
+      attrs
+      |> stringify_attrs()
+      |> Map.drop(@public_update_drop ++ Enum.map(@public_update_drop, &String.to_atom/1))
 
     result =
       agent
-      |> Agent.changeset(Map.put(attrs, "workspace_id", agent.workspace_id))
+      |> Agent.update_changeset(Map.put(attrs, "workspace_id", agent.workspace_id))
+      |> Repo.update()
+
+    with {:ok, updated} <- result do
+      Realtime.broadcast_workspace(agent.workspace_id, "agent.updated", %{agent_id: updated.id})
+      {:ok, updated}
+    end
+  end
+
+  @doc """
+  Internal update used by progression and skill learning — may write level,
+  XP, skills and capabilities that clients cannot set.
+  """
+  def apply_internal_update(%Agent{} = agent, attrs) do
+    attrs = stringify_attrs(attrs)
+
+    result =
+      agent
+      |> Agent.internal_changeset(Map.put(attrs, "workspace_id", agent.workspace_id))
       |> Repo.update()
 
     with {:ok, updated} <- result do
@@ -219,8 +309,6 @@ defmodule Mokaid.Agents do
         updated
       end)
 
-    # Broadcast only after commit. A client refetch triggered inside the
-    # transaction can otherwise read the old status and remain stale.
     with {:ok, updated} <- result do
       Realtime.broadcast_workspace(updated.workspace_id, "agent.status_changed", %{
         agent_id: agent.id,
@@ -237,8 +325,6 @@ defmodule Mokaid.Agents do
     end
   end
 
-  # AI / hybrid agents are always present in the office. Only human-linked
-  # teammates expose a real presence (online/away/offline).
   defp public_presence(%Agent{status: "archived"}), do: "offline"
   defp public_presence(%Agent{kind: "human_linked", presence_status: p}), do: p
   defp public_presence(%Agent{kind: kind}) when kind in ["ai", "hybrid"], do: "online"
@@ -292,6 +378,7 @@ defmodule Mokaid.Agents do
 
   def counts(workspace_id) do
     base = from a in Agent, where: a.workspace_id == ^workspace_id and is_nil(a.archived_at)
+    limit = Billing.agent_limit(workspace_id)
 
     %{
       total: Repo.aggregate(base, :count),
@@ -299,7 +386,8 @@ defmodule Mokaid.Agents do
       human_linked: Repo.aggregate(where(base, [a], a.kind == "human_linked"), :count),
       hybrid: Repo.aggregate(where(base, [a], a.kind == "hybrid"), :count),
       active: Repo.aggregate(where(base, [a], a.status in ["active", "busy"]), :count),
-      offline: Repo.aggregate(where(base, [a], a.status == "offline"), :count)
+      offline: Repo.aggregate(where(base, [a], a.status == "offline"), :count),
+      limit: limit
     }
   end
 end

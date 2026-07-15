@@ -2,12 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, apiUpload } from "./client";
 import type {
   Agent,
+  AgentCatalog,
   AgentChatConversation,
   AgentChatMessage,
   AgentChatSummary,
   AgentProgression,
   AgentCounts,
   AnalyticsOverview,
+  CreateAgentPayload,
   AppNotification,
   BillingOverview,
   CalendarEvent,
@@ -99,12 +101,23 @@ export function useAgentProgression(id: string | null) {
   });
 }
 
+export function useAgentCatalog() {
+  return useQuery({
+    queryKey: ["agents", "catalog"],
+    queryFn: () => apiFetch<Envelope<AgentCatalog>>("/api/agents/catalog"),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateAgent() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: Partial<Agent> & { kind: string; display_name: string }) =>
+    mutationFn: (body: CreateAgentPayload) =>
       apiFetch<Envelope<Agent>>("/api/agents", { method: "POST", body }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["agents"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+    },
   });
 }
 

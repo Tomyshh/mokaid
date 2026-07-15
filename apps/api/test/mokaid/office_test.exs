@@ -2,10 +2,17 @@ defmodule Mokaid.OfficeTest do
   use Mokaid.DataCase, async: true
 
   alias Mokaid.Agents
+  alias Mokaid.Billing
   alias Mokaid.Office
+
+  setup do
+    Billing.seed_plans()
+    :ok
+  end
 
   test "tick assigns foosball to a pair of idle agents" do
     {workspace, _owner} = workspace_fixture()
+    assert {:ok, _} = Billing.change_plan(workspace.id, "starter")
 
     {:ok, a} = Agents.create_agent(workspace.id, %{"kind" => "ai", "display_name" => "A"})
     {:ok, b} = Agents.create_agent(workspace.id, %{"kind" => "ai", "display_name" => "B"})

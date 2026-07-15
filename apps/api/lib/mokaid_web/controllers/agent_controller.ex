@@ -2,8 +2,20 @@ defmodule MokaidWeb.AgentController do
   use MokaidWeb, :controller
 
   alias Mokaid.Agents
+  alias Mokaid.Agents.Archetypes
   alias Mokaid.Tasks
   alias MokaidWeb.JSON, as: Serializer
+
+  @create_params ~w(
+    display_name role_title department kind avatar_asset_id avatar_config
+    archetype_key boost_key knowledge_brief linked_user_id linked_member_id
+    human_takeover_enabled email_alias
+  )
+
+  @update_params ~w(
+    display_name role_title department avatar_asset_id avatar_config
+    human_takeover_enabled email_alias status presence_status control_mode
+  )
 
   def index(conn, params) do
     with :ok <- Permissions.authorize(current_member(conn), "agents.view") do
@@ -14,9 +26,21 @@ defmodule MokaidWeb.AgentController do
     end
   end
 
+  @doc "Catalog of free archetypes and paid creation boosts."
+  def catalog(conn, _params) do
+    with :ok <- Permissions.authorize(current_member(conn), "agents.view") do
+      json(conn, %{data: Archetypes.catalog()})
+    end
+  end
+
   def create(conn, params) do
     with :ok <- Permissions.authorize(current_member(conn), "agents.create"),
-         {:ok, agent} <- Agents.create_agent(workspace_id(conn), params, current_member(conn)) do
+         {:ok, agent} <-
+           Agents.create_agent(
+             workspace_id(conn),
+             Map.take(params, @create_params),
+             current_member(conn)
+           ) do
       conn
       |> put_status(:created)
       |> json(%{data: Serializer.agent(agent)})
@@ -41,7 +65,7 @@ defmodule MokaidWeb.AgentController do
   def update(conn, %{"id" => id} = params) do
     with :ok <- Permissions.authorize(current_member(conn), "agents.update"),
          %{} = agent <- Agents.get_agent(workspace_id(conn), id),
-         {:ok, updated} <- Agents.update_agent(agent, params) do
+         {:ok, updated} <- Agents.update_agent(agent, Map.take(params, @update_params)) do
       json(conn, %{data: Serializer.agent(updated)})
     end
   end

@@ -30,7 +30,7 @@ PostgreSQL 16 with extensions `uuid-ossp`, `citext`, `vector` (pgvector). All pr
 ```bash
 make db.setup      # create + migrate + seed
 make db.migrate
-make db.seed       # demo workspace with Tom Jami + 10 agents
+make db.seed       # demo workspace with Tom Jami (Professional plan)
 make db.reset
 ```
 

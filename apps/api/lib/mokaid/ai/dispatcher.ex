@@ -269,10 +269,15 @@ defmodule Mokaid.AI.Dispatcher do
     custom_agent =
       case rec["custom_agent"] do
         %{"display_name" => name} = custom when is_binary(name) ->
+          domain_hint =
+            custom["archetype_key"] ||
+              Mokaid.Agents.Archetypes.archetype_key_for_domain(custom["domain"])
+
           %{
             display_name: name,
             role_title: custom["role_title"],
             department: custom["department"],
+            archetype_key: domain_hint,
             skills: normalize_skills(custom["skills"])
           }
 
@@ -328,22 +333,6 @@ defmodule Mokaid.AI.Dispatcher do
     "media" => ~w(image photo video visuel media asset),
     "code" => ~w(code development developpement bug feature api script deploy),
     "slides" => ~w(presentation slides deck pitch)
-  }
-
-  @custom_templates %{
-    "design" => {"Design Assistant", "Design Specialist", "Design", ~w(figma ui-design branding)},
-    "data" =>
-      {"Data Analyst", "Data Analysis Specialist", "Data",
-       ~w(data-analysis spreadsheets reporting)},
-    "document" =>
-      {"Writing Assistant", "Content Specialist", "Content", ~w(writing editing research)},
-    "media" =>
-      {"Media Assistant", "Media Specialist", "Marketing", ~w(image-editing video content)},
-    "code" =>
-      {"Dev Assistant", "Software Specialist", "Engineering", ~w(coding code-review debugging)},
-    "slides" =>
-      {"Presentation Assistant", "Presentation Specialist", "Content",
-       ~w(presentations storytelling design)}
   }
 
   defp heuristic_analysis(instruction, files, roster, servers) do
@@ -494,15 +483,19 @@ defmodule Mokaid.AI.Dispatcher do
   end
 
   defp custom_proposal(categories) do
-    {name, role, department, skills} =
-      Map.get(@custom_templates, List.first(categories)) ||
-        {"Specialist Agent", "Generalist Specialist", "Operations", ~w(research writing planning)}
+    domain = List.first(categories)
+    key = Mokaid.Agents.Archetypes.archetype_key_for_domain(domain)
+    archetype = Mokaid.Agents.Archetypes.get_archetype(key)
 
     %{
-      display_name: name,
-      role_title: role,
-      department: department,
-      skills: Enum.map(skills, fn s -> %{name: s, level: 70} end)
+      display_name: archetype.name,
+      role_title: archetype.role_title,
+      department: archetype.department,
+      archetype_key: archetype.key,
+      skills:
+        Enum.map(archetype.skills, fn s ->
+          %{name: s, level: 40}
+        end)
     }
   end
 
@@ -620,6 +613,10 @@ defmodule Mokaid.AI.Dispatcher do
   end
 
   defp resolve_agent(workspace_id, member, %{"custom_agent" => %{} = attrs}) do
+    archetype_key =
+      attrs["archetype_key"] ||
+        infer_archetype_from_custom(attrs)
+
     with {:ok, agent} <-
            Agents.create_agent(
              workspace_id,
@@ -628,10 +625,8 @@ defmodule Mokaid.AI.Dispatcher do
                "display_name" => presence(attrs["display_name"]) || "Custom Agent",
                "role_title" => attrs["role_title"],
                "department" => attrs["department"],
-               "skills" => normalize_skills(attrs["skills"]),
-               "ai_enabled" => true,
-               "control_mode" => "ai_controlled",
-               "status" => "idle",
+               "archetype_key" => archetype_key,
+               "boost_key" => attrs["boost_key"],
                "avatar_config" => %{"primary_color" => random_agent_color()}
              },
              member
@@ -641,6 +636,29 @@ defmodule Mokaid.AI.Dispatcher do
   end
 
   defp resolve_agent(_workspace_id, _member, _params), do: {:ok, nil}
+
+  defp infer_archetype_from_custom(attrs) do
+    skill_names =
+      (attrs["skills"] || [])
+      |> Enum.map(fn
+        %{"name" => name} -> name
+        %{name: name} -> name
+        name when is_binary(name) -> name
+        _ -> nil
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&String.downcase/1)
+
+    cond do
+      Enum.any?(skill_names, &(&1 in ~w(coding debugging code-review))) -> "developer"
+      Enum.any?(skill_names, &(&1 in ~w(ui-design figma branding))) -> "designer"
+      Enum.any?(skill_names, &(&1 in ~w(data-analysis spreadsheets reporting))) -> "data_analyst"
+      Enum.any?(skill_names, &(&1 in ~w(writing editing research))) -> "writer"
+      Enum.any?(skill_names, &(&1 in ~w(image-editing video content))) -> "media"
+      Enum.any?(skill_names, &(&1 in ~w(presentations storytelling design))) -> "presenter"
+      true -> "generalist"
+    end
+  end
 
   defp link_drive_items(_workspace_id, _task_id, []), do: :ok
 

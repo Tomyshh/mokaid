@@ -44,6 +44,10 @@ defmodule MokaidWeb.FallbackController do
   end
 
   defp humanize(:office_full), do: "All 9 office desks are occupied"
+  defp humanize(:agent_limit_reached), do: "Your plan's AI employee limit has been reached"
+  defp humanize(:insufficient_credits), do: "Not enough AI credits for this boost"
+  defp humanize(:invalid_archetype), do: "Unknown agent archetype"
+  defp humanize(:invalid_boost), do: "Unknown agent boost"
 
   defp humanize(reason) do
     reason |> to_string() |> String.replace("_", " ") |> String.capitalize()

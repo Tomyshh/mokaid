@@ -339,11 +339,6 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const currentPlanKey = billingData?.data.subscription?.plan?.key ?? "free";
 
   const choosePlan = (planKey: string) => {
-    if (planKey === "enterprise") {
-      window.location.href =
-        "mailto:sales@mokaid.com?subject=Mokaid%20Enterprise&body=Tell%20us%20about%20your%20team.";
-      return;
-    }
     if (planKey === "free" || planKey === currentPlanKey) {
       setStep(6);
       return;
@@ -458,12 +453,8 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
     if (!agentName.trim()) return;
     await createAgent.mutateAsync({
       display_name: agentName.trim(),
-      role_title: "Generalist",
       kind: "ai",
-      ai_enabled: true,
-      status: "idle",
-      presence_status: "online",
-      skills: [],
+      archetype_key: "generalist",
       avatar_config: { primary_color: agentColor },
     });
     setAgentCreated(true);

@@ -56,6 +56,7 @@ defmodule MokaidWeb.Router do
     post "/workspaces/:id/logo", WorkspaceController, :upload_logo
     delete "/workspaces/:id", WorkspaceController, :delete
 
+    get "/agents/catalog", AgentController, :catalog
     resources "/agents", AgentController, only: [:index, :create, :show, :update, :delete]
     post "/agents/:id/link-user", AgentController, :link_user
     post "/agents/:id/unlink-user", AgentController, :unlink_user

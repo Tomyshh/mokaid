@@ -11,7 +11,13 @@ config :mokaid, Mokaid.Repo,
   types: Mokaid.PostgrexTypes
 
 config :mokaid, MokaidWeb.Endpoint,
-  http: [ip: {0, 0, 0, 0}, port: String.to_integer(System.get_env("PORT", "4000"))],
+  http: [
+    ip: {0, 0, 0, 0},
+    port: String.to_integer(System.get_env("PORT", "4000")),
+    # Large localhost cookies (other apps on :5173/:4000) exceed Bandit's
+    # default 10 KB per-header limit and reject the WebSocket upgrade.
+    http_1_options: [max_header_length: 65_536, max_request_line_length: 65_536]
+  ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

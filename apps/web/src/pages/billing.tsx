@@ -119,11 +119,6 @@ export function BillingPage() {
     }));
 
   const buyPlan = (planKey: string) => {
-    if (planKey === "enterprise") {
-      window.location.href =
-        "mailto:sales@mokaid.com?subject=Mokaid%20Enterprise&body=Tell%20us%20about%20your%20team%20size%20and%20needs.";
-      return;
-    }
     planCheckout.mutate(
       { plan_key: planKey, billing_cycle: billingCycle },
       {
@@ -228,9 +223,7 @@ export function BillingPage() {
                   ? subscription?.billing_cycle === "yearly"
                     ? `${formatCents(plan.price_cents_yearly)} / year`
                     : `${formatCents(plan.price_cents_monthly)} / month`
-                  : plan?.key === "enterprise"
-                    ? "Custom contract"
-                    : "Free forever"}
+                  : "Free forever"}
               </p>
             </div>
 

@@ -11,7 +11,6 @@ alias Mokaid.{
   Workspaces
 }
 
-alias Mokaid.Billing.Subscription
 alias Mokaid.Integrations.IntegrationProvider
 
 require Logger
@@ -143,23 +142,28 @@ Mokaid.Integrations.LogoAssets.seed_all()
 
 ## ---------- Billing ----------
 
-business_plan = Billing.get_plan_by_key("business")
+case Billing.get_subscription(ws_id) do
+  %{plan: %{key: "professional"}} = sub ->
+    {:ok, sub}
 
-if business_plan do
-  today = DateTime.utc_now()
+  _ ->
+    Billing.change_plan(ws_id, "professional", "yearly")
+end
+|> case do
+  {:ok, sub} ->
+    sub
+    |> Ecto.Changeset.change(
+      payment_method:
+        Map.merge(sub.payment_method || %{}, %{
+          "brand" => "visa",
+          "last4" => "4242",
+          "exp" => "04/28"
+        })
+    )
+    |> Repo.update!()
 
-  Repo.insert!(
-    %Subscription{
-      workspace_id: ws_id,
-      plan_id: business_plan.id,
-      status: "active",
-      billing_cycle: "yearly",
-      current_period_start: DateTime.add(today, -20, :day),
-      current_period_end: DateTime.add(today, 345, :day),
-      payment_method: %{"brand" => "visa", "last4" => "4242", "exp" => "04/28"}
-    },
-    on_conflict: :nothing
-  )
+  _ ->
+    :ok
 end
 
 Logger.info("Seed complete: workspace=#{ws_id}")

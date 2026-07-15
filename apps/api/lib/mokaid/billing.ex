@@ -263,9 +263,9 @@ defmodule Mokaid.Billing do
     end
   end
 
-  # Credit-metered pricing (ElevenLabs-style): each plan grants a monthly pool
-  # of AI credits that resets every period, plus a hard cap on AI employees.
-  # Customer-facing language is employees / credits — never tokens. -1 = unlimited.
+  # Credit-metered pricing: each plan grants a monthly pool of AI credits plus
+  # a hard cap on active AI employees (aligned with the 9-desk office).
+  # Customer-facing language is employees / credits — never tokens.
   @plan_seeds [
     %{
       key: "free",
@@ -299,46 +299,37 @@ defmodule Mokaid.Billing do
       name: "Professional",
       price_cents_monthly: 14_900,
       price_cents_yearly: 149_000,
-      limits: %{"agents" => 10, "credits_monthly" => 20_000, "mcp_integrations" => -1},
+      limits: %{"agents" => 9, "credits_monthly" => 20_000, "mcp_integrations" => -1},
       features: [
-        "10 AI employees",
+        "9 AI employees (full office)",
         "20,000 AI credits / month",
         "All MCP integrations",
         "GitHub & Figma, deployment",
         "Team collaboration",
         "Auto-recharge available"
       ]
-    },
-    %{
-      key: "business",
-      name: "Business",
-      price_cents_monthly: 39_900,
-      price_cents_yearly: 399_000,
-      limits: %{"agents" => 30, "credits_monthly" => 60_000, "mcp_integrations" => -1},
-      features: [
-        "30 AI employees",
-        "60,000 AI credits / month",
-        "Full AI team & API access",
-        "Execution priority",
-        "Priority support",
-        "Auto-recharge available"
-      ]
-    },
-    %{
-      key: "enterprise",
-      name: "Enterprise",
-      price_cents_monthly: 0,
-      price_cents_yearly: 0,
-      limits: %{"agents" => -1, "credits_monthly" => -1, "mcp_integrations" => -1},
-      features: [
-        "Unlimited AI employees",
-        "Unlimited AI credits",
-        "SSO & private deployment",
-        "SLA & custom models",
-        "Dedicated support"
-      ]
     }
   ]
+
+  @doc """
+  Max active (non-archived) agents allowed for the workspace's current plan.
+  Workspaces without a subscription are treated as Free (1 agent).
+  """
+  def agent_limit(workspace_id) do
+    case get_subscription(workspace_id) do
+      %{plan: %{limits: %{"agents" => n}}} when is_integer(n) and n >= 0 -> n
+      %{plan: nil} -> free_agent_limit()
+      nil -> free_agent_limit()
+      _ -> free_agent_limit()
+    end
+  end
+
+  defp free_agent_limit do
+    case Enum.find(@plan_seeds, &(&1.key == "free")) do
+      %{limits: %{"agents" => n}} when is_integer(n) -> n
+      _ -> 1
+    end
+  end
 
   # AI credit packs (overage on top of plan quotas).
   @credit_packs [

@@ -78,9 +78,16 @@ defmodule MokaidWeb.MemberController do
     with :ok <- Permissions.authorize(current_member(conn), "members.remove"),
          %{} = invite <- Members.get_invite(workspace_id(conn), id),
          {:ok, _} <- Members.cancel_invite(invite) do
-      Audit.log(workspace_id(conn), current_member(conn), "member.invite_canceled", "invite", id, %{
-        email: invite.email
-      })
+      Audit.log(
+        workspace_id(conn),
+        current_member(conn),
+        "member.invite_canceled",
+        "invite",
+        id,
+        %{
+          email: invite.email
+        }
+      )
 
       json(conn, %{ok: true})
     end

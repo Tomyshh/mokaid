@@ -10,7 +10,6 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-
 # Elixir
 apps/api/_build/
 apps/api/deps/
@@ -18,19 +17,16 @@ apps/api/.elixir_ls/
 apps/api/priv/static/
 erl_crash.dump
 *.ez
-
 # Build outputs
 dist/
 build/
 *.tsbuildinfo
-
 # Environment / secrets
 .env
 .env.*
 !.env.example
 *.pem
 *.key
-
 # Terraform
 **/.terraform/
 *.tfstate
@@ -39,37 +35,31 @@ build/
 !*.auto.tfvars.example
 .terraform.lock.hcl
 crash.log
-
 # IDE / OS
 .DS_Store
 .idea/
 *.swp
 .vscode/*
 !.vscode/extensions.json
-
 # Logs
 *.log
 logs/
-
 # Test coverage
 coverage/
 cover/
 htmlcov/
-
 # Local data
 .minio-data/
 .postgres-data/
 .clickhouse-data/
-
 # Huge source 3D assets (never commit — use optimized hashed public assets)
 /office.blend
+/office.blend1
 /office.glb
 scratchpad/
-
 # Raw Meshy source dumps (bake locally — too large for git)
 assets/raw/corporate/
 assets/raw/feminine/
 assets/raw/feminine_finance/
-
 # Python build artifacts
 *.egg-info/

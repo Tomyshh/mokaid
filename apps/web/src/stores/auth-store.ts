@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { disposeOfficeHost } from "@/three/office-scene-host";
 
 interface AuthUser {
   id: string;
@@ -45,14 +46,22 @@ export const useAuthStore = create<AuthState>()(
               ? state.workspaceId
               : (workspaces[0]?.id ?? null),
         })),
-      selectWorkspace: (id) => set({ workspaceId: id }),
+      selectWorkspace: (id) => {
+        // Drop the WebGL context when switching workspaces so seats/POIs remount cleanly.
+        const prev = useAuthStore.getState().workspaceId;
+        if (prev && prev !== id) disposeOfficeHost();
+        set({ workspaceId: id });
+      },
       addWorkspace: (workspace) =>
         set((state) => ({ workspaces: [...state.workspaces, workspace] })),
       patchWorkspace: (id, patch) =>
         set((state) => ({
           workspaces: state.workspaces.map((w) => (w.id === id ? { ...w, ...patch } : w)),
         })),
-      logout: () => set({ token: null, user: null, workspaceId: null, workspaces: [] }),
+      logout: () => {
+        disposeOfficeHost();
+        set({ token: null, user: null, workspaceId: null, workspaces: [] });
+      },
     }),
     { name: "mokaid-auth" },
   ),

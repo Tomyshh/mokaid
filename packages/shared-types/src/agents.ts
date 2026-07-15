@@ -29,7 +29,11 @@ export type AgentVisualState =
   | "offline"
   | "reviewing"
   | "learning"
-  | "requesting_approval";
+  | "requesting_approval"
+  /** POI clips — played by the office scene, not by toVisualState. */
+  | "sitting"
+  | "preparing_coffee"
+  | "playing_foosball";
 
 export type ControlMode =
   | "ai_controlled"

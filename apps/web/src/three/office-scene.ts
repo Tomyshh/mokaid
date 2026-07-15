@@ -46,6 +46,7 @@ import {
   type AgentModelTemplate,
 } from "./agent-model";
 import { resolveOfficeGlbUrl } from "./office-asset";
+import { fetchAssetCached } from "./asset-cache";
 import {
   ENERGY_TO_INTENSITY_AREA,
   ENERGY_TO_INTENSITY_POINT,
@@ -68,6 +69,8 @@ import {
   floorYAt,
   MAX_OFFICE_SEATS,
   poiById,
+  pointHitsObstacle,
+  resolveCollision,
   type SecondaryActivity,
 } from "./office-navdata";
 import type { SceneAgent, SceneCallbacks } from "./types";
@@ -146,17 +149,33 @@ export class OfficeScene {
   private centerOffset = { x: 0, y: 0, z: 0 };
   private renderQuality: RenderQuality = "high";
   private lowFpsFrames = 0;
+  /**
+   * Native Retina scale set by Engine(adaptToDeviceRatio): typically 1/dpr
+   * (e.g. 0.5 on a 2× display). Quality tiers are multiples of this base.
+   */
+  private readonly baseScale: number;
+  private lastClientW = 0;
+  private lastClientH = 0;
+  private paused = false;
 
   constructor(
     private canvas: HTMLCanvasElement,
     private callbacks: SceneCallbacks,
   ) {
-    this.engine = new Engine(canvas, true, {
-      preserveDrawingBuffer: false,
-      stencil: false,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
+    this.engine = new Engine(
+      canvas,
+      true,
+      {
+        preserveDrawingBuffer: false,
+        stencil: false,
+        antialias: true,
+        adaptToDeviceRatio: true,
+        powerPreference: "high-performance",
+        limitDeviceRatio: 2,
+      },
+      true,
+    );
+    this.baseScale = this.engine.getHardwareScalingLevel();
 
     this.scene = new Scene(this.engine);
     this.scene.clearColor = Color4.FromHexString("#050507ff");
@@ -177,18 +196,15 @@ export class OfficeScene {
     // the environment finishes centering desk slots.
     void this.ensureTemplate(DEFAULT_AVATAR_CDN_PATH);
 
-    this.engine.runRenderLoop(() => {
-      if (this.disposed) return;
-      this.syncEngineSize();
-      this.animate();
-      this.scene.render();
-      this.reportOverlay();
-      this.adaptQuality();
-    });
+    this.startRenderLoop();
 
     // Only resize the render buffer — never reframe the camera. The office
     // stays statically framed regardless of the side panel opening/closing.
-    const resize = () => this.engine.resize();
+    const resize = () => {
+      this.lastClientW = 0;
+      this.lastClientH = 0;
+      this.engine.resize();
+    };
     window.addEventListener("resize", resize);
     this.scene.onDisposeObservable.add(() => window.removeEventListener("resize", resize));
 
@@ -197,6 +213,92 @@ export class OfficeScene {
     // positions stay in sync with the render buffer.
     this.resizeObserver = new ResizeObserver(resize);
     this.resizeObserver.observe(canvas);
+
+    if (import.meta.env.DEV) {
+      // Dev-only inspection handle (used by tooling/scripts to audit layout).
+      (window as unknown as Record<string, unknown>).__mokaidOffice = this;
+    }
+  }
+
+  /** Dev tooling: drop a glowing marker at raw GLB coords (navdata frame). */
+  debugMarker(x: number, z: number, hex = "#ff2d78", y = 0.6) {
+    const m = MeshBuilder.CreateSphere(`debug-marker-${x}-${z}`, { diameter: 0.3 }, this.scene);
+    m.position.set(x - this.centerOffset.x, y, z - this.centerOffset.z);
+    const mat = new StandardMaterial(`debug-marker-mat-${x}-${z}`, this.scene);
+    mat.emissiveColor = Color3.FromHexString(hex);
+    mat.disableLighting = true;
+    m.material = mat;
+    m.isPickable = false;
+  }
+
+  /** Dev tooling: mesh world AABBs in raw GLB coords (navdata frame). */
+  debugMeshBounds(nameFilter: string): Array<{
+    name: string;
+    min: { x: number; y: number; z: number };
+    max: { x: number; y: number; z: number };
+  }> {
+    const rx = new RegExp(nameFilter, "i");
+    const out: Array<{
+      name: string;
+      min: { x: number; y: number; z: number };
+      max: { x: number; y: number; z: number };
+    }> = [];
+    for (const mesh of this.scene.meshes) {
+      if (!rx.test(mesh.name)) continue;
+      mesh.computeWorldMatrix(true);
+      const bb = mesh.getBoundingInfo().boundingBox;
+      out.push({
+        name: mesh.name,
+        min: {
+          x: bb.minimumWorld.x + this.centerOffset.x,
+          y: bb.minimumWorld.y + this.centerOffset.y,
+          z: bb.minimumWorld.z + this.centerOffset.z,
+        },
+        max: {
+          x: bb.maximumWorld.x + this.centerOffset.x,
+          y: bb.maximumWorld.y + this.centerOffset.y,
+          z: bb.maximumWorld.z + this.centerOffset.z,
+        },
+      });
+    }
+    return out;
+  }
+
+  private startRenderLoop() {
+    this.engine.stopRenderLoop();
+    this.engine.runRenderLoop(() => {
+      if (this.disposed || this.paused) return;
+      this.syncEngineSize();
+      this.animate();
+      this.scene.render();
+      this.reportOverlay();
+      this.adaptQuality();
+    });
+  }
+
+  /** Swap React callbacks without rebuilding the WebGL context. */
+  setCallbacks(callbacks: SceneCallbacks) {
+    this.callbacks = callbacks;
+    if (this.officeReady) {
+      this.callbacks.onLoadProgress?.(1);
+      this.callbacks.onOfficeReady?.(true);
+    }
+  }
+
+  pause() {
+    this.paused = true;
+    this.engine.stopRenderLoop();
+  }
+
+  resume() {
+    if (this.disposed) return;
+    this.paused = false;
+    this.startRenderLoop();
+    this.engine.resize();
+  }
+
+  isReady(): boolean {
+    return this.officeReady;
   }
 
   private agentAvatarUrl(agent: SceneAgent): string {
@@ -320,6 +422,9 @@ export class OfficeScene {
     pipeline.bloomWeight = OFFICE_BLOOM.weight;
     pipeline.bloomKernel = OFFICE_BLOOM.kernel;
     pipeline.bloomScale = OFFICE_BLOOM.scale;
+    // MSAA sharpens edges; FXAA is only used as a fallback on the low profile.
+    pipeline.samples = 4;
+    pipeline.fxaaEnabled = false;
 
     pipeline.imageProcessingEnabled = true;
     pipeline.imageProcessing.toneMappingEnabled = true;
@@ -329,7 +434,6 @@ export class OfficeScene {
     pipeline.imageProcessing.vignetteEnabled = true;
     pipeline.imageProcessing.vignetteWeight = 1.4;
     pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 1);
-    pipeline.fxaaEnabled = true;
 
     this.pipeline = pipeline;
   }
@@ -356,7 +460,7 @@ export class OfficeScene {
 
       // Use the brightest point light for soft shadows (cheap single generator).
       if (!primaryShadow && light instanceof PointLight && def.energy >= 46) {
-        primaryShadow = new ShadowGenerator(1024, light);
+        primaryShadow = new ShadowGenerator(2048, light);
         primaryShadow.usePercentageCloserFiltering = true;
         primaryShadow.setDarkness(0.65);
       }
@@ -436,16 +540,13 @@ export class OfficeScene {
     this.callbacks.onLoadProgress?.(0);
 
     try {
-      const result = await SceneLoader.ImportMeshAsync(
-        "",
-        url,
-        "",
-        this.scene,
-        (event) => {
-          if (!event.lengthComputable || event.total === 0) return;
-          this.callbacks.onLoadProgress?.(Math.min(1, event.loaded / event.total));
-        },
-      );
+      // Prefer Cache Storage so a return visit or hard refresh does not re-download
+      // the ~46 MB environment GLB.
+      const buffer = await fetchAssetCached(url, (p) => this.callbacks.onLoadProgress?.(p * 0.95));
+      if (this.disposed) return;
+
+      const file = new File([buffer], "office.glb", { type: "model/gltf-binary" });
+      const result = await SceneLoader.ImportMeshAsync("", "", file, this.scene);
 
       if (this.disposed) return;
 
@@ -469,6 +570,8 @@ export class OfficeScene {
           this.shadowGenerator?.addShadowCaster(mesh);
         }
       }
+
+      this.applyAnisotropicFiltering(16);
 
       // Center footprint on XZ and plant the floor at y=0.
       root.computeWorldMatrix(true);
@@ -510,6 +613,13 @@ export class OfficeScene {
       console.warn("[OfficeScene] failed to load office environment GLB", err);
       this.callbacks.onLoadProgress?.(1);
       this.callbacks.onOfficeReady?.(false);
+    }
+  }
+
+  /** Keep textures crisp when viewed at grazing angles (desks, neon strips). */
+  private applyAnisotropicFiltering(level: number) {
+    for (const texture of this.scene.textures) {
+      texture.anisotropicFilteringLevel = level;
     }
   }
 
@@ -826,14 +936,21 @@ export class OfficeScene {
     }
   }
 
+  /** Last POI slot this avatar committed to (re-route when server reassigns). */
+  private lastPoiKey = new Map<string, string>();
+
   private syncServerActivity(avatar: AvatarNode) {
     const agent = avatar.agent;
     if (!isIdleVisual(agent.visualState)) return;
     if (agent.officePoiId && agent.officeSlotId && agent.secondaryActivity) {
-      if (avatar.idleBehavior !== "poi" && !avatar.routeBusy) {
+      const key = `${agent.officePoiId}:${agent.officeSlotId}`;
+      const prev = this.lastPoiKey.get(agent.id);
+      if (avatar.idleBehavior !== "poi" || prev !== key) {
+        this.lastPoiKey.set(agent.id, key);
         this.beginPoiRoute(avatar);
       }
     } else if (avatar.idleBehavior === "poi" && !agent.officePoiId) {
+      this.lastPoiKey.delete(agent.id);
       avatar.idleBehavior = "patrol";
       avatar.routeBusy = false;
       this.reportActivity(avatar, null);
@@ -846,16 +963,36 @@ export class OfficeScene {
     const slot = poi?.slots.find((s) => s.id === avatar.agent.officeSlotId);
     if (!poi || !slot) return;
 
-    const target = this.toCentered(slot.position.x, slot.position.z);
+    const dest = this.toCentered(slot.position.x, slot.position.z);
+    const alreadyThere =
+      avatar.agent.officeActivityPhase === "active" ||
+      Math.hypot(avatar.root.position.x - dest.x, avatar.root.position.z - dest.z) < 0.45;
+
+    if (alreadyThere) {
+      avatar.root.position.x = dest.x;
+      avatar.root.position.z = dest.z;
+      avatar.facing = slot.facing;
+      avatar.root.rotation.y = slot.facing;
+      avatar.idleBehavior = "poi";
+      avatar.routeBusy = false;
+      avatar.activePath = { id: `poi-${poi.id}-${slot.id}`, loop: false, waypoints: [] };
+      avatar.pathIndex = 0;
+      this.applyPoiPose(avatar, slot, performance.now() / 1000);
+      this.reportActivity(avatar, slot.animation);
+      return;
+    }
+
+    const allowSit = slot.animation === "sitting_sofa";
     const pathPts = findPath(
       { x: avatar.root.position.x + this.centerOffset.x, z: avatar.root.position.z + this.centerOffset.z },
       { x: slot.position.x, z: slot.position.z },
+      { allowGoalInObstacle: allowSit },
     ).map((p) => ({ x: p.x - this.centerOffset.x, z: p.z - this.centerOffset.z }));
 
     avatar.activePath = {
       id: `poi-${poi.id}-${slot.id}`,
       loop: false,
-      waypoints: pathPts.length ? pathPts : [{ x: target.x, z: target.z }],
+      waypoints: pathPts.length ? pathPts : [{ x: dest.x, z: dest.z }],
     };
     avatar.pathIndex = 0;
     avatar.idleBehavior = "poi";
@@ -886,8 +1023,7 @@ export class OfficeScene {
           avatar.root.position.z = dest.z;
           avatar.facing = slot.facing;
           avatar.root.rotation.y = slot.facing;
-          this.plantFeet(avatar);
-          playAgentAnimation(avatar, "idle");
+          this.applyPoiPose(avatar, slot, t);
           this.reportActivity(avatar, slot.animation);
         }
       }
@@ -895,24 +1031,51 @@ export class OfficeScene {
     }
 
     // Active at POI — procedural pose until status clears.
-    playAgentAnimation(avatar, "idle");
+    this.applyPoiPose(avatar, slot, t);
     this.reportActivity(avatar, slot.animation);
+  }
+
+  /** Plant at a social slot using dedicated skeletal clips (never tilt root.x). */
+  private applyPoiPose(
+    avatar: AvatarNode,
+    slot: { facing: number; animation: SecondaryActivity; lift?: number },
+    t: number,
+  ) {
+    const floor = floorYAt(avatar.root.position.x, avatar.root.position.z);
+    avatar.ring.setEnabled(false);
+    avatar.root.rotation.x = 0;
+    avatar.root.rotation.z = 0;
+    avatar.root.rotation.y = slot.facing;
+    avatar.facing = slot.facing;
+
     if (slot.animation === "sitting_sofa") {
-      avatar.root.position.y = avatar.footOffset + floorYAt(0, 0) - 0.18;
-      avatar.root.rotation.y = slot.facing;
+      playAgentAnimation(avatar, "sitting" as AgentAnimName);
+      const lift = slot.lift ?? 0.05;
+      avatar.root.position.y = floor + Math.max(avatar.footOffset, 0) + lift;
+      avatar.baseY = avatar.root.position.y;
     } else if (slot.animation === "playing_foosball") {
-      avatar.root.rotation.y = slot.facing + Math.sin(t * 3 + avatar.phase) * 0.15;
+      playAgentAnimation(avatar, "playing_foosball" as AgentAnimName);
       this.plantFeet(avatar);
+      // Micro sway is owned by the skeletal clip; keep facing locked to the table.
+      avatar.root.rotation.y = slot.facing + Math.sin(t * 3.2 + avatar.phase) * 0.06;
+      avatar.facing = avatar.root.rotation.y;
     } else if (slot.animation === "preparing_coffee") {
-      avatar.root.rotation.y = slot.facing;
-      avatar.root.position.y = avatar.footOffset + Math.sin((t + avatar.phase) * 2) * 0.01;
+      playAgentAnimation(avatar, "preparing_coffee" as AgentAnimName);
+      this.plantFeet(avatar);
+      avatar.root.rotation.y = slot.facing + Math.sin(t * 1.4 + avatar.phase) * 0.04;
+      avatar.facing = avatar.root.rotation.y;
     } else {
+      playAgentAnimation(avatar, "idle");
       this.plantFeet(avatar);
     }
-    avatar.facing = avatar.root.rotation.y;
   }
 
   private returnHome(avatar: AvatarNode) {
+    avatar.root.rotation.x = 0;
+    avatar.root.rotation.z = 0;
+    avatar.ring.setEnabled(true);
+    this.plantFeet(avatar);
+    playAgentAnimation(avatar, "walking");
     const pathPts = findPath(
       { x: avatar.root.position.x + this.centerOffset.x, z: avatar.root.position.z + this.centerOffset.z },
       { x: avatar.homePos.x + this.centerOffset.x, z: avatar.homePos.z + this.centerOffset.z },
@@ -996,15 +1159,35 @@ export class OfficeScene {
     }
 
     playAgentAnimation(avatar, "walking");
+    avatar.root.rotation.x = 0;
+    avatar.root.rotation.z = 0;
     const step = Math.min(speed * dt, dist);
-    pos.x += (dx / dist) * step;
-    pos.z += (dz / dist) * step;
+    const nextX = pos.x + (dx / dist) * step;
+    const nextZ = pos.z + (dz / dist) * step;
+    const rawTarget = {
+      x: target.x + this.centerOffset.x,
+      z: target.z + this.centerOffset.z,
+    };
+    // Final sit snap targets live inside the sofa AABB — don't push out of them.
+    if (pointHitsObstacle(rawTarget)) {
+      pos.x = nextX;
+      pos.z = nextZ;
+    } else {
+      const raw = resolveCollision({
+        x: nextX + this.centerOffset.x,
+        z: nextZ + this.centerOffset.z,
+      });
+      pos.x = raw.x - this.centerOffset.x;
+      pos.z = raw.z - this.centerOffset.z;
+    }
     this.plantFeet(avatar);
     return false;
   }
 
   /** Plant feet exactly on the floor surface using footOffset + nav floor height. */
   private plantFeet(avatar: AvatarNode) {
+    avatar.root.rotation.x = 0;
+    avatar.root.rotation.z = 0;
     const y = floorYAt(avatar.root.position.x, avatar.root.position.z) + avatar.footOffset;
     avatar.root.position.y = y;
     avatar.baseY = y;
@@ -1038,7 +1221,7 @@ export class OfficeScene {
     return Math.abs(delta) <= OfficeScene.FACING_TOLERANCE;
   }
 
-  /** Drop bloom / shadows when FPS stays low to keep the office responsive. */
+  /** Drop bloom / resolution when FPS stays low to keep the office responsive. */
   private adaptQuality() {
     const fps = this.engine.getFps();
     if (fps > 0 && fps < 40) this.lowFpsFrames += 1;
@@ -1054,15 +1237,24 @@ export class OfficeScene {
     if (next === "high") {
       this.pipeline.bloomEnabled = true;
       this.pipeline.bloomWeight = OFFICE_BLOOM.weight;
-      this.engine.setHardwareScalingLevel(1);
+      this.pipeline.samples = 4;
+      this.pipeline.fxaaEnabled = false;
+      this.engine.setHardwareScalingLevel(this.baseScale);
     } else if (next === "medium") {
       this.pipeline.bloomEnabled = true;
       this.pipeline.bloomWeight = OFFICE_BLOOM.weight * 0.65;
-      this.engine.setHardwareScalingLevel(1.25);
+      this.pipeline.samples = 2;
+      this.pipeline.fxaaEnabled = false;
+      this.engine.setHardwareScalingLevel(this.baseScale * 1.3);
     } else {
       this.pipeline.bloomEnabled = false;
-      this.engine.setHardwareScalingLevel(1.6);
+      this.pipeline.samples = 1;
+      this.pipeline.fxaaEnabled = true;
+      this.engine.setHardwareScalingLevel(this.baseScale * 1.7);
     }
+    this.lastClientW = 0;
+    this.lastClientH = 0;
+    this.engine.resize();
   }
 
   /* ---------- picking ---------- */
@@ -1084,13 +1276,11 @@ export class OfficeScene {
     const cw = this.canvas.clientWidth;
     const ch = this.canvas.clientHeight;
     if (cw === 0 || ch === 0) return;
-
-    const scale = this.engine.getHardwareScalingLevel();
-    const expectedW = Math.floor(cw * scale);
-    const expectedH = Math.floor(ch * scale);
-    if (expectedW !== this.engine.getRenderWidth() || expectedH !== this.engine.getRenderHeight()) {
-      this.engine.resize();
-    }
+    if (cw === this.lastClientW && ch === this.lastClientH) return;
+    this.lastClientW = cw;
+    this.lastClientH = ch;
+    // Engine.resize() respects adaptToDeviceRatio + hardwareScalingLevel.
+    this.engine.resize();
   }
 
   private reportOverlay() {

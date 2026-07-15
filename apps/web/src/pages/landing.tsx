@@ -484,7 +484,7 @@ export function LandingPage() {
               <Users size={16} />
             </span>
             <span>
-              <span className="block text-xs font-semibold">12 agents online</span>
+              <span className="block text-xs font-semibold">9 agents online</span>
               <span className="block text-[11px] text-text-muted">8 working, 2 in a meeting</span>
             </span>
           </div>

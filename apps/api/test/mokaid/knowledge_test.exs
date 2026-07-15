@@ -109,6 +109,9 @@ defmodule Mokaid.KnowledgeTest do
     end
 
     test "agent-scoped knowledge never leaks to other agents", %{workspace: workspace} do
+      Mokaid.Billing.seed_plans()
+      assert {:ok, _} = Mokaid.Billing.change_plan(workspace.id, "starter")
+
       {:ok, agent_record_a} =
         Mokaid.Agents.create_agent(workspace.id, %{
           "kind" => "ai",

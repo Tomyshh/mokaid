@@ -155,18 +155,19 @@ defmodule Mokaid.Members do
   end
 
   defp owner_role?(%Member{role: %{name: "Owner"}}), do: true
+
   defp owner_role?(%Member{role: %Ecto.Association.NotLoaded{}} = member) do
     member = Repo.preload(member, :role)
     owner_role?(member)
   end
+
   defp owner_role?(_), do: false
 
   defp count_active_owners(workspace_id) do
     Repo.aggregate(
       from(m in Member,
         join: r in assoc(m, :role),
-        where:
-          m.workspace_id == ^workspace_id and m.status == "active" and r.name == "Owner"
+        where: m.workspace_id == ^workspace_id and m.status == "active" and r.name == "Owner"
       ),
       :count
     )

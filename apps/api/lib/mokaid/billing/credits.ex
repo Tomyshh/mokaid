@@ -72,13 +72,74 @@ defmodule Mokaid.Billing.Credits do
     if credits <= 0, do: :ok, else: do_charge(workspace_id, run_id, agent_id, credits, cost_cents)
   end
 
+  @doc """
+  Strict debit for prepaid actions (agent creation boosts). Unlike `charge_run`,
+  this never goes negative — insufficient balance returns `{:error, :insufficient_credits}`.
+
+  Must be called inside an open `Repo.transaction/1` so it can share the caller's
+  lock and roll back with the surrounding work. Broadcasts after commit via the
+  caller (`broadcast_balance/1`).
+  """
+  def charge_strict(workspace_id, credits, opts \\ [])
+      when is_integer(credits) and credits > 0 do
+    kind = Keyword.get(opts, :kind, "spend")
+    description = Keyword.get(opts, :description)
+    agent_id = Keyword.get(opts, :agent_id)
+
+    case lock_subscription(workspace_id) do
+      nil ->
+        {:error, :insufficient_credits}
+
+      %Subscription{monthly_credits: -1} = sub ->
+        record(workspace_id, kind, -credits, sub,
+          agent_id: agent_id,
+          description: description,
+          metered_only: true
+        )
+
+        {:ok, sub, credits}
+
+      sub ->
+        if spendable(sub) < credits do
+          {:error, :insufficient_credits}
+        else
+          from_included = min(sub.included_credits_remaining || 0, credits)
+          from_balance = credits - from_included
+
+          {1, [updated]} =
+            Repo.update_all(
+              from(s in Subscription, where: s.id == ^sub.id, select: s),
+              inc: [
+                included_credits_remaining: -from_included,
+                credits_balance: -from_balance
+              ]
+            )
+
+          record(workspace_id, kind, -credits, updated,
+            agent_id: agent_id,
+            description: description
+          )
+
+          {:ok, updated, credits}
+        end
+    end
+  end
+
+  @doc "Broadcast the current credit balances after a successful charge_strict."
+  def broadcast_balance(workspace_id) do
+    case get_subscription(workspace_id) do
+      nil -> :ok
+      sub -> broadcast(workspace_id, sub)
+    end
+  end
+
   defp do_charge(workspace_id, run_id, agent_id, credits, cost_cents) do
     case get_subscription(workspace_id) do
       nil ->
         {:ok, 0}
 
       %Subscription{monthly_credits: -1} = sub ->
-        # Unlimited plan (Enterprise): meter for analytics, don't decrement.
+        # Unlimited monthly grant: meter for analytics, don't decrement.
         record(workspace_id, "spend", -credits, sub,
           run_id: run_id,
           agent_id: agent_id,
@@ -112,6 +173,14 @@ defmodule Mokaid.Billing.Credits do
         maybe_auto_recharge(updated)
         {:ok, credits}
     end
+  end
+
+  defp lock_subscription(workspace_id) do
+    Repo.one(
+      from s in Subscription,
+        where: s.workspace_id == ^workspace_id,
+        lock: "FOR UPDATE"
+    )
   end
 
   @doc """

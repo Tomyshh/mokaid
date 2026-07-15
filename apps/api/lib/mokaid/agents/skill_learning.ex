@@ -78,7 +78,7 @@ defmodule Mokaid.Agents.SkillLearning do
         |> maybe_put("role_title", role_title)
         |> maybe_put("department", department)
 
-      Agents.update_agent(agent, attrs)
+      Agents.apply_internal_update(agent, attrs)
     end
   end
 

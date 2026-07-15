@@ -46,15 +46,17 @@ def bl_to_gltf(v: Vector) -> list[float]:
 def mesh_world_bounds(obj) -> dict | None:
     if obj.type != "MESH" or obj.data is None:
         return None
-    coords = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
-    xs = [c.x for c in coords]
-    ys = [c.y for c in coords]
-    zs = [c.z for c in coords]
+    # Convert every corner first, then min/max in glTF space (axis swap
+    # invalidates Blender-axis min/max if applied as a single corner).
+    pts = [bl_to_gltf(obj.matrix_world @ Vector(corner)) for corner in obj.bound_box]
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    zs = [p[2] for p in pts]
     return {
         "name": obj.name,
-        "min": bl_to_gltf(Vector((min(xs), min(ys), min(zs)))),
-        "max": bl_to_gltf(Vector((max(xs), max(ys), max(zs)))),
-        "center": bl_to_gltf(Vector(((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, (min(zs) + max(zs)) / 2))),
+        "min": [min(xs), min(ys), min(zs)],
+        "max": [max(xs), max(ys), max(zs)],
+        "center": [(min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, (min(zs) + max(zs)) / 2],
     }
 
 
