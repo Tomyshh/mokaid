@@ -20,10 +20,10 @@ defmodule Mokaid.Assets3d do
     %{
       "slug" => "avatar_male",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_male.998219f3a783.glb",
-      "cdn_path" => "/assets3d/avatar_male.998219f3a783.glb",
-      "sha256" => "998219f3a7831976a371f952aaf69d05acc435f93ed215af5a2f35d0d6369819",
-      "byte_size" => 4_284_988,
+      "storage_key" => "assets3d/avatar_male.342ae6ded162.glb",
+      "cdn_path" => "/assets3d/avatar_male.342ae6ded162.glb",
+      "sha256" => "342ae6ded162a626d97197dcd6d6dba038101de9ca235630c9bce2b08c478032",
+      "byte_size" => 4_333_312,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Male character",
@@ -34,10 +34,10 @@ defmodule Mokaid.Assets3d do
     %{
       "slug" => "avatar_female",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_female.82b9e76943a3.glb",
-      "cdn_path" => "/assets3d/avatar_female.82b9e76943a3.glb",
-      "sha256" => "82b9e76943a3f43988a4f7be29aab6d351dc57246a7800c81cd684826481fbe9",
-      "byte_size" => 678_052,
+      "storage_key" => "assets3d/avatar_female.7d0d7345a182.glb",
+      "cdn_path" => "/assets3d/avatar_female.7d0d7345a182.glb",
+      "sha256" => "7d0d7345a1826285f567eb2b7975e3f5ae921f4cb6e9def5662e089daf665007",
+      "byte_size" => 684_504,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Female character",
@@ -49,10 +49,10 @@ defmodule Mokaid.Assets3d do
     %{
       "slug" => "avatar_finance",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_finance.66a811ac49e8.glb",
-      "cdn_path" => "/assets3d/avatar_finance.66a811ac49e8.glb",
-      "sha256" => "66a811ac49e87a20187006c2af1d74d6182367d922487dd03a2e1631bbd7d058",
-      "byte_size" => 1_087_824,
+      "storage_key" => "assets3d/avatar_finance.826a68935f66.glb",
+      "cdn_path" => "/assets3d/avatar_finance.826a68935f66.glb",
+      "sha256" => "826a68935f663a53bcf9a3c831c91030b1e3ba4caac85486c2f6cec85d312760",
+      "byte_size" => 1_184_088,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Female finance",
@@ -64,10 +64,10 @@ defmodule Mokaid.Assets3d do
     %{
       "slug" => "avatar_corporate",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_corporate.64d711270be7.glb",
-      "cdn_path" => "/assets3d/avatar_corporate.64d711270be7.glb",
-      "sha256" => "64d711270be7722517cf3b1fd8663605af2ffb0e9763c7af0d4bbc7e5a210535",
-      "byte_size" => 762_936,
+      "storage_key" => "assets3d/avatar_corporate.dd078ffb0766.glb",
+      "cdn_path" => "/assets3d/avatar_corporate.dd078ffb0766.glb",
+      "sha256" => "dd078ffb07669c56ac27a4081ea7f7edb33d75a72c420b5aac840a4169fb0e54",
+      "byte_size" => 769_388,
       "animation_clips" => @all_clips,
       "metadata" => %{
         "display_name" => "Corporate",

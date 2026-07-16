@@ -78,20 +78,27 @@ export const NAV_CLEARANCE = 0.18;
 export const MAX_OFFICE_SEATS = 9;
 
 /**
- * Desk seats in raw GLB space (before centering).
- * Index 0..8 maps 1:1 to agent.seat_index. Seats sit inside desk furniture;
- * paths reach them with allowGoalInObstacle (final snap only).
+ * Desk chair seats in raw GLB space (before centering).
+ * Index 0..8 maps 1:1 to agent.seat_index. Positions are Object_122 chair
+ * instances; `facing` looks toward the desk; paths snap with allowGoalInObstacle.
  */
-export const OFFICE_DESK_SLOTS: NavPoint[] = [
-  { x: -5.169, z: 0.76 },
-  { x: -5.169, z: -2.0 },
-  { x: -1.681, z: -3.42 },
-  { x: -2.682, z: -0.66 },
-  { x: 2.032, z: -2.82 },
-  { x: 0.899, z: 0.34 },
-  { x: 5.72, z: 0.17 },
-  { x: 0.284, z: 3.18 },
-  { x: -2.913, z: 2.56 },
+export interface DeskSeat extends NavPoint {
+  /** Radians, Babylon Y rotation (0 faces +Z). */
+  facing: number;
+  /** Chair cushion top Y in raw office-GLB space. */
+  seatHeight: number;
+}
+
+export const OFFICE_DESK_SLOTS: DeskSeat[] = [
+  { x: -5.163, z: 1.445, facing: -3.1328, seatHeight: 0.5 },
+  { x: -5.157, z: -2.781, facing: -0.0154, seatHeight: 0.5 },
+  { x: -1.682, z: -4.243, facing: 0.0012, seatHeight: 0.5 },
+  { x: -1.75, z: -0.52, facing: -1.7199, seatHeight: 0.5 },
+  { x: 1.986, z: -3.414, facing: 0.0773, seatHeight: 0.5 },
+  { x: 0.854, z: 1.075, facing: 3.0804, seatHeight: 0.5 },
+  { x: 5.006, z: 0.13, facing: 1.5148, seatHeight: 0.5 },
+  { x: 0.287, z: 4.155, facing: -3.1385, seatHeight: 0.5 },
+  { x: -2.158, z: 3.19, facing: -2.2662, seatHeight: 0.5 },
 ];
 
 /** Approximate flat floor height (Y) once the GLB is planted at y=0. */

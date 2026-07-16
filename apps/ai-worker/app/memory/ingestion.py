@@ -17,6 +17,7 @@ import structlog
 from app import llm
 from app.clients.phoenix import PhoenixClient
 from app.memory import extractors
+from app.memory.graph_extract import extract_graph
 
 log = structlog.get_logger()
 
@@ -161,6 +162,19 @@ async def ingest_document(
 
     log.info("document_embedded", item_id=item_id, vectors=len(embeddings))
 
+    graph: dict[str, Any] | None = None
+    try:
+        graph = await extract_graph(text, title=payload.get("title"), chunks=chunks)
+        log.info(
+            "document_graph_extracted",
+            item_id=item_id,
+            nodes=len(graph.get("nodes") or []),
+            edges=len(graph.get("edges") or []),
+        )
+    except Exception as exc:
+        log.warning("document_graph_failed", item_id=item_id, error=str(exc))
+        graph = None
+
     stored = False
     if item_id and workspace_id:
         phoenix = phoenix or PhoenixClient()
@@ -171,6 +185,7 @@ async def ingest_document(
                 {"content": content, "embedding": vector}
                 for content, vector in zip(chunks, embeddings, strict=True)
             ],
+            graph=graph,
         )
 
     return {
@@ -178,5 +193,6 @@ async def ingest_document(
         "chunk_count": len(chunks),
         "embedded": True,
         "stored": stored,
+        "graph_nodes": len((graph or {}).get("nodes") or []),
         "status": "indexed" if stored else "embedded",
     }

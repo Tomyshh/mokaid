@@ -33,7 +33,7 @@ export const ASSET_MANIFEST: Record<string, AssetEntry> = {
   },
   avatar_female: {
     id: "avatar_female",
-    url: resolveAgentGlbUrl("/assets3d/avatar_female.82b9e76943a3.glb"),
+    url: resolveAgentGlbUrl("/assets3d/avatar_female.7d0d7345a182.glb"),
     kind: "avatar",
   },
 };

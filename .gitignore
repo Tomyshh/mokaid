@@ -63,3 +63,6 @@ assets/raw/feminine/
 assets/raw/feminine_finance/
 # Python build artifacts
 *.egg-info/
+# Graphify (commit graph.json / GRAPH_REPORT.md; keep local cost/cache out)
+graphify-out/cost.json
+graphify-out/cache/

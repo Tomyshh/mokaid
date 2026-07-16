@@ -43,7 +43,7 @@ defmodule MokaidWeb.WorkerResourceController do
   defp presence(value) when is_binary(value) and value != "", do: value
   defp presence(_), do: nil
 
-  def knowledge_chunks(conn, %{"id" => id, "workspace_id" => workspace_id, "chunks" => chunks}) do
+  def knowledge_chunks(conn, %{"id" => id, "workspace_id" => workspace_id, "chunks" => chunks} = params) do
     with %{} = item <- Knowledge.get_item(workspace_id, id) do
       entries =
         Enum.map(chunks, fn chunk ->
@@ -55,6 +55,11 @@ defmodule MokaidWeb.WorkerResourceController do
         end)
 
       {count, _} = Knowledge.replace_chunks(item, entries)
+
+      if params["graph"] && Mokaid.Knowledge.Graph.enabled?(workspace_id) do
+        Mokaid.Knowledge.Graph.replace_item_graph(item, params["graph"])
+      end
+
       {:ok, _item} = Knowledge.mark_indexed(item)
 
       json(conn, %{data: %{knowledge_item_id: item.id, chunk_count: count}})
@@ -63,6 +68,74 @@ defmodule MokaidWeb.WorkerResourceController do
         conn
         |> put_status(:not_found)
         |> json(%{error: %{code: "not_found", message: "knowledge item not found"}})
+    end
+  end
+
+  def traverse_knowledge(conn, %{"workspace_id" => workspace_id, "query" => query} = params) do
+    unless Mokaid.Knowledge.Graph.enabled?(workspace_id) do
+      json(conn, %{data: %{nodes: [], edges: [], enabled: false}})
+    else
+      result =
+        Mokaid.Knowledge.Graph.traverse(workspace_id, query,
+          project_id: presence(params["project_id"]),
+          agent_id: presence(params["agent_id"]),
+          limit: min(params["limit"] || 40, 80),
+          depth: min(params["depth"] || 2, 3)
+        )
+
+      json(conn, %{data: Map.put(result, :enabled, true)})
+    end
+  end
+
+  def knowledge_path(conn, %{"workspace_id" => workspace_id, "from" => from, "to" => to} = params) do
+    unless Mokaid.Knowledge.Graph.enabled?(workspace_id) do
+      json(conn, %{data: %{path: [], hops: 0, enabled: false}})
+    else
+      result =
+        Mokaid.Knowledge.Graph.shortest_path(workspace_id, from, to,
+          project_id: presence(params["project_id"]),
+          agent_id: presence(params["agent_id"])
+        )
+
+      json(conn, %{data: Map.put(result, :enabled, true)})
+    end
+  end
+
+  def explain_concept(conn, %{"workspace_id" => workspace_id, "query" => query} = params) do
+    unless Mokaid.Knowledge.Graph.enabled?(workspace_id) do
+      json(conn, %{data: %{node: nil, connections: [], enabled: false}})
+    else
+      result =
+        Mokaid.Knowledge.Graph.explain(workspace_id, query,
+          project_id: presence(params["project_id"]),
+          agent_id: presence(params["agent_id"])
+        )
+
+      json(conn, %{data: Map.put(result, :enabled, true)})
+    end
+  end
+
+  def save_graph_outcome(conn, %{"workspace_id" => workspace_id} = params) do
+    attrs = %{
+      "agent_id" => presence(params["agent_id"]),
+      "task_id" => presence(params["task_id"]),
+      "question" => params["question"],
+      "answer_summary" => params["answer_summary"],
+      "outcome" => params["outcome"] || "useful",
+      "node_ids" => List.wrap(params["node_ids"]),
+      "metadata" => params["metadata"] || %{}
+    }
+
+    case Mokaid.Knowledge.Graph.save_outcome(workspace_id, attrs) do
+      {:ok, outcome} ->
+        conn
+        |> put_status(:created)
+        |> json(%{data: %{id: outcome.id, outcome: outcome.outcome}})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: %{code: "invalid", details: changeset.errors}})
     end
   end
 

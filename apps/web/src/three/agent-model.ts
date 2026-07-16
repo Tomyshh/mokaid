@@ -22,7 +22,7 @@ import type { AgentVisualState } from "@mokaid/shared-types";
 import { env } from "@/lib/env";
 
 /** Hashed filename matching assets/optimized + S3 upload + asset_3d seed. */
-export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.998219f3a783.glb";
+export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.342ae6ded162.glb";
 
 const VISUAL_STATES: AgentVisualState[] = [
   "idle",

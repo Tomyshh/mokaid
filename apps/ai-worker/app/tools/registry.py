@@ -84,6 +84,73 @@ async def search_knowledge(params: dict[str, Any], ctx: RunContext) -> Any:
     return {"query": query, "results": results}
 
 
+@tool("traverse_knowledge")
+async def traverse_knowledge(params: dict[str, Any], ctx: RunContext) -> Any:
+    """Traverse the workspace knowledge graph around a concept/question."""
+    query = params.get("query", "") or ctx.task_title or ""
+    if not query or ctx.phoenix is None:
+        return {"nodes": [], "edges": [], "query": query}
+
+    return await ctx.phoenix.traverse_knowledge(
+        ctx.workspace_id,
+        query,
+        project_id=ctx.project_id,
+        agent_id=ctx.agent_id,
+        limit=int(params.get("limit") or 40),
+    )
+
+
+@tool("knowledge_path")
+async def knowledge_path(params: dict[str, Any], ctx: RunContext) -> Any:
+    """Shortest path between two concepts in the knowledge graph."""
+    from_q = params.get("from") or params.get("source") or ""
+    to_q = params.get("to") or params.get("target") or ""
+    if not from_q or not to_q or ctx.phoenix is None:
+        return {"path": [], "hops": 0}
+
+    return await ctx.phoenix.knowledge_path(
+        ctx.workspace_id,
+        from_q,
+        to_q,
+        project_id=ctx.project_id,
+        agent_id=ctx.agent_id,
+    )
+
+
+@tool("explain_concept")
+async def explain_concept(params: dict[str, Any], ctx: RunContext) -> Any:
+    """Explain a concept via its knowledge-graph neighborhood."""
+    query = params.get("query") or params.get("concept") or ""
+    if not query or ctx.phoenix is None:
+        return {"node": None, "connections": []}
+
+    return await ctx.phoenix.explain_concept(
+        ctx.workspace_id,
+        query,
+        project_id=ctx.project_id,
+        agent_id=ctx.agent_id,
+    )
+
+
+@tool("save_knowledge_outcome")
+async def save_knowledge_outcome(params: dict[str, Any], ctx: RunContext) -> Any:
+    """Record whether a graph-backed answer was useful (agent memory / reflect)."""
+    if ctx.phoenix is None:
+        return {"saved": False}
+
+    outcome = params.get("outcome") or "useful"
+    data = await ctx.phoenix.save_graph_outcome(
+        ctx.workspace_id,
+        outcome=outcome,
+        question=params.get("question"),
+        answer_summary=params.get("answer_summary"),
+        node_ids=list(params.get("node_ids") or []),
+        agent_id=ctx.agent_id,
+        task_id=ctx.task_id,
+    )
+    return {"saved": data is not None, "data": data}
+
+
 @tool("summarize")
 async def summarize(params: dict[str, Any], ctx: RunContext) -> Any:
     text = params.get("text", "")

@@ -53,10 +53,10 @@ defmodule Mokaid.AI.Dispatcher do
         case worker_analyze(instruction, files, roster, installations, servers) do
           {:ok, result} ->
             normalize_worker_result(result, roster, servers) ||
-              heuristic_analysis(instruction, files, roster, servers)
+              heuristic_analysis(workspace_id, instruction, files, roster, servers)
 
           :error ->
-            heuristic_analysis(instruction, files, roster, servers)
+            heuristic_analysis(workspace_id, instruction, files, roster, servers)
         end
 
       {:ok, decorate_mcp_suggestions(base, workspace_id, installations, servers)}
@@ -335,7 +335,7 @@ defmodule Mokaid.AI.Dispatcher do
     "slides" => ~w(presentation slides deck pitch)
   }
 
-  defp heuristic_analysis(instruction, files, roster, servers) do
+  defp heuristic_analysis(workspace_id, instruction, files, roster, servers) do
     categories = detect_categories(instruction, files)
     signals = signal_tokens(instruction, categories)
 
@@ -343,8 +343,9 @@ defmodule Mokaid.AI.Dispatcher do
       roster
       |> Enum.map(fn entry ->
         score = agent_score(entry.agent, signals)
+        graph_bonus = graph_overlap_bonus(workspace_id, entry.agent.id, instruction)
         # Slight penalty per open task so equally-skilled but freer agents win.
-        {entry, max(score * 10 - entry.open_tasks, 0)}
+        {entry, max(score * 10 + graph_bonus - entry.open_tasks, 0)}
       end)
       |> Enum.sort_by(fn {_entry, score} -> -score end)
 
@@ -687,6 +688,20 @@ defmodule Mokaid.AI.Dispatcher do
 
     :ok
   end
+
+  defp graph_overlap_bonus(workspace_id, agent_id, instruction)
+       when is_binary(workspace_id) and is_binary(agent_id) and is_binary(instruction) do
+    if Mokaid.Knowledge.Graph.enabled?(workspace_id) do
+      case Mokaid.Knowledge.Graph.rank_agents_for_task(workspace_id, instruction, [agent_id]) do
+        [{^agent_id, score, _}] when is_integer(score) and score > 0 -> min(score * 2, 20)
+        _ -> 0
+      end
+    else
+      0
+    end
+  end
+
+  defp graph_overlap_bonus(_, _, _), do: 0
 
   ## ---------- Small helpers ----------
 

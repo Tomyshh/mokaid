@@ -55,7 +55,8 @@ describe("office-navdata", () => {
       expect(path.length, `desk ${i} unreachable`).toBeGreaterThan(1);
       // Whole path minus the final in-desk snap must be clear.
       expect(pathIsClear(path, true), `desk ${i} path crosses furniture`).toBe(true);
-      expect(path[path.length - 1]).toEqual(seat);
+      expect(path[path.length - 1].x).toBeCloseTo(seat.x, 3);
+      expect(path[path.length - 1].z).toBeCloseTo(seat.z, 3);
     }
   });
 

@@ -357,11 +357,11 @@ ARM_DOWN_R = (0.15, 0.0, -1.25)
 FOREARM_L = (-0.35, 0.0, 0.1)
 FOREARM_R = (-0.35, 0.0, -0.1)
 # Sitting: hips drop + thighs bend forward
-SIT_HIPS_Y = -0.42
-SIT_THIGH_L = (1.15, 0.0, 0.05)
-SIT_THIGH_R = (1.15, 0.0, -0.05)
-SIT_LEG_L = (-1.35, 0.0, 0.0)
-SIT_LEG_R = (-1.35, 0.0, 0.0)
+SIT_HIPS_Y = -0.40  # metres at unit scale; multiplied by Mixamo cm unit below
+SIT_THIGH_L = (1.35, 0.0, 0.08)
+SIT_THIGH_R = (1.35, 0.0, -0.08)
+SIT_LEG_L = (-1.45, 0.0, 0.0)
+SIT_LEG_R = (-1.45, 0.0, 0.0)
 
 
 def build_mixamo_clip(
@@ -397,7 +397,10 @@ def build_mixamo_clip(
         add_rot("RightForeArm", times, [FOREARM_R for _ in times])
 
     def sit_pose(times: list[float]) -> None:
-        add_trans("Hips", times, [(0.0, SIT_HIPS_Y, 0.05) for _ in times])
+        # Mixamo Hips are in centimetres (y≈90–100). Scale metre deltas.
+        hips_rest_y = abs((nodes[by_name["Hips"]].get("translation") or [0, 1, 0])[1]) if "Hips" in by_name else 1.0
+        unit = hips_rest_y / 0.95 if hips_rest_y > 5.0 else 1.0
+        add_trans("Hips", times, [(0.0, SIT_HIPS_Y * unit, 0.05 * unit) for _ in times])
         add_rot("LeftUpLeg", times, [SIT_THIGH_L for _ in times])
         add_rot("RightUpLeg", times, [SIT_THIGH_R for _ in times])
         add_rot("LeftLeg", times, [SIT_LEG_L for _ in times])

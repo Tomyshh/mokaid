@@ -1,6 +1,8 @@
 defmodule MokaidWeb.KnowledgeController do
   use MokaidWeb, :controller
 
+  import Ecto.Query
+
   alias Mokaid.Knowledge
   alias MokaidWeb.JSON, as: Serializer
 
@@ -82,6 +84,201 @@ defmodule MokaidWeb.KnowledgeController do
          %{} = item <- Knowledge.get_item(workspace_id(conn), id),
          {:ok, updated} <- Knowledge.update_item(item, params) do
       json(conn, %{data: Serializer.knowledge_item(updated)})
+    end
+  end
+
+  def graph(conn, params) do
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.view") do
+      snapshot =
+        Mokaid.Knowledge.Graph.snapshot(workspace_id(conn),
+          project_id: presence(params["project_id"]),
+          agent_id: presence(params["agent_id"])
+        )
+
+      json(conn, %{data: snapshot})
+    end
+  end
+
+  def rebuild_graph(conn, params) do
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.update"),
+         true <- Mokaid.Knowledge.Graph.enabled?(workspace_id(conn)) || :upgrade_required,
+         {:ok, count} <-
+           Mokaid.Knowledge.Graph.rebuild_communities(workspace_id(conn),
+             project_id: presence(params["project_id"]),
+             agent_id: presence(params["agent_id"])
+           ) do
+      json(conn, %{data: %{communities: count}})
+    else
+      :upgrade_required ->
+        conn
+        |> put_status(:payment_required)
+        |> json(%{
+          error: %{
+            code: "knowledge_graph_locked",
+            message: "Knowledge Graph requires Starter or Professional"
+          }
+        })
+
+      other ->
+        other
+    end
+  end
+
+  @doc """
+  Charges credits and re-enqueues ingestion for published items so the graph
+  is rebuilt (semantic extract + communities).
+  """
+  def reindex_graph(conn, params) do
+    ws = workspace_id(conn)
+    credits = Mokaid.Knowledge.Graph.reindex_credits()
+
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.update"),
+         true <- Mokaid.Knowledge.Graph.enabled?(ws) || :upgrade_required do
+      charge =
+        Mokaid.Repo.transaction(fn ->
+          case Mokaid.Billing.Credits.charge_strict(ws, credits,
+                 kind: "graph_reindex",
+                 description: "Knowledge graph re-index"
+               ) do
+            {:ok, _sub, charged} -> charged
+            {:error, reason} -> Mokaid.Repo.rollback(reason)
+          end
+        end)
+
+      case charge do
+        {:ok, ^credits} ->
+          Mokaid.Billing.Credits.broadcast_balance(ws)
+
+          items =
+            Knowledge.list_items(ws, %{
+              "status" => "published",
+              "project_id" => presence(params["project_id"]),
+              "agent_id" => presence(params["agent_id"])
+            })
+
+          Enum.each(items, fn item ->
+            %{knowledge_item_id: item.id, workspace_id: ws}
+            |> Mokaid.Knowledge.Workers.IngestionWorker.new()
+            |> Oban.insert()
+          end)
+
+          Mokaid.Knowledge.Graph.rebuild_communities(ws,
+            project_id: presence(params["project_id"]),
+            agent_id: presence(params["agent_id"])
+          )
+
+          json(conn, %{
+            data: %{
+              requeued: length(items),
+              credits_charged: credits
+            }
+          })
+
+        {:error, :insufficient_credits} ->
+          conn
+          |> put_status(:payment_required)
+          |> json(%{error: %{code: "insufficient_credits", message: "Not enough credits"}})
+
+        other ->
+          other
+      end
+    else
+      :upgrade_required ->
+        conn
+        |> put_status(:payment_required)
+        |> json(%{
+          error: %{
+            code: "knowledge_graph_locked",
+            message: "Knowledge Graph requires Starter or Professional"
+          }
+        })
+
+      other ->
+        other
+    end
+  end
+
+  def reflect(conn, params) do
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.view") do
+      data =
+        Mokaid.Knowledge.Graph.reflect(workspace_id(conn), presence(params["agent_id"]))
+
+      json(conn, %{data: data})
+    end
+  end
+
+  @doc "Onboarding wizard: snapshot + suggested questions after bulk upload."
+  def company_brain(conn, params) do
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.view") do
+      ws = workspace_id(conn)
+
+      if Mokaid.Knowledge.Graph.enabled?(ws) do
+        Mokaid.Knowledge.Graph.rebuild_communities(ws)
+      end
+
+      snapshot = Mokaid.Knowledge.Graph.snapshot(ws)
+
+      report = %{
+        title: "Company brain",
+        god_concepts: snapshot.god_nodes,
+        communities: snapshot.communities,
+        suggested_questions: snapshot.suggested_questions,
+        node_count: snapshot.node_count,
+        edge_count: snapshot.edge_count,
+        enabled: snapshot.enabled,
+        upgrade_hint:
+          if(snapshot.enabled,
+            do: nil,
+            else: "Upgrade to Starter to unlock the Knowledge Graph"
+          )
+      }
+
+      # Optional: accept a batch of note bodies to seed as knowledge items.
+      seeded =
+        params
+        |> Map.get("notes", [])
+        |> List.wrap()
+        |> Enum.take(20)
+        |> Enum.flat_map(fn note ->
+          title = note["title"] || "Company note"
+          body = note["body"] || note["content"] || ""
+
+          if body != "" do
+            case Knowledge.create_item(
+                   ws,
+                   %{
+                     "title" => title,
+                     "type" => "note",
+                     "body" => body,
+                     "status" => "published",
+                     "tags" => ["company-brain"]
+                   },
+                   current_member(conn)
+                 ) do
+              {:ok, item} -> [Serializer.knowledge_item(item)]
+              _ -> []
+            end
+          else
+            []
+          end
+        end)
+
+      json(conn, %{data: Map.put(report, :seeded, seeded)})
+    end
+  end
+
+  def office_zones(conn, _params) do
+    with :ok <- Permissions.authorize(current_member(conn), "knowledge.view") do
+      communities =
+        from(c in Mokaid.Knowledge.KnowledgeCommunity,
+          where: c.workspace_id == ^workspace_id(conn),
+          where: not is_nil(c.office_zone),
+          order_by: [desc: c.god_score]
+        )
+        |> Mokaid.Repo.all()
+        |> Enum.map(&Mokaid.Knowledge.Graph.community_json/1)
+
+      json(conn, %{data: communities})
     end
   end
 end

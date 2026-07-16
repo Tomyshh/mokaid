@@ -10,6 +10,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AddKnowledgeModal } from "@/components/modals/add-knowledge-modal";
+import { KnowledgeGraphPanel } from "@/components/knowledge/knowledge-graph-panel";
 import { cn } from "@/lib/cn";
 import { formatBytes, formatRelative } from "@/lib/format";
 
@@ -122,6 +123,8 @@ export function KnowledgePage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-72"
         />
+
+        <KnowledgeGraphPanel />
 
         {isLoading ? (
           <SkeletonRows rows={6} />

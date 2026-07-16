@@ -24,6 +24,10 @@ Respond with a JSON object: {"steps": [{"tool": string, "input": object}]}
 
 Available tools:
 - search_knowledge {query}: semantic search in the workspace knowledge base
+- traverse_knowledge {query}: knowledge-graph neighborhood (multi-hop relationships)
+- knowledge_path {from, to}: shortest path between two concepts
+- explain_concept {query}: neighbors with EXTRACTED/INFERRED confidence
+- save_knowledge_outcome {outcome, question, answer_summary, node_ids}: record useful|dead_end|corrected after using the graph
 - web_search {query, max_results}: search the public internet (titles, URLs, snippets) — use for research / lookup / who-is / company questions
 - summarize {text}: summarize text
 - draft_document {title, brief, context}: write a Markdown document
@@ -42,6 +46,7 @@ Rules:
 - 1 to %(max_steps)d steps, ordered.
 - Only use listed tools. Prefer the minimal plan that completes the task.
 - Start with web_search for public-web research; use search_knowledge when workspace context would help.
+- Prefer traverse_knowledge / explain_concept when the question is about how concepts connect; call save_knowledge_outcome after graph-backed answers.
 - Only include send_email/post_social if the task explicitly asks for it.
 - Research / lookup without an explicit written-report ask: web_search only (possibly summarize). Do NOT add draft_document, transform_image, or generate_website.
 

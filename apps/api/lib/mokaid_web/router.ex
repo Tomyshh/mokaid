@@ -86,6 +86,12 @@ defmodule MokaidWeb.Router do
     resources "/knowledge", KnowledgeController, only: [:index, :create, :show, :update]
     get "/knowledge-categories", KnowledgeController, :categories
     post "/knowledge/upload", KnowledgeController, :upload
+    get "/knowledge-graph", KnowledgeController, :graph
+    post "/knowledge-graph/rebuild", KnowledgeController, :rebuild_graph
+    post "/knowledge-graph/reindex", KnowledgeController, :reindex_graph
+    get "/knowledge-graph/reflect", KnowledgeController, :reflect
+    post "/knowledge-graph/company-brain", KnowledgeController, :company_brain
+    get "/knowledge-graph/office-zones", KnowledgeController, :office_zones
 
     post "/drive/upload", DriveController, :upload
     resources "/drive", DriveController, only: [:index, :create, :show, :update, :delete]
@@ -163,6 +169,10 @@ defmodule MokaidWeb.Router do
     post "/runs/:run_id/fail", WorkerCallbackController, :fail
 
     post "/knowledge/search", WorkerResourceController, :search_knowledge
+    post "/knowledge/traverse", WorkerResourceController, :traverse_knowledge
+    post "/knowledge/path", WorkerResourceController, :knowledge_path
+    post "/knowledge/explain", WorkerResourceController, :explain_concept
+    post "/knowledge/outcomes", WorkerResourceController, :save_graph_outcome
     post "/knowledge/:id/chunks", WorkerResourceController, :knowledge_chunks
     post "/knowledge/:id/failed", WorkerResourceController, :knowledge_failed
     post "/tasks/:id/update", WorkerResourceController, :update_task

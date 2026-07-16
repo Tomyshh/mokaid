@@ -277,7 +277,8 @@ defmodule Mokaid.Billing do
         "1 AI employee",
         "500 AI credits / month",
         "Landing page generation",
-        "HTML export"
+        "HTML export",
+        "Chunk RAG knowledge"
       ]
     },
     %{
@@ -285,12 +286,18 @@ defmodule Mokaid.Billing do
       name: "Starter",
       price_cents_monthly: 4_900,
       price_cents_yearly: 49_000,
-      limits: %{"agents" => 3, "credits_monthly" => 5_000, "mcp_integrations" => 3},
+      limits: %{
+        "agents" => 3,
+        "credits_monthly" => 5_000,
+        "mcp_integrations" => 3,
+        "knowledge_graph" => "project"
+      },
       features: [
         "3 AI employees",
         "5,000 AI credits / month",
         "Live Preview & versions",
         "3 MCP integrations",
+        "Project Knowledge Graph",
         "Buy extra credits anytime"
       ]
     },
@@ -299,11 +306,17 @@ defmodule Mokaid.Billing do
       name: "Professional",
       price_cents_monthly: 14_900,
       price_cents_yearly: 149_000,
-      limits: %{"agents" => 9, "credits_monthly" => 20_000, "mcp_integrations" => -1},
+      limits: %{
+        "agents" => 9,
+        "credits_monthly" => 20_000,
+        "mcp_integrations" => -1,
+        "knowledge_graph" => "workspace"
+      },
       features: [
         "9 AI employees (full office)",
         "20,000 AI credits / month",
         "All MCP integrations",
+        "Workspace Knowledge Graph + path/explain",
         "GitHub & Figma, deployment",
         "Team collaboration",
         "Auto-recharge available"

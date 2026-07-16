@@ -409,6 +409,20 @@ defmodule Mokaid.AI do
                   _ -> agent
                 end
 
+              # Graph memory: mark mission knowledge as useful when the run
+              # produced output (agent brain accumulates preferred paths).
+              if has_output do
+                Mokaid.Knowledge.Graph.save_outcome(run.workspace_id, %{
+                  "agent_id" => agent.id,
+                  "task_id" => task.id,
+                  "question" => task.title,
+                  "answer_summary" => String.slice(inspect(output), 0, 400),
+                  "outcome" => "useful",
+                  "node_ids" => [],
+                  "metadata" => %{"source" => "run_completed"}
+                })
+              end
+
               # XP / levels: every mission makes the employee grow (broadcasts
               # agent.level_up when a threshold is crossed).
               Mokaid.Agents.Progression.record_completion(agent, output || %{}, token_usage)

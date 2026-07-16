@@ -1,0 +1,18 @@
+# Keep the repo graph focused on product code — skip generated/vendor noise.
+graphify-out/
+apps/api/_build/
+apps/api/deps/
+apps/api/priv/static/
+apps/web/dist/
+apps/web/public/assets3d/
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+coverage/
+htmlcov/
+infra/terraform/**/.terraform/
+*.tfstate
+*.tfstate.*
+scratchpad/
+assets/raw/

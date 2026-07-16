@@ -425,6 +425,40 @@ class _Engine:
             project + your own experience). Use when workspace context helps."""
             return await engine._run_tool("search_knowledge", {"query": query})
 
+        async def traverse_knowledge(query: str, limit: int = 40) -> Any:
+            """Traverse the knowledge graph around a concept. Prefer this when
+            you need relationships / multi-hop context, not just similar text."""
+            return await engine._run_tool(
+                "traverse_knowledge", {"query": query, "limit": limit}
+            )
+
+        async def knowledge_path(source: str, target: str) -> Any:
+            """Shortest path between two concepts in the knowledge graph."""
+            return await engine._run_tool(
+                "knowledge_path", {"from": source, "to": target}
+            )
+
+        async def explain_concept(concept: str) -> Any:
+            """Explain a concept via its graph neighborhood and confidence tags."""
+            return await engine._run_tool("explain_concept", {"query": concept})
+
+        async def save_knowledge_outcome(
+            outcome: str = "useful",
+            question: str = "",
+            answer_summary: str = "",
+            node_ids: list[str] | None = None,
+        ) -> Any:
+            """Record whether graph-backed knowledge helped (useful|dead_end|corrected)."""
+            return await engine._run_tool(
+                "save_knowledge_outcome",
+                {
+                    "outcome": outcome,
+                    "question": question,
+                    "answer_summary": answer_summary,
+                    "node_ids": node_ids or [],
+                },
+            )
+
         async def web_search(query: str, max_results: int = 5) -> Any:
             """Search the public internet for current facts (companies, people,
             news). Returns titles, URLs and snippets. MUST use for research /
@@ -538,6 +572,10 @@ class _Engine:
 
         native = [
             search_knowledge,
+            traverse_knowledge,
+            knowledge_path,
+            explain_concept,
+            save_knowledge_outcome,
             web_search,
             draft_document,
             generate_report,

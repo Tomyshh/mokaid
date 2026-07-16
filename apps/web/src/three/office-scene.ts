@@ -122,6 +122,10 @@ interface AvatarNode {
   footOffset: number;
   /** Pelvis height above root while the sitting clip is active. */
   sitPelvisHeight: number;
+  /** Desk chair facing (raw-authored) once centered home is set. */
+  deskFacing: number;
+  /** Desk chair cushion Y in raw GLB space. */
+  deskSeatHeight: number;
   /** Last secondary activity reported to React. */
   reportedActivity: SecondaryActivity;
   routeBusy: boolean;
@@ -743,11 +747,10 @@ export class OfficeScene {
         if (colorChanged) applyTint(existing.meshes, agent.color);
         if (wasIdle && !nowIdle) {
           existing.root.position.copyFrom(existing.homePos);
-          this.plantFeet(existing);
           existing.idleBehavior = "patrol";
           existing.routeBusy = false;
           this.reportActivity(existing, null);
-          playAgentAnimation(existing, "idle");
+          this.seatAtDesk(existing, agent.visualState);
         } else if (!wasIdle && nowIdle) {
           existing.idleBehavior = "patrol";
           existing.behaviorEnd = 0;
@@ -796,12 +799,14 @@ export class OfficeScene {
     }
     if (this.disposed || this.avatars.has(agent.id)) return;
 
+    const desk = OFFICE_DESK_SLOTS[seatIndex];
     const slot = this.deskSlots[seatIndex] ?? Vector3.Zero();
     const avatarUrl = this.agentAvatarUrl(agent);
 
     const spawned = spawnAgentModel(template, this.scene, agent.id, agent.color);
     const root = spawned.root;
     root.position.copyFrom(slot);
+    root.rotation.y = desk?.facing ?? 0;
     groundAgent(root, template.footOffset);
 
     // Fallback: if the GLB produced no meshes (e.g. stale container after
@@ -855,16 +860,22 @@ export class OfficeScene {
       avatarUrl,
       footOffset: template.footOffset,
       sitPelvisHeight: template.sitPelvisHeight,
+      deskFacing: desk?.facing ?? 0,
+      deskSeatHeight: desk?.seatHeight ?? 0.5,
       reportedActivity: null,
       routeBusy: false,
     };
 
     this.avatars.set(agent.id, avatar);
-    this.plantFeet(avatar);
+    if (isIdleVisual(agent.visualState)) {
+      this.plantFeet(avatar);
+      playAgentAnimation(avatar, "idle");
+    } else {
+      this.seatAtDesk(avatar, agent.visualState);
+    }
     for (const mesh of spawned.meshes) {
       this.shadowGenerator?.addShadowCaster(mesh);
     }
-    playAgentAnimation(avatar, "idle");
     this.syncServerActivity(avatar);
     this.applyStatusVisual(avatar);
   }
@@ -899,17 +910,13 @@ export class OfficeScene {
         continue;
       }
 
-      // Desk / status clips — prefer baked GLB animation over procedural bob.
-      playAgentAnimation(avatar, state);
-      const { root } = avatar;
-
-      // Keep feet planted; celebrating bounce is in the clip (root.x translation).
-      this.plantFeet(avatar);
+      // Desk / status clips — sit on the assigned chair (never stand on the desk).
+      this.seatAtDesk(avatar, state);
       if (state === "away" || state === "offline") {
         avatar.root.position.y = avatar.baseY;
       }
 
-      avatar.facing = root.rotation.y;
+      avatar.facing = avatar.root.rotation.y;
       this.reportActivity(avatar, null);
     }
   }
@@ -1136,6 +1143,24 @@ export class OfficeScene {
       playAgentAnimation(avatar, "idle");
       this.plantFeet(avatar);
     }
+  }
+
+  /**
+   * Sit the avatar on their assigned desk chair with the status clip
+   * (typing / working / …). Pelvis is planted on the cushion like sofa sits.
+   */
+  private seatAtDesk(avatar: AvatarNode, state: AgentAnimName | string) {
+    avatar.ring.setEnabled(true);
+    avatar.root.rotation.x = 0;
+    avatar.root.rotation.z = 0;
+    avatar.root.position.x = avatar.homePos.x;
+    avatar.root.position.z = avatar.homePos.z;
+    avatar.root.rotation.y = avatar.deskFacing;
+    avatar.facing = avatar.deskFacing;
+    playAgentAnimation(avatar, state as AgentAnimName);
+    const seatY = avatar.deskSeatHeight - this.centerOffset.y;
+    avatar.root.position.y = seatY - avatar.sitPelvisHeight;
+    avatar.baseY = avatar.root.position.y;
   }
 
   private returnHome(avatar: AvatarNode) {

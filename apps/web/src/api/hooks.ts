@@ -411,6 +411,77 @@ export function useUploadKnowledgeFiles() {
   });
 }
 
+export function useKnowledgeGraph(filters: Record<string, string | undefined> = {}) {
+  const key = useWorkspaceKey("knowledge-graph");
+  return useQuery({
+    queryKey: [...key, filters],
+    queryFn: () =>
+      apiFetch<Envelope<import("@/three/knowledge-zones").KnowledgeGraphSnapshot>>(
+        "/api/knowledge-graph",
+        { params: filters },
+      ).then((r) => r.data),
+  });
+}
+
+export function useKnowledgeOfficeZones() {
+  const key = useWorkspaceKey("knowledge-graph-zones");
+  return useQuery({
+    queryKey: key,
+    queryFn: () =>
+      apiFetch<Envelope<import("@/three/knowledge-zones").KnowledgeCommunity[]>>(
+        "/api/knowledge-graph/office-zones",
+      ).then((r) => r.data),
+  });
+}
+
+export function useRebuildKnowledgeGraph() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Record<string, string | undefined> = {}) =>
+      apiFetch<Envelope<{ communities: number }>>("/api/knowledge-graph/rebuild", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledge-graph"] });
+      queryClient.invalidateQueries({ queryKey: ["knowledge-graph-zones"] });
+    },
+  });
+}
+
+export function useReindexKnowledgeGraph() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Record<string, string | undefined> = {}) =>
+      apiFetch<Envelope<{ requeued: number; credits_charged: number }>>(
+        "/api/knowledge-graph/reindex",
+        { method: "POST", body },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledge"] });
+      queryClient.invalidateQueries({ queryKey: ["knowledge-graph"] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+    },
+  });
+}
+
+export function useCompanyBrain() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      notes?: Array<{ title?: string; body?: string; content?: string }>;
+    }) =>
+      apiFetch<Envelope<import("@/three/knowledge-zones").CompanyBrainReport>>(
+        "/api/knowledge-graph/company-brain",
+        { method: "POST", body },
+      ).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledge"] });
+      queryClient.invalidateQueries({ queryKey: ["knowledge-graph"] });
+    },
+  });
+}
+
 /* ---------- Drive ---------- */
 
 export function useDriveItems(parentId: string | null) {

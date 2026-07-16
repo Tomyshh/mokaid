@@ -10,7 +10,7 @@ import {
 import { toVisualState } from "@mokaid/shared-types";
 import { UploadCloud } from "lucide-react";
 import type { Agent } from "@/api/types";
-import { useAssets3d } from "@/api/hooks";
+import { useAssets3d, useKnowledgeOfficeZones } from "@/api/hooks";
 import { env } from "@/lib/env";
 import { useAuthStore } from "@/stores/auth-store";
 import { useSceneStore } from "@/stores/scene-store";
@@ -23,12 +23,37 @@ import { Avatar } from "@/components/ui/avatar";
 import { DropDispatchModal } from "@/components/modals/drop-dispatch-modal";
 import { DEFAULT_AVATAR_CDN_PATH } from "./agent-model";
 import { MAX_OFFICE_SEATS, type SecondaryActivity } from "./office-navdata";
+import { zoneForCommunity } from "./knowledge-zones";
 import {
   attachOfficeHost,
   detachOfficeHost,
   getOfficeHostScene,
   updateOfficeHostAgents,
 } from "./office-scene-host";
+
+function OfficeKnowledgeZones() {
+  const { data: communities } = useKnowledgeOfficeZones();
+  if (!communities?.length) return null;
+
+  return (
+    <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[220px] space-y-1 rounded-md border border-border bg-surface-overlay/85 p-2 backdrop-blur">
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-text-muted">
+        Knowledge zones
+      </p>
+      {communities.slice(0, 6).map((community) => {
+        const zone = zoneForCommunity(community);
+        return (
+          <div key={community.id} className="flex items-center gap-1.5 text-[10px] text-text">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: zone.color }} />
+            <span className="truncate">
+              {zone.label}: {community.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 interface BubblePosition {
   x: number;
@@ -351,6 +376,9 @@ export function OfficeCanvas({
             </p>
           </div>
         )}
+
+        {/* Knowledge zone legend (Graphify-inspired community → office mapping) */}
+        <OfficeKnowledgeZones />
 
         {/* FPS monitor */}
         <div className="absolute bottom-3 right-3 rounded-md border border-border bg-surface-overlay/80 px-2 py-1 text-[10px] font-mono text-text-muted backdrop-blur">

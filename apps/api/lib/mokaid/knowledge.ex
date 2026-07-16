@@ -277,7 +277,19 @@ defmodule Mokaid.Knowledge do
     semantic = semantic_search(workspace_id, embedding, pool, project_id, agent_id)
     lexical = lexical_search(workspace_id, query_text, pool, project_id, agent_id)
 
-    fuse_results(semantic, lexical, limit)
+    graph_boost_ids =
+      if query_text && Mokaid.Knowledge.Graph.enabled?(workspace_id) do
+        MapSet.new(
+          Mokaid.Knowledge.Graph.chunk_ids_for_query(workspace_id, query_text,
+            project_id: project_id,
+            agent_id: agent_id
+          )
+        )
+      else
+        MapSet.new()
+      end
+
+    fuse_results(semantic, lexical, limit, graph_boost_ids)
   end
 
   defp presence(value) when is_binary(value) and value != "", do: value
@@ -348,7 +360,10 @@ defmodule Mokaid.Knowledge do
 
   # Reciprocal Rank Fusion: each branch contributes 1/(k + rank) per chunk;
   # chunks found by both branches accumulate both contributions and float up.
-  defp fuse_results(semantic, lexical, limit) do
+  # Graph-anchored chunks get an extra boost so multi-hop structure surfaces.
+  @graph_boost 0.015
+
+  defp fuse_results(semantic, lexical, limit, graph_boost_ids) do
     scored =
       [semantic, lexical]
       |> Enum.reduce(%{}, fn results, acc ->
@@ -372,6 +387,13 @@ defmodule Mokaid.Knowledge do
 
     scored
     |> Map.values()
+    |> Enum.map(fn result ->
+      if MapSet.member?(graph_boost_ids, result.chunk.id) do
+        Map.update!(result, :score, &(&1 + @graph_boost))
+      else
+        result
+      end
+    end)
     |> Enum.sort_by(& &1.score, :desc)
     |> Enum.take(limit)
   end

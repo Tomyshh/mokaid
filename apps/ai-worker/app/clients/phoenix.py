@@ -135,14 +135,104 @@ class PhoenixClient:
         return (result or {}).get("data", [])
 
     async def post_knowledge_chunks(
-        self, knowledge_item_id: str, workspace_id: str, chunks: list[dict[str, Any]]
+        self,
+        knowledge_item_id: str,
+        workspace_id: str,
+        chunks: list[dict[str, Any]],
+        graph: dict[str, Any] | None = None,
     ) -> bool:
-        """Stores embedded chunks for a knowledge item and marks it indexed."""
+        """Stores embedded chunks (and optional graph) for a knowledge item."""
+        payload: dict[str, Any] = {"workspace_id": workspace_id, "chunks": chunks}
+        if graph:
+            payload["graph"] = graph
         result = await self._post(
             f"/api/worker/knowledge/{knowledge_item_id}/chunks",
-            {"workspace_id": workspace_id, "chunks": chunks},
+            payload,
         )
         return result is not None
+
+    async def traverse_knowledge(
+        self,
+        workspace_id: str,
+        query: str,
+        project_id: str | None = None,
+        agent_id: str | None = None,
+        limit: int = 40,
+    ) -> dict[str, Any]:
+        result = await self._post(
+            "/api/worker/knowledge/traverse",
+            {
+                "workspace_id": workspace_id,
+                "query": query,
+                "project_id": project_id,
+                "agent_id": agent_id,
+                "limit": limit,
+            },
+        )
+        return (result or {}).get("data", {})
+
+    async def knowledge_path(
+        self,
+        workspace_id: str,
+        from_query: str,
+        to_query: str,
+        project_id: str | None = None,
+        agent_id: str | None = None,
+    ) -> dict[str, Any]:
+        result = await self._post(
+            "/api/worker/knowledge/path",
+            {
+                "workspace_id": workspace_id,
+                "from": from_query,
+                "to": to_query,
+                "project_id": project_id,
+                "agent_id": agent_id,
+            },
+        )
+        return (result or {}).get("data", {})
+
+    async def explain_concept(
+        self,
+        workspace_id: str,
+        query: str,
+        project_id: str | None = None,
+        agent_id: str | None = None,
+    ) -> dict[str, Any]:
+        result = await self._post(
+            "/api/worker/knowledge/explain",
+            {
+                "workspace_id": workspace_id,
+                "query": query,
+                "project_id": project_id,
+                "agent_id": agent_id,
+            },
+        )
+        return (result or {}).get("data", {})
+
+    async def save_graph_outcome(
+        self,
+        workspace_id: str,
+        *,
+        outcome: str,
+        question: str | None = None,
+        answer_summary: str | None = None,
+        node_ids: list[str] | None = None,
+        agent_id: str | None = None,
+        task_id: str | None = None,
+    ) -> dict[str, Any] | None:
+        result = await self._post(
+            "/api/worker/knowledge/outcomes",
+            {
+                "workspace_id": workspace_id,
+                "outcome": outcome,
+                "question": question,
+                "answer_summary": answer_summary,
+                "node_ids": node_ids or [],
+                "agent_id": agent_id,
+                "task_id": task_id,
+            },
+        )
+        return (result or {}).get("data")
 
     async def mark_knowledge_failed(
         self, knowledge_item_id: str, workspace_id: str, error: str
