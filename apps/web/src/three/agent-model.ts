@@ -22,7 +22,7 @@ import type { AgentVisualState } from "@mokaid/shared-types";
 import { env } from "@/lib/env";
 
 /** Hashed filename matching assets/optimized + S3 upload + asset_3d seed. */
-export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.fb08cdc0ddf0.glb";
+export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.998219f3a783.glb";
 
 const VISUAL_STATES: AgentVisualState[] = [
   "idle",
@@ -102,6 +102,12 @@ export interface AgentModelTemplate {
   walkAnim: AnimationGroup | null;
   scale: number;
   footOffset: number;
+  /**
+   * World-space pelvis height above the avatar root while the `sitting` clip
+   * is held on its first frame (after scale). Used to plant the hips on a sofa
+   * cushion: `root.y = seatY - sitPelvisHeight`.
+   */
+  sitPelvisHeight: number;
   url: string;
 }
 
@@ -151,6 +157,7 @@ export function loadAgentModelTemplate(
     const root = probe.rootNodes[0] as TransformNode | undefined;
     let scale = 1;
     let footOffset = 0;
+    let sitPelvisHeight = 0.58;
 
     if (root) {
       // Mixamo exports often put 0.01 on Armature (cm→m). Measure against a
@@ -161,6 +168,7 @@ export function loadAgentModelTemplate(
       const height = bounds.max.y - bounds.min.y;
       scale = height > 0 ? TARGET_HEIGHT / height : 1;
       footOffset = -bounds.min.y * scale;
+      sitPelvisHeight = measureSitPelvisHeight(root, probe.animationGroups, scale, footOffset);
     }
 
     probe.rootNodes.forEach((n) => n.dispose());
@@ -175,6 +183,7 @@ export function loadAgentModelTemplate(
       walkAnim: anims.walking ?? null,
       scale,
       footOffset,
+      sitPelvisHeight,
       url,
     };
   });
@@ -246,6 +255,55 @@ function normalizeAnimName(name: string): AgentVisualState | null {
   return null;
 }
 
+function findNamedNode(root: TransformNode, names: string[]): TransformNode | null {
+  const want = new Set(names.map((n) => n.toLowerCase()));
+  const stack: TransformNode[] = [root];
+  while (stack.length) {
+    const node = stack.pop()!;
+    const base = node.name.split("|").pop()?.split("/").pop() ?? node.name;
+    if (want.has(base.toLowerCase()) || want.has(node.name.toLowerCase())) return node;
+    for (const child of node.getChildren()) {
+      if (child instanceof TransformNode) stack.push(child);
+    }
+  }
+  return null;
+}
+
+/**
+ * Hold the sitting clip on its first frame and read pelvis height above root.
+ * Falls back to a Mixamo-scaled estimate when the clip or bone is missing.
+ */
+function measureSitPelvisHeight(
+  root: TransformNode,
+  animationGroups: AnimationGroup[],
+  scale: number,
+  footOffset: number,
+): number {
+  const FALLBACK = 0.58;
+  root.scaling.setAll(scale);
+  root.position.set(0, footOffset, 0);
+  root.rotationQuaternion = null;
+  root.rotation.set(0, 0, 0);
+
+  const sit = animationGroups.find((g) => normalizeAnimName(g.name) === "sitting");
+  if (!sit) return FALLBACK;
+
+  for (const ag of animationGroups) ag.stop();
+  sit.start(false, 1.0, sit.from, sit.from, false);
+  root.computeWorldMatrix(true);
+
+  const hips =
+    findNamedNode(root, ["Hips", "hips", "root.x", "pelvis", "Pelvis"]) ?? null;
+  if (!hips) {
+    sit.stop();
+    return FALLBACK;
+  }
+  hips.computeWorldMatrix(true);
+  const height = hips.getAbsolutePosition().y - root.position.y;
+  sit.stop();
+  return height > 0.2 && height < 1.3 ? height : FALLBACK;
+}
+
 function indexAnims(groups: AnimationGroup[]): AgentAnimMap {
   const map: AgentAnimMap = {};
   for (const ag of groups) {
@@ -277,6 +335,10 @@ function resolveClip(
 export function playAgentAnimation(avatar: AgentAnimPlayer, next: AgentAnimName) {
   const { state, group } = resolveClip(avatar, next);
   if (avatar.currentAnim === state || (next === "walk" && avatar.currentAnim === "walking")) {
+    // Re-assert playback if the group stalled (e.g. after a failed prior fallback).
+    if (group && !group.isPlaying) {
+      group.start(state !== "celebrating", 1.0, group.from, group.to, false);
+    }
     return;
   }
 
@@ -289,11 +351,16 @@ export function playAgentAnimation(avatar: AgentAnimPlayer, next: AgentAnimName)
   const loop = state !== "celebrating";
   if (group) {
     group.start(loop, 1.0, group.from, group.to, false);
+    avatar.currentAnim = state;
   } else {
+    // Don't claim the missing state — keep retrying next frame when the clip appears.
     const idle = avatar.anims.idle ?? avatar.idleAnim;
     idle?.start(true);
+    avatar.currentAnim = "idle";
+    if (state !== "idle") {
+      console.warn(`[agent-model] missing clip "${state}", falling back to idle`);
+    }
   }
-  avatar.currentAnim = state;
 }
 
 export function disposeAgentAnims(avatar: { anims?: AgentAnimMap; idleAnim?: AnimationGroup | null; walkAnim?: AnimationGroup | null }) {

@@ -120,6 +120,8 @@ interface AvatarNode {
   facing: number;
   avatarUrl: string;
   footOffset: number;
+  /** Pelvis height above root while the sitting clip is active. */
+  sitPelvisHeight: number;
   /** Last secondary activity reported to React. */
   reportedActivity: SecondaryActivity;
   routeBusy: boolean;
@@ -218,6 +220,70 @@ export class OfficeScene {
       // Dev-only inspection handle (used by tooling/scripts to audit layout).
       (window as unknown as Record<string, unknown>).__mokaidOffice = this;
     }
+  }
+
+  /**
+   * Dev tooling: teleport an avatar onto a sofa slot and apply the sitting pose.
+   * Returns diagnostic pelvis / root heights for visual QA scripts.
+   */
+  debugSitOnSofa(slotId = "sofa_b"): {
+    ok: boolean;
+    rootY?: number;
+    seatY?: number;
+    sitPelvisHeight?: number;
+    hipsY?: number;
+    anim?: string | null;
+    sittingPlaying?: boolean;
+  } {
+    const poi = poiById("sofa_main");
+    const slot = poi?.slots.find((s) => s.id === slotId) ?? poi?.slots[0];
+    const avatar = this.avatars.values().next().value as AvatarNode | undefined;
+    if (!poi || !slot || !avatar) return { ok: false };
+
+    const dest = this.toCentered(slot.position.x, slot.position.z);
+    avatar.agent = {
+      ...avatar.agent,
+      officePoiId: poi.id,
+      officeSlotId: slot.id,
+      secondaryActivity: "sitting_sofa",
+      officeActivityPhase: "active",
+      visualState: "idle",
+    };
+    avatar.root.position.x = dest.x;
+    avatar.root.position.z = dest.z;
+    avatar.idleBehavior = "poi";
+    avatar.routeBusy = false;
+    avatar.activePath = { id: `debug-sit-${slot.id}`, loop: false, waypoints: [] };
+    avatar.pathIndex = 0;
+    this.lastPoiKey.set(avatar.agent.id, `${poi.id}:${slot.id}`);
+    this.applyPoiPose(avatar, slot, performance.now() / 1000);
+    this.reportActivity(avatar, slot.animation);
+
+    const seatY = (slot.seatHeight ?? 0.48) - this.centerOffset.y;
+    let hipsY: number | undefined;
+    const stack: TransformNode[] = [avatar.root];
+    while (stack.length) {
+      const n = stack.pop()!;
+      const base = n.name.split("|").pop()?.split("/").pop() ?? n.name;
+      if (base === "Hips" || base === "hips" || base === "root.x") {
+        n.computeWorldMatrix(true);
+        hipsY = n.getAbsolutePosition().y;
+        break;
+      }
+      for (const c of n.getChildren()) {
+        if (c instanceof TransformNode) stack.push(c);
+      }
+    }
+    const sit = avatar.anims.sitting;
+    return {
+      ok: true,
+      rootY: avatar.root.position.y,
+      seatY,
+      sitPelvisHeight: avatar.sitPelvisHeight,
+      hipsY,
+      anim: avatar.currentAnim,
+      sittingPlaying: Boolean(sit?.isPlaying),
+    };
   }
 
   /** Dev tooling: drop a glowing marker at raw GLB coords (navdata frame). */
@@ -788,6 +854,7 @@ export class OfficeScene {
       facing: root.rotation.y,
       avatarUrl,
       footOffset: template.footOffset,
+      sitPelvisHeight: template.sitPelvisHeight,
       reportedActivity: null,
       routeBusy: false,
     };
@@ -982,6 +1049,7 @@ export class OfficeScene {
       return;
     }
 
+    // Sofa slots sit inside the sofa AABB; foosball / coffee slots are walkable.
     const allowSit = slot.animation === "sitting_sofa";
     const pathPts = findPath(
       { x: avatar.root.position.x + this.centerOffset.x, z: avatar.root.position.z + this.centerOffset.z },
@@ -1038,10 +1106,9 @@ export class OfficeScene {
   /** Plant at a social slot using dedicated skeletal clips (never tilt root.x). */
   private applyPoiPose(
     avatar: AvatarNode,
-    slot: { facing: number; animation: SecondaryActivity; lift?: number },
+    slot: { facing: number; animation: SecondaryActivity; seatHeight?: number },
     t: number,
   ) {
-    const floor = floorYAt(avatar.root.position.x, avatar.root.position.z);
     avatar.ring.setEnabled(false);
     avatar.root.rotation.x = 0;
     avatar.root.rotation.z = 0;
@@ -1050,8 +1117,9 @@ export class OfficeScene {
 
     if (slot.animation === "sitting_sofa") {
       playAgentAnimation(avatar, "sitting" as AgentAnimName);
-      const lift = slot.lift ?? 0.05;
-      avatar.root.position.y = floor + Math.max(avatar.footOffset, 0) + lift;
+      // Plant pelvis on the cushion: seatHeight is authored in raw GLB space.
+      const seatY = (slot.seatHeight ?? 0.48) - this.centerOffset.y;
+      avatar.root.position.y = seatY - avatar.sitPelvisHeight;
       avatar.baseY = avatar.root.position.y;
     } else if (slot.animation === "playing_foosball") {
       playAgentAnimation(avatar, "playing_foosball" as AgentAnimName);
@@ -1076,9 +1144,11 @@ export class OfficeScene {
     avatar.ring.setEnabled(true);
     this.plantFeet(avatar);
     playAgentAnimation(avatar, "walking");
+    // Desk seats live inside desk furniture AABBs — allow the final snap.
     const pathPts = findPath(
       { x: avatar.root.position.x + this.centerOffset.x, z: avatar.root.position.z + this.centerOffset.z },
       { x: avatar.homePos.x + this.centerOffset.x, z: avatar.homePos.z + this.centerOffset.z },
+      { allowGoalInObstacle: true },
     ).map((p) => ({ x: p.x - this.centerOffset.x, z: p.z - this.centerOffset.z }));
     avatar.activePath = { id: `home-${avatar.agent.id}`, loop: false, waypoints: pathPts };
     avatar.pathIndex = 0;

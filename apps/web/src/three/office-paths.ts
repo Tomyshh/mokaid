@@ -1,6 +1,7 @@
 /**
  * Patrol / idle helpers built on office-navdata.
- * Desk slots and POIs live in office-navdata.ts (single source of truth).
+ * Patrol loops are routed through the occupancy-grid pathfinder so every
+ * segment is guaranteed obstacle-free (chairs, lamps, walls, planters…).
  */
 
 import { Vector3 } from "@babylonjs/core";
@@ -34,46 +35,46 @@ export interface OfficePath {
   loop: boolean;
 }
 
-/** Patrol loops derived from the nav graph perimeter / aisles. */
+const NODE = new Map(OFFICE_NAV_NODES.map((n) => [n.id, { x: n.x, z: n.z }]));
+
+/** Route through anchor ids; every leg uses the grid pathfinder. */
+function chain(ids: string[]): PathWaypoint[] {
+  const out: PathWaypoint[] = [];
+  for (let k = 0; k < ids.length - 1; k++) {
+    const a = NODE.get(ids[k])!;
+    const b = NODE.get(ids[k + 1])!;
+    const leg = findPath(a, b);
+    for (const p of leg) {
+      const last = out[out.length - 1];
+      if (!last || Math.hypot(p.x - last.x, p.z - last.z) > 0.05) {
+        out.push({ x: p.x, z: p.z });
+      }
+    }
+  }
+  return out;
+}
+
+/** Patrol loops derived from the aisle anchors (obstacle-free by build). */
 export const OFFICE_PATHS: OfficePath[] = [
   {
     id: "perimeter",
     loop: true,
-    waypoints: [
-      { x: -5.6, z: -5.2 },
-      { x: -0.5, z: -5.2 },
-      { x: 5.4, z: -5.2 },
-      { x: 5.5, z: -0.4 },
-      { x: 4.6, z: 2.6 },
-      { x: -1.0, z: 3.4 },
-      { x: -5.4, z: 3.2 },
-      { x: -5.6, z: -0.8 },
-    ],
+    waypoints: chain([
+      "nw", "n_lounge", "n_mid", "n_sofa", "ne", "e_door", "se",
+      "s_coffee", "s_mid", "sw", "w_aisle", "nw",
+    ]),
   },
   {
     id: "mid-aisle",
     loop: true,
-    waypoints: [
-      { x: -5.6, z: -0.8 },
-      { x: -3.0, z: -1.6 },
-      { x: 0.4, z: -1.8 },
-      { x: 3.5, z: -1.4 },
-      { x: 5.5, z: -0.4 },
-      { x: 3.5, z: -1.4 },
-      { x: -3.0, z: -1.6 },
-    ],
+    waypoints: chain([
+      "w_aisle", "mid_w", "mid_c", "mid_e", "e_door", "mid_e", "mid_c", "mid_w", "w_aisle",
+    ]),
   },
   {
     id: "back-aisle",
     loop: true,
-    waypoints: [
-      { x: -5.4, z: 3.2 },
-      { x: -1.0, z: 3.4 },
-      { x: 2.2, z: 3.4 },
-      { x: 4.6, z: 2.6 },
-      { x: 2.2, z: 3.4 },
-      { x: -5.4, z: 3.2 },
-    ],
+    waypoints: chain(["sw", "s_mid", "s_coffee", "se", "s_coffee", "s_mid", "sw"]),
   },
 ];
 
@@ -104,34 +105,30 @@ export function pickPathNear(
 export function nearestWaypointIndex(path: OfficePath, x: number, z: number): number {
   let best = 0;
   let bestDist = Infinity;
-  path.waypoints.forEach((wp, i) => {
+  for (let i = 0; i < path.waypoints.length; i++) {
+    const wp = path.waypoints[i];
     const d = (wp.x - x) ** 2 + (wp.z - z) ** 2;
     if (d < bestDist) {
       bestDist = d;
       best = i;
     }
-  });
+  }
   return best;
 }
 
-/** Build a path object from an A* polyline (non-looping). */
-export function pathFromPoints(id: string, points: NavPoint[]): OfficePath {
-  return {
-    id,
-    loop: false,
-    waypoints: points.map((p) => ({ x: p.x, z: p.z })),
-  };
+export function pathFromPoints(id: string, pts: NavPoint[]): OfficePath {
+  return { id, loop: false, waypoints: pts.map((p) => ({ x: p.x, z: p.z })) };
 }
 
 export function routeTo(x: number, z: number, target: NavPoint): OfficePath {
   return pathFromPoints(`route-${Date.now()}`, findPath({ x, z }, target));
 }
 
-export function allNavNodeIds(): string[] {
+export function patrolNodeIds(): string[] {
   return OFFICE_NAV_NODES.map((n) => n.id);
 }
 
-export function idleToSecondary(activity: IdleActivity): SecondaryActivity {
+export function activityToSecondary(activity?: IdleActivity): SecondaryActivity {
   switch (activity) {
     case "coffee":
       return "preparing_coffee";

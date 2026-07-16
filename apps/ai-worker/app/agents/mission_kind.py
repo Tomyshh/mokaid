@@ -31,12 +31,58 @@ PRODUCER_KINDS = frozenset({"website", "document", "image", "analysis"})
 
 _RESEARCH_RE = re.compile(
     r"\b("
-    r"recherche|research|look\s*up|fouille|enquête|enquete|"
+    r"recherche|rechercher?|research|look\s*up|fouille|enquête|enquete|"
     r"who\s+is|who's|find\s+(?:info|out|information)|"
     r"dis[- ]moi\s+ce\s+que\s+tu\s+trouves|"
     r"what\s+(?:do\s+you\s+know|can\s+you\s+find)|"
-    r"infos?\s+sur|renseigne[- ]toi"
+    r"infos?\s+sur|renseigne[- ]toi|"
+    # Explicit web / score / news asks (incl. French typos like "gagner").
+    r"cherche(?:\s+sur)?|search\s+(?:for|the\s+web)|"
+    r"regarde(?:\s+sur)?(?:\s+l[e']?\s*)?(?:internet|web|en\s+ligne)|"
+    r"check(?:\s+(?:online|the\s+web|on\s+the\s+internet))?|"
+    r"sur\s+(?:internet|le\s+web|le\s+net)|"
+    r"qui\s+a\s+gagn[ée]r?|who\s+won|"
+    r"quel\s+(?:est|a\s+[ée]t[ée])\s+le\s+(?:score|r[ée]sultat)|"
+    r"what(?:'s|\s+is|\s+was)\s+the\s+score|"
+    r"r[ée]sultat\s+du\s+match|match\s+result|"
+    r"actualit[ée]s?|latest\s+news"
     r")\b",
+    re.IGNORECASE,
+)
+
+# Short confirmations / nudges that continue a pending lookup.
+_RESEARCH_FOLLOWUP_RE = re.compile(
+    r"^\s*("
+    r"oui\b.*|"
+    r"yes\b.*|"
+    r"ok(?:ay)?\b.*|"
+    r"vas[- ]y\b.*|"
+    r"go\s+(?:ahead|for\s+it)\b.*|"
+    r"s['’]il\s+te\s+pla[iî]t\b.*|"
+    r"please\b.*|"
+    r"regarde\b.*|"
+    r"look(?:\s+it\s+up)?\b.*|"
+    r"check(?:\s+it)?\b.*|"
+    r"alors\s*\??|"
+    r"et\s*alors\s*\??|"
+    r"so\s*\??|"
+    r"well\s*\??|"
+    r"tu\s+as\s+trouv[ée]?\s*\??|"
+    r"did\s+you\s+find\b.*"
+    r")\s*$",
+    re.IGNORECASE,
+)
+
+# Agent previously offered (or stalled on) a live web check.
+_AGENT_LOOKUP_OFFER_RE = re.compile(
+    r"("
+    r"internet|sur\s+le\s+web|en\s+ligne|online|"
+    r"jeter\s+un\s+[oœ]il|checker?|vérifier|verifier|"
+    r"look\s+(?:it\s+up|online)|check\s+(?:online|the\s+web)|"
+    r"pas\s+à\s+jour|not\s+up\s+to\s+date|"
+    r"n['’]ai\s+pas\s+acc[eè]s|no\s+(?:direct\s+)?(?:internet|web)\s+access|"
+    r"scores?\s+sportifs|sports?\s+scores?"
+    r")",
     re.IGNORECASE,
 )
 
@@ -58,6 +104,98 @@ def looks_like_research(text: str) -> bool:
     # Explicit written report / deck still counts as research intent for kind,
     # but callers may still route to task+document.
     return True
+
+
+def looks_like_research_followup(text: str) -> bool:
+    """True for short confirmations / nudges after a pending web lookup."""
+    if not text:
+        return False
+    return bool(_RESEARCH_FOLLOWUP_RE.match(text.strip()))
+
+
+def _teammate_bodies(conversation: list[dict[str, Any]] | None) -> list[str]:
+    bodies: list[str] = []
+    for entry in conversation or []:
+        if not isinstance(entry, dict):
+            continue
+        author = (entry.get("author") or "").lower()
+        if author in ("you", "agent"):
+            continue
+        body = (entry.get("body") or "").strip()
+        if body:
+            bodies.append(body)
+    return bodies
+
+
+def _agent_bodies(conversation: list[dict[str, Any]] | None) -> list[str]:
+    bodies: list[str] = []
+    for entry in conversation or []:
+        if not isinstance(entry, dict):
+            continue
+        author = (entry.get("author") or "").lower()
+        if author not in ("you", "agent"):
+            continue
+        body = (entry.get("body") or "").strip()
+        if body:
+            bodies.append(body)
+    return bodies
+
+
+def prior_research_query(conversation: list[dict[str, Any]] | None) -> str:
+    """Most recent earlier teammate message that looks like a web research ask."""
+    bodies = _teammate_bodies(conversation)
+    if len(bodies) < 2:
+        return ""
+    # Skip the latest teammate message; scan older ones newest-first.
+    for body in reversed(bodies[:-1]):
+        if looks_like_research(body):
+            return body
+    return ""
+
+
+def agent_offered_web_lookup(conversation: list[dict[str, Any]] | None) -> bool:
+    """True when a recent agent line offered (or apologized about) a web check."""
+    for body in reversed(_agent_bodies(conversation)[-3:]):
+        if _AGENT_LOOKUP_OFFER_RE.search(body):
+            return True
+    return False
+
+
+def resolve_web_research(
+    latest: str,
+    conversation: list[dict[str, Any]] | None = None,
+    *,
+    decision_needs_web: bool = False,
+    decision_query: str = "",
+) -> tuple[bool, str]:
+    """Gate + query for same-turn web search.
+
+    Hybrid best practice: structured LLM gate first, then heuristic / multi-turn
+    fallbacks so short follow-ups like « oui regarde » still search.
+    """
+    latest = (latest or "").strip()
+    query = (decision_query or "").strip()
+
+    if decision_needs_web:
+        return True, query or latest or prior_research_query(conversation)
+
+    if looks_like_research(latest):
+        return True, latest
+
+    if looks_like_research_followup(latest):
+        prior = prior_research_query(conversation)
+        if prior:
+            return True, prior
+        if agent_offered_web_lookup(conversation):
+            # Affirmation after the agent offered to look online — reuse prior ask
+            # or the confirmation itself if that is all we have.
+            bodies = _teammate_bodies(conversation)
+            fallback = ""
+            if len(bodies) >= 2:
+                fallback = bodies[-2]
+            return True, fallback or prior or latest
+
+    return False, ""
 
 
 def detect_mission_kind(request: RunRequest) -> str:

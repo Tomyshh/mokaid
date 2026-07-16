@@ -1,11 +1,14 @@
 /**
  * Office navigation data (raw GLB / Blender-local Y-up space).
  *
- * Generated / curated from office.blend layout. OfficeScene subtracts the
- * environment AABB center so runtime positions live in the centered frame.
+ * Obstacles are generated from office.blend via
+ * `blender --background office.blend --python scripts/dump_blender_obstacles.py`
+ * then `python3 scripts/gen_office_obstacles.py` (walls rasterized into
+ * segments so door openings stay walkable).
  *
- * Regenerating: blender --background office.blend --python scripts/dump_blender_nav.py
- * then merge dumps into this module (named empties POI_* / DESK_* preferred).
+ * Pathfinding: A* over a 0.15 m occupancy grid built from the obstacle list,
+ * inflated by NAV_CLEARANCE. Paths are then smoothed with line-of-sight
+ * shortcuts. This guarantees agents never cross furniture or walls.
  */
 
 export interface NavPoint {
@@ -15,11 +18,6 @@ export interface NavPoint {
 
 export interface NavNode extends NavPoint {
   id: string;
-}
-
-export interface NavEdge {
-  from: string;
-  to: string;
 }
 
 export interface Aabb2 {
@@ -47,8 +45,11 @@ export interface OfficePoiSlot {
   /** Radians, Babylon Y rotation (0 faces +Z). */
   facing: number;
   animation: SecondaryActivity;
-  /** Vertical root offset while seated (meters). Sit clip handles hip drop. */
-  lift?: number;
+  /**
+   * Cushion top Y in raw office-GLB space (before centering).
+   * Scene placement: `seatHeight - centerOffset.y - sitPelvisHeight`.
+   */
+  seatHeight?: number;
 }
 
 export interface OfficePoi {
@@ -63,19 +64,23 @@ export interface OfficePoi {
 }
 
 export interface FindPathOptions {
-  /** Allow the final point inside an obstacle (sofa sit snap). */
+  /** Allow the final point inside an obstacle (sofa / desk seat snap). */
   allowGoalInObstacle?: boolean;
 }
 
-/** Agent collision radius used to inflate obstacle AABBs (meters). */
+/** Agent collision radius (agent-agent separation & visuals). */
 export const AGENT_RADIUS = 0.35;
+
+/** Clearance between an agent's center and any obstacle while walking. */
+export const NAV_CLEARANCE = 0.18;
 
 /** Max agents that share the 3D office (one desk each). */
 export const MAX_OFFICE_SEATS = 9;
 
 /**
  * Desk seats in raw GLB space (before centering).
- * Index 0..8 maps 1:1 to agent.seat_index.
+ * Index 0..8 maps 1:1 to agent.seat_index. Seats sit inside desk furniture;
+ * paths reach them with allowGoalInObstacle (final snap only).
  */
 export const OFFICE_DESK_SLOTS: NavPoint[] = [
   { x: -5.169, z: 0.76 },
@@ -94,7 +99,6 @@ export const OFFICE_FLOOR_Y = 0;
 
 /**
  * Exterior walkable polygon (office footprint, counterclockwise).
- * Used for point-in-floor tests; graphs still drive pathfinding.
  */
 export const OFFICE_WALKABLE_POLYGON: NavPoint[] = [
   { x: -6.4, z: -6.4 },
@@ -103,114 +107,97 @@ export const OFFICE_WALKABLE_POLYGON: NavPoint[] = [
   { x: -6.2, z: 5.6 },
 ];
 
-const R = AGENT_RADIUS;
-
 /**
- * Furniture AABBs inflated by AGENT_RADIUS. Agents must not path through these.
- * Calibrated from office.blend mesh bounds (glTF Y-up).
+ * Physical furniture / wall AABBs (raw mesh bounds, NOT inflated —
+ * walkability adds NAV_CLEARANCE). Generated from office.blend; walls with
+ * openings are split into segments ("#g" suffixes).
  */
 export const OFFICE_OBSTACLES: Aabb2[] = [
-  // Left desk cluster (keep aisles at x≈-5.6 and z≈-0.8 clear)
-  { minX: -5.5, maxX: -4.5, minZ: -2.5, maxZ: 1.2 },
-  // Center-left desks
-  { minX: -3.1, maxX: -1.3, minZ: -3.7, maxZ: -0.1 },
-  { minX: -3.3, maxX: -2.0, minZ: 2.0, maxZ: 3.1 },
-  // Center desks
-  { minX: 0.4, maxX: 1.4, minZ: -0.3, maxZ: 0.9 },
-  { minX: 1.5, maxX: 2.6, minZ: -3.3, maxZ: -2.2 },
-  // Right desks
-  { minX: 5.1, maxX: 6.3, minZ: -0.4, maxZ: 0.8 },
-  // Kitchenette counter Cube.002
-  { minX: -3.25 - R, maxX: -0.73 + R, minZ: -6.44 - R, maxZ: -5.65 + R },
-  // Main sofa Cube.021
-  { minX: 0.92 - R, maxX: 2.66 + R, minZ: -6.35 - R, maxZ: -5.64 + R },
-  // Back-left shelving / secondary sofa Cube.012
-  { minX: -6.49 - R, maxX: -4.46 + R, minZ: -6.38 - R, maxZ: -5.74 + R },
-  // Back-right Rack
-  { minX: 5.12 - R, maxX: 7.14 + R, minZ: -6.48 - R, maxZ: -5.8 + R },
-  // Foosball soccer table.001 (center ≈ 1.85, 4.67)
-  { minX: 1.42 - R, maxX: 2.27 + R, minZ: 4.13 - R, maxZ: 5.21 + R },
-  // Meeting table 2 + surrounding chairs / photocopier
-  { minX: 3.9, maxX: 6.55, minZ: 2.4, maxZ: 5.1 },
+  { minX: -7.15, maxX: 7.45, minZ: -6.55, maxZ: -6.45 }, // Plane.005#g0 north wall
+  { minX: -6.49, maxX: -4.46, minZ: -6.38, maxZ: -5.74 }, // Cube.012 back-left sofa
+  { minX: -6.36, maxX: -4.8, minZ: -4.79, maxZ: -4.4 }, // Plane.036 lounge table
+  { minX: -6.14, maxX: -4.2, minZ: -2.46, maxZ: -1.54 }, // Cube.001 desk1
+  { minX: -6.02, maxX: -4.32, minZ: 0.3, maxZ: 1.22 }, // Cube.003 desk0
+  { minX: -5.51, maxX: -4.82, minZ: 1.12, maxZ: 1.77 }, // Object_122 chair
+  { minX: -5.5, maxX: -4.81, minZ: -3.11, maxZ: -2.45 }, // Object_122.003 chair
+  { minX: -4.89, maxX: -3.64, minZ: -6.94, maxZ: -5.53 }, // model_4 shelving
+  { minX: -4.85, maxX: -3.94, minZ: 2.78, maxZ: 3.79 }, // model_2.007 armchair
+  { minX: -4.38, maxX: -3.76, minZ: 1.97, maxZ: 2.66 }, // model_2.008 armchair
+  { minX: -4.32, maxX: -3.34, minZ: 2.09, maxZ: 2.58 }, // Cube.017 side table
+  { minX: -4.08, maxX: -3.55, minZ: -6.46, maxZ: -5.89 }, // Plane.004 plant
+  { minX: -4.08, maxX: -3.17, minZ: 1.79, maxZ: 2.79 }, // model_2.005 armchair
+  { minX: -3.58, maxX: -2.92, minZ: -0.89, maxZ: -0.19 }, // Object_122.002 chair
+  { minX: -3.27, maxX: -1.0, minZ: 2.08, maxZ: 3.0 }, // Cube.008 desk8
+  { minX: -3.25, maxX: -0.73, minZ: -6.44, maxZ: -5.65 }, // Cube.002 kitchenette
+  { minX: -2.93, maxX: -1.01, minZ: 0.79, maxZ: 1.32 }, // Cube.037 low cabinet
+  { minX: -2.9, maxX: -1.98, minZ: -1.51, maxZ: 0.2 }, // Cube.004 desk3
+  { minX: -2.65, maxX: -0.71, minZ: -3.88, maxZ: -2.96 }, // Cube desk2
+  { minX: -2.5, maxX: -1.81, minZ: 2.86, maxZ: 3.52 }, // Object_122.004 chair
+  { minX: -2.08, maxX: -1.42, minZ: -0.87, maxZ: -0.17 }, // Object_122.001 chair
+  { minX: -1.65, maxX: -0.95, minZ: -2.96, maxZ: -2.26 }, // Object_122.006 chair
+  { minX: -1.34, maxX: -1.09, minZ: 1.32, maxZ: 1.57 }, // Sphere décor
+  { minX: -1.05, maxX: -0.75, minZ: 2.05, maxZ: 2.85 }, // wall 1#g0 partition W
+  { minX: -1.05, maxX: -0.75, minZ: 3.05, maxZ: 4.35 }, // wall 1#g2 partition W
+  { minX: -1.05, maxX: 1.25, minZ: 2.85, maxZ: 3.05 }, // wall 1#g1 partition S
+  { minX: -0.96, maxX: -0.11, minZ: -1.42, maxZ: -0.57 }, // model_2.009 armchair
+  { minX: -0.87, maxX: 0.04, minZ: 5.4, maxZ: 6.41 }, // model_2.006 armchair N
+  { minX: -0.85, maxX: 0.06, minZ: -6.55, maxZ: -5.54 }, // model_2 armchair
+  { minX: -0.59, maxX: 1.07, minZ: 2.97, maxZ: 3.89 }, // Cube.007 desk7
+  { minX: -0.2, maxX: 0.61, minZ: 4.03, maxZ: 4.85 }, // Object_122.005 chair desk7
+  { minX: 0.0, maxX: 0.07, minZ: -6.47, maxZ: -4.45 }, // Plane.006 divider wall
+  { minX: 0.18, maxX: 1.06, minZ: 5.59, maxZ: 6.24 }, // Cube.060 planter N
+  { minX: 0.25, maxX: 0.29, minZ: -6.35, maxZ: -5.68 }, // Cube.023 lamp
+  { minX: 0.51, maxX: 1.17, minZ: -0.87, maxZ: -0.17 }, // Object_122.007 chair
+  { minX: 0.92, maxX: 2.66, minZ: -6.35, maxZ: -5.64 }, // Cube.021 main sofa
+  { minX: 1.05, maxX: 1.25, minZ: 3.05, maxZ: 4.95 }, // wall 1#g3 partition E
+  { minX: -0.07, maxX: 1.87, minZ: -0.12, maxZ: 0.8 }, // Cube.006 desk5
+  { minX: 1.06, maxX: 3.0, minZ: -3.28, maxZ: -2.36 }, // Cube.005 desk4
+  { minX: 1.42, maxX: 2.27, minZ: 4.13, maxZ: 5.21 }, // soccer table.001 foosball
+  { minX: 1.44, maxX: 2.14, minZ: -6.29, maxZ: -5.74 }, // Cube.024 sofa back
+  { minX: 2.16, maxX: 2.92, minZ: -2.29, maxZ: -1.59 }, // Object_122.008 chair
+  { minX: 2.93, maxX: 3.4, minZ: -6.47, maxZ: -6.08 }, // Plane.046 shelf
+  { minX: 3.3, maxX: 4.13, minZ: 2.19, maxZ: 3.05 }, // Cube.083? chair meeting W
+  { minX: 3.61, maxX: 4.42, minZ: -6.45, maxZ: -5.81 }, // Mirror
+  { minX: 3.69, maxX: 4.25, minZ: -6.13, maxZ: -5.95 }, // Circle.008/009 décor
+  { minX: 3.98, maxX: 4.89, minZ: 2.41, maxZ: 3.42 }, // model_2.003 armchair
+  { minX: 4.26, maxX: 4.96, minZ: 3.21, maxZ: 3.89 }, // photocopy machine.001
+  { minX: 4.28, maxX: 4.78, minZ: 2.65, maxZ: 3.14 }, // Cube.018 side table
+  { minX: 4.39, maxX: 7.38, minZ: -1.82, maxZ: -1.76 }, // Plane.014 room wall (door W)
+  { minX: 4.68, maxX: 5.33, minZ: -0.22, maxZ: 0.48 }, // Object_122.010 chair desk6
+  { minX: 5.12, maxX: 7.14, minZ: -6.48, maxZ: -5.8 }, // Rack
+  { minX: 5.24, maxX: 6.17, minZ: 3.06, maxZ: 4.72 }, // table 2 meeting
+  { minX: 5.26, maxX: 6.18, minZ: -0.8, maxZ: 1.14 }, // Cube.011 desk6
+  { minX: 5.46, maxX: 5.95, minZ: 3.18, maxZ: 3.67 }, // model_0.005 chair meeting
+  { minX: 6.39, maxX: 7.38, minZ: 2.32, maxZ: 2.38 }, // Plane.023 meeting wall S
+  { minX: 6.43, maxX: 7.34, minZ: -5.92, maxZ: -4.92 }, // model_2.001 armchair NE
+  { minX: 6.64, maxX: 7.17, minZ: -5.68, maxZ: -5.14 }, // model_0.001 side table NE
 ];
 
-/** Graph nodes covering every aisle agents can patrol. */
+/**
+ * Aisle anchor points (all verified walkable with clearance).
+ * Kept for patrol loop construction and debug tooling; pathfinding itself
+ * runs on the occupancy grid.
+ */
 export const OFFICE_NAV_NODES: NavNode[] = [
-  { id: "nw", x: -5.6, z: -5.2 },
+  { id: "nw", x: -5.55, z: -5.2 },
   { id: "n_lounge", x: -3.5, z: -5.2 },
-  { id: "n_mid", x: -0.5, z: -5.2 },
+  { id: "n_mid", x: -0.5, z: -5.0 },
   { id: "n_sofa", x: 1.8, z: -5.2 },
   { id: "ne", x: 5.4, z: -5.2 },
-  { id: "w_aisle", x: -5.6, z: -0.8 },
-  { id: "mid_w", x: -3.0, z: -1.6 },
+  { id: "w_aisle", x: -5.85, z: -0.8 },
+  { id: "mid_w", x: -3.4, z: -1.9 },
   { id: "mid_c", x: 0.4, z: -1.8 },
-  { id: "mid_e", x: 3.5, z: -1.4 },
-  { id: "e_aisle", x: 5.5, z: -0.4 },
+  { id: "mid_e", x: 3.3, z: -1.3 },
+  { id: "e_door", x: 4.1, z: -1.3 },
+  { id: "e_room", x: 5.6, z: -1.2 },
   { id: "sw", x: -5.4, z: 3.2 },
-  { id: "s_mid", x: -1.0, z: 3.4 },
+  { id: "s_mid", x: -1.5, z: 3.6 },
   { id: "s_coffee", x: 2.2, z: 3.4 },
-  { id: "se", x: 4.6, z: 2.6 },
-  // Foosball: stand on short (X) sides — long axis is Z.
-  { id: "foosball_a", x: 0.97, z: 4.67 },
-  { id: "foosball_b", x: 2.72, z: 4.67 },
-  { id: "foosball_q", x: 1.85, z: 3.55 },
-  // Standing points in front of the main sofa cushions (aisle, walkable)
-  { id: "sofa_a", x: 1.27, z: -5.25 },
-  { id: "sofa_b", x: 1.79, z: -5.25 },
-  { id: "sofa_c", x: 2.31, z: -5.25 },
-  // In front of the kitchenette / coffee machine
+  { id: "se", x: 3.5, z: 1.8 },
+  { id: "foosball_s", x: 1.85, z: 3.7 },
+  { id: "foosball_n", x: 1.85, z: 5.45 },
+  { id: "sofa_appr", x: 1.79, z: -5.2 },
   { id: "coffee", x: -1.99, z: -5.2 },
-  // Desk approach nodes (near each seat, in aisle)
-  { id: "desk0", x: -4.6, z: 0.76 },
-  { id: "desk1", x: -4.6, z: -2.0 },
-  { id: "desk2", x: -1.0, z: -3.42 },
-  { id: "desk3", x: -2.0, z: -0.66 },
-  { id: "desk4", x: 2.6, z: -2.82 },
-  { id: "desk5", x: 1.5, z: 0.34 },
-  { id: "desk6", x: 5.1, z: 0.17 },
-  { id: "desk7", x: 0.9, z: 3.18 },
-  { id: "desk8", x: -2.2, z: 2.56 },
-];
-
-/** Undirected edges between nav nodes (aisles only — never through furniture). */
-export const OFFICE_NAV_EDGES: NavEdge[] = [
-  { from: "nw", to: "n_lounge" },
-  { from: "n_lounge", to: "n_mid" },
-  { from: "n_mid", to: "n_sofa" },
-  { from: "n_sofa", to: "ne" },
-  { from: "nw", to: "w_aisle" },
-  { from: "ne", to: "e_aisle" },
-  { from: "w_aisle", to: "mid_w" },
-  { from: "mid_w", to: "mid_c" },
-  { from: "mid_c", to: "mid_e" },
-  { from: "mid_e", to: "e_aisle" },
-  { from: "w_aisle", to: "sw" },
-  { from: "sw", to: "s_mid" },
-  { from: "s_mid", to: "s_coffee" },
-  { from: "s_coffee", to: "se" },
-  { from: "se", to: "e_aisle" },
-  // Foosball approach from south only — no edge through the table.
-  { from: "s_coffee", to: "foosball_q" },
-  { from: "foosball_q", to: "foosball_a" },
-  { from: "foosball_q", to: "foosball_b" },
-  { from: "n_sofa", to: "sofa_a" },
-  { from: "n_sofa", to: "sofa_b" },
-  { from: "n_sofa", to: "sofa_c" },
-  { from: "sofa_a", to: "sofa_b" },
-  { from: "sofa_b", to: "sofa_c" },
-  { from: "n_lounge", to: "coffee" },
-  { from: "n_mid", to: "coffee" },
-  { from: "w_aisle", to: "desk0" },
-  { from: "w_aisle", to: "desk1" },
-  { from: "mid_w", to: "desk2" },
-  { from: "mid_w", to: "desk3" },
-  { from: "mid_e", to: "desk4" },
-  { from: "mid_c", to: "desk5" },
-  { from: "e_aisle", to: "desk6" },
-  { from: "s_mid", to: "desk7" },
-  { from: "sw", to: "desk8" },
-  { from: "mid_c", to: "s_mid" },
-  { from: "n_mid", to: "mid_c" },
 ];
 
 export const OFFICE_POIS: OfficePoi[] = [
@@ -218,20 +205,22 @@ export const OFFICE_POIS: OfficePoi[] = [
     id: "foosball",
     kind: "foosball",
     capacity: 2,
-    // soccer table.001 center ≈ (1.85, 4.67); long axis Z — players on ±X.
+    // soccer table.001 X[1.42,2.27] Z[4.13,5.21] — players on ±Z ends.
     approach: [{ x: 1.85, z: 3.55 }],
-    queueSlots: [{ x: 1.0, z: 3.3 }],
+    queueSlots: [{ x: 2.6, z: 3.2 }],
     slots: [
       {
         id: "foosball_a",
-        position: { x: 0.97, z: 4.67 },
-        facing: Math.PI / 2,
+        // South end — face +Z into the table.
+        position: { x: 1.85, z: 3.82 },
+        facing: 0,
         animation: "playing_foosball",
       },
       {
         id: "foosball_b",
-        position: { x: 2.72, z: 4.67 },
-        facing: -Math.PI / 2,
+        // North end — face −Z into the table.
+        position: { x: 1.85, z: 5.5 },
+        facing: Math.PI,
         animation: "playing_foosball",
       },
     ],
@@ -245,24 +234,26 @@ export const OFFICE_POIS: OfficePoi[] = [
     slots: [
       {
         id: "sofa_a",
-        position: { x: 1.27, z: -6.07 },
+        // Slightly into the seat (not on the front lip) so thighs rest on cushions.
+        position: { x: 1.27, z: -6.0 },
         facing: 0,
         animation: "sitting_sofa",
-        lift: 0.05,
+        // Cube.021 seat band ≈ 0.40–0.45; aim hips a bit above the surface.
+        seatHeight: 0.48,
       },
       {
         id: "sofa_b",
-        position: { x: 1.79, z: -6.07 },
+        position: { x: 1.79, z: -6.0 },
         facing: 0,
         animation: "sitting_sofa",
-        lift: 0.05,
+        seatHeight: 0.48,
       },
       {
         id: "sofa_c",
-        position: { x: 2.31, z: -6.07 },
+        position: { x: 2.31, z: -6.0 },
         facing: 0,
         animation: "sitting_sofa",
-        lift: 0.05,
+        seatHeight: 0.48,
       },
     ],
   },
@@ -272,8 +263,8 @@ export const OFFICE_POIS: OfficePoi[] = [
     capacity: 1,
     approach: [{ x: -1.99, z: -4.7 }],
     queueSlots: [
-      { x: -1.0, z: -4.6 },
-      { x: -0.5, z: -4.3 },
+      { x: -1.2, z: -4.6 },
+      { x: -0.7, z: -4.3 },
     ],
     slots: [
       {
@@ -306,6 +297,7 @@ export function pointInPolygon(p: NavPoint, poly: NavPoint[]): boolean {
   return inside;
 }
 
+/** Point inside a physical obstacle box (no clearance). */
 export function pointHitsObstacle(p: NavPoint, obstacles: Aabb2[] = OFFICE_OBSTACLES): boolean {
   for (const o of obstacles) {
     if (p.x >= o.minX && p.x <= o.maxX && p.z >= o.minZ && p.z <= o.maxZ) return true;
@@ -313,16 +305,26 @@ export function pointHitsObstacle(p: NavPoint, obstacles: Aabb2[] = OFFICE_OBSTA
   return false;
 }
 
-export function isWalkable(p: NavPoint): boolean {
-  if (!pointInPolygon(p, OFFICE_WALKABLE_POLYGON)) return false;
-  if (pointHitsObstacle(p)) return false;
-  return true;
+function hitsInflated(x: number, z: number, pad: number): boolean {
+  for (const o of OFFICE_OBSTACLES) {
+    if (x >= o.minX - pad && x <= o.maxX + pad && z >= o.minZ - pad && z <= o.maxZ + pad) {
+      return true;
+    }
+  }
+  return false;
 }
 
-/** Sample along a segment; true if every sample is walkable (or on a known nav edge). */
-export function segmentIsWalkable(a: NavPoint, b: NavPoint, steps = 8): boolean {
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
+/** Walkable = inside footprint and clear of every obstacle + clearance. */
+export function isWalkable(p: NavPoint): boolean {
+  if (!pointInPolygon(p, OFFICE_WALKABLE_POLYGON)) return false;
+  return !hitsInflated(p.x, p.z, NAV_CLEARANCE);
+}
+
+/** Sample along a segment; true if every sample is walkable. */
+export function segmentIsWalkable(a: NavPoint, b: NavPoint, steps?: number): boolean {
+  const n = steps ?? Math.max(4, Math.ceil(Math.sqrt(dist2(a, b)) / 0.1));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
     const p = { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t };
     if (!isWalkable(p)) return false;
   }
@@ -335,107 +337,189 @@ export function segmentIsWalkable(a: NavPoint, b: NavPoint, steps = 8): boolean 
  */
 export function resolveCollision(p: NavPoint, obstacles: Aabb2[] = OFFICE_OBSTACLES): NavPoint {
   let { x, z } = p;
-  for (const o of obstacles) {
-    if (x < o.minX || x > o.maxX || z < o.minZ || z > o.maxZ) continue;
-    const left = x - o.minX;
-    const right = o.maxX - x;
-    const bottom = z - o.minZ;
-    const top = o.maxZ - z;
-    const min = Math.min(left, right, bottom, top);
-    if (min === left) x = o.minX - 0.02;
-    else if (min === right) x = o.maxX + 0.02;
-    else if (min === bottom) z = o.minZ - 0.02;
-    else z = o.maxZ + 0.02;
+  // Iterate: sliding out of one box can land inside an adjacent one
+  // (e.g. contiguous wall segments).
+  for (let pass = 0; pass < 4; pass++) {
+    let moved = false;
+    for (const o of obstacles) {
+      if (x < o.minX || x > o.maxX || z < o.minZ || z > o.maxZ) continue;
+      const left = x - o.minX;
+      const right = o.maxX - x;
+      const bottom = z - o.minZ;
+      const top = o.maxZ - z;
+      const min = Math.min(left, right, bottom, top);
+      if (min === left) x = o.minX - 0.02;
+      else if (min === right) x = o.maxX + 0.02;
+      else if (min === bottom) z = o.minZ - 0.02;
+      else z = o.maxZ + 0.02;
+      moved = true;
+    }
+    if (!moved) break;
   }
   return { x, z };
 }
 
-function buildAdjacency(): Map<string, string[]> {
-  const map = new Map<string, string[]>();
-  for (const n of OFFICE_NAV_NODES) map.set(n.id, []);
-  for (const e of OFFICE_NAV_EDGES) {
-    map.get(e.from)?.push(e.to);
-    map.get(e.to)?.push(e.from);
-  }
-  return map;
-}
+/* ---------- occupancy grid A* ---------- */
 
-const ADJACENCY = buildAdjacency();
-const NODE_BY_ID = new Map(OFFICE_NAV_NODES.map((n) => [n.id, n]));
+const CELL = 0.15;
+const GRID_MIN_X = -6.6;
+const GRID_MIN_Z = -6.6;
+const GRID_W = Math.round((7.0 - GRID_MIN_X) / CELL);
+const GRID_H = Math.round((5.8 - GRID_MIN_Z) / CELL);
 
-export function nearestNavNode(x: number, z: number, preferWalkable = true): NavNode {
-  let best = OFFICE_NAV_NODES[0];
-  let bestD = Infinity;
-  for (const n of OFFICE_NAV_NODES) {
-    if (preferWalkable && pointHitsObstacle(n)) continue;
-    const d = dist2(n, { x, z });
-    if (d < bestD) {
-      bestD = d;
-      best = n;
+let occupancy: Uint8Array | null = null;
+
+function grid(): Uint8Array {
+  if (occupancy) return occupancy;
+  const g = new Uint8Array(GRID_W * GRID_H);
+  for (let j = 0; j < GRID_H; j++) {
+    for (let i = 0; i < GRID_W; i++) {
+      const x = GRID_MIN_X + i * CELL;
+      const z = GRID_MIN_Z + j * CELL;
+      g[j * GRID_W + i] = isWalkable({ x, z }) ? 0 : 1;
     }
   }
-  return best;
+  occupancy = g;
+  return g;
 }
 
-/** A* on the curated aisle graph. Returns polyline of world points including start. */
-export function findPath(from: NavPoint, to: NavPoint, opts: FindPathOptions = {}): NavPoint[] {
-  const start = nearestNavNode(from.x, from.z);
-  const goal = nearestNavNode(to.x, to.z);
-  if (start.id === goal.id) {
-    return finishPath([from], to, opts);
+function cellOf(p: NavPoint): { i: number; j: number } {
+  return {
+    i: Math.min(GRID_W - 1, Math.max(0, Math.round((p.x - GRID_MIN_X) / CELL))),
+    j: Math.min(GRID_H - 1, Math.max(0, Math.round((p.z - GRID_MIN_Z) / CELL))),
+  };
+}
+
+function pointOf(i: number, j: number): NavPoint {
+  return { x: GRID_MIN_X + i * CELL, z: GRID_MIN_Z + j * CELL };
+}
+
+/** Nearest free cell to p (spiral search). Null if none within maxR cells. */
+function nearestFreeCell(p: NavPoint, maxR = 14): { i: number; j: number } | null {
+  const g = grid();
+  const { i: ci, j: cj } = cellOf(p);
+  if (!g[cj * GRID_W + ci]) return { i: ci, j: cj };
+  for (let r = 1; r <= maxR; r++) {
+    let best: { i: number; j: number } | null = null;
+    let bestD = Infinity;
+    for (let dj = -r; dj <= r; dj++) {
+      for (let di = -r; di <= r; di++) {
+        if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+        const i = ci + di;
+        const j = cj + dj;
+        if (i < 0 || i >= GRID_W || j < 0 || j >= GRID_H) continue;
+        if (g[j * GRID_W + i]) continue;
+        const d = di * di + dj * dj;
+        if (d < bestD) {
+          bestD = d;
+          best = { i, j };
+        }
+      }
+    }
+    if (best) return best;
   }
+  return null;
+}
 
-  const open = new Set<string>([start.id]);
-  const came = new Map<string, string>();
-  const gScore = new Map<string, number>([[start.id, 0]]);
-  const fScore = new Map<string, number>([[start.id, Math.sqrt(dist2(start, goal))]]);
+const DIRS: Array<[number, number, number]> = [
+  [1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1],
+  [1, 1, Math.SQRT2], [1, -1, Math.SQRT2], [-1, 1, Math.SQRT2], [-1, -1, Math.SQRT2],
+];
 
-  while (open.size > 0) {
-    let current = "";
+function gridAStar(start: { i: number; j: number }, goal: { i: number; j: number }): NavPoint[] | null {
+  const g = grid();
+  const idx = (i: number, j: number) => j * GRID_W + i;
+  const startI = idx(start.i, start.j);
+  const goalI = idx(goal.i, goal.j);
+  if (startI === goalI) return [pointOf(start.i, start.j)];
+
+  const gScore = new Float64Array(GRID_W * GRID_H).fill(Infinity);
+  const came = new Int32Array(GRID_W * GRID_H).fill(-1);
+  gScore[startI] = 0;
+  // Binary-heap-free open list: small grid, Map suffices.
+  const open = new Map<number, number>([[startI, 0]]);
+  const h = (i: number, j: number) => Math.hypot(i - goal.i, j - goal.j);
+
+  while (open.size) {
+    let current = -1;
     let bestF = Infinity;
-    for (const id of open) {
-      const f = fScore.get(id) ?? Infinity;
+    for (const [k, f] of open) {
       if (f < bestF) {
         bestF = f;
-        current = id;
+        current = k;
       }
     }
-    if (current === goal.id) {
-      const ids = [current];
-      while (came.has(ids[0])) ids.unshift(came.get(ids[0])!);
-      const pts: NavPoint[] = [from];
-      for (const id of ids) {
-        const n = NODE_BY_ID.get(id)!;
-        pts.push({ x: n.x, z: n.z });
-      }
-      return finishPath(pts, to, opts);
+    if (current === goalI) {
+      const cells: number[] = [current];
+      while (came[cells[0]] >= 0) cells.unshift(came[cells[0]]);
+      return cells.map((c) => pointOf(c % GRID_W, Math.floor(c / GRID_W)));
     }
-
     open.delete(current);
-    const curNode = NODE_BY_ID.get(current)!;
-    for (const next of ADJACENCY.get(current) ?? []) {
-      const nextNode = NODE_BY_ID.get(next)!;
-      const tentative = (gScore.get(current) ?? Infinity) + Math.sqrt(dist2(curNode, nextNode));
-      if (tentative < (gScore.get(next) ?? Infinity)) {
-        came.set(next, current);
-        gScore.set(next, tentative);
-        fScore.set(next, tentative + Math.sqrt(dist2(nextNode, goal)));
-        open.add(next);
+    const ci = current % GRID_W;
+    const cj = Math.floor(current / GRID_W);
+    for (const [di, dj, cost] of DIRS) {
+      const ni = ci + di;
+      const nj = cj + dj;
+      if (ni < 0 || ni >= GRID_W || nj < 0 || nj >= GRID_H) continue;
+      if (g[idx(ni, nj)]) continue;
+      // No diagonal corner cutting.
+      if (di !== 0 && dj !== 0 && (g[idx(ci + di, cj)] || g[idx(ci, cj + dj)])) continue;
+      const t = gScore[current] + cost;
+      const nIdx = idx(ni, nj);
+      if (t < gScore[nIdx]) {
+        gScore[nIdx] = t;
+        came[nIdx] = current;
+        open.set(nIdx, t + h(ni, nj));
       }
     }
   }
-
-  // No graph path — stop at the nearest walkable start node (never cut furniture).
-  return [{ x: from.x, z: from.z }, { x: start.x, z: start.z }];
+  return null;
 }
 
-function finishPath(pts: NavPoint[], to: NavPoint, opts: FindPathOptions): NavPoint[] {
-  if (opts.allowGoalInObstacle || isWalkable(to) || !pointHitsObstacle(to)) {
-    pts.push(to);
-    return pts;
+/** Greedy line-of-sight smoothing over the walkable field. */
+function smooth(pts: NavPoint[]): NavPoint[] {
+  if (pts.length <= 2) return pts;
+  const out: NavPoint[] = [pts[0]];
+  let anchor = 0;
+  while (anchor < pts.length - 1) {
+    let far = anchor + 1;
+    for (let k = pts.length - 1; k > anchor + 1; k--) {
+      if (segmentIsWalkable(pts[anchor], pts[k])) {
+        far = k;
+        break;
+      }
+    }
+    out.push(pts[far]);
+    anchor = far;
   }
-  // Goal inside furniture without sit exception: stop at last walkable node.
-  return pts;
+  return out;
+}
+
+/**
+ * Grid A* between two points. The returned polyline starts at `from`.
+ * When `from`/`to` sit inside furniture (desk seat, sofa) the path enters /
+ * exits via the nearest free cell; the final in-furniture snap is appended
+ * only with allowGoalInObstacle or when the goal is walkable.
+ */
+export function findPath(from: NavPoint, to: NavPoint, opts: FindPathOptions = {}): NavPoint[] {
+  const start = nearestFreeCell(from);
+  const goal = nearestFreeCell(to);
+  if (!start || !goal) return [{ x: from.x, z: from.z }];
+
+  const cells = gridAStar(start, goal);
+  if (!cells) return [{ x: from.x, z: from.z }];
+
+  const pts: NavPoint[] = [{ x: from.x, z: from.z }];
+  const smoothed = smooth(cells);
+  for (const p of smoothed) pts.push(p);
+
+  if (opts.allowGoalInObstacle || isWalkable(to)) {
+    pts.push({ x: to.x, z: to.z });
+  }
+  // Drop duplicate consecutive points.
+  return pts.filter(
+    (p, i) => i === 0 || Math.hypot(p.x - pts[i - 1].x, p.z - pts[i - 1].z) > 0.03,
+  );
 }
 
 export function floorYAt(_x: number, _z: number): number {

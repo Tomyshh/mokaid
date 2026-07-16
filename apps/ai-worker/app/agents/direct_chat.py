@@ -19,7 +19,7 @@ import structlog
 from pydantic import BaseModel, Field
 
 from app import llm
-from app.agents.mission_kind import looks_like_research
+from app.agents.mission_kind import looks_like_research, resolve_web_research
 from app.clients.phoenix import PhoenixClient
 
 log = structlog.get_logger()
@@ -62,6 +62,24 @@ class ChatDecision(BaseModel):
     language: Literal["fr", "en"] = Field(
         description="Language of the teammate's latest message."
     )
+    needs_web_search: bool = Field(
+        default=False,
+        description=(
+            "True when answering needs fresh public-web facts in THIS turn: "
+            "sports scores, news, 'who won', company/person lookup, explicit "
+            "'check online' asks, OR a short follow-up confirming a pending "
+            "lookup ('oui regarde', 'yes look', 'alors?'). False for small "
+            "talk, status, or answers fully grounded in the thread/files."
+        ),
+    )
+    search_query: str = Field(
+        default="",
+        description=(
+            "Self-contained web query when needs_web_search is true. For "
+            "follow-ups, reconstruct the original fact-seeking question from "
+            "the thread (do not leave 'oui' / 'alors?' as the query)."
+        ),
+    )
 
 
 _DECIDE_SYSTEM = """You are routing a teammate's DM for an AI employee.
@@ -69,11 +87,19 @@ _DECIDE_SYSTEM = """You are routing a teammate's DM for an AI employee.
 Decide whether the latest teammate message is:
 (a) conversation — a question, status check, small talk, clarification,
     a QUESTION about an attached file, OR a research / lookup request
-    ("recherche", "look up", "who is", "fouille", "find info", "enquête",
-    "dis-moi ce que tu trouves") WITHOUT an explicit ask for a saved file; or
+    ("recherche", "look up", "who is", "qui a gagné", "fouille", "find info",
+    "enquête", "regarde sur internet", "dis-moi ce que tu trouves") WITHOUT
+    an explicit ask for a saved file; or
 (b) an actionable work request — they want a PRODUCED deliverable
     (document, report, website/landing page, analysis, edited image,
     transcription…) that should be saved as a file.
+
+Also set needs_web_search when THIS turn needs a live internet lookup:
+- Factual/public questions that change over time (scores, news, "who won").
+- Explicit lookup asks ("cherche", "look up", "regarde sur internet").
+- Short follow-ups that confirm a pending lookup after you offered to check
+  online ("oui regarde", "yes look", "alors?", "so?") — set search_query to
+  the ORIGINAL fact question from the thread.
 
 Rules:
 - Use "task" ONLY when they clearly want a saved deliverable an AI employee
@@ -85,6 +111,8 @@ Rules:
 - "Create a website / landing page / site internet" is always "task", even if
   details are incomplete — the worker will fill sensible defaults.
 - "Rédige un rapport / write a report about X" is "task" (document deliverable).
+- When needs_web_search is true, search_query must be a full standalone query
+  in the teammate's language (not "oui" / "alors?").
 - instruction must capture the full ask in ONE line, same language as the
   teammate.
 - Never invent facts."""
@@ -114,6 +142,9 @@ Rules:
 - Answer questions about your workload using the list above.
 - Do not ask clarifying questions that block starting work when the ask is
   already clear enough to produce a first version.
+- NEVER promise to "check the internet later", "take a look online", or
+  defer a live lookup to a future turn. Either use web results already in
+  the user message, or say clearly that live lookup failed right now.
 """
 
 
@@ -182,7 +213,13 @@ async def _decide(
         )
     except Exception as exc:  # noqa: BLE001
         log.warning("direct_chat_decide_failed", error=str(exc))
-        return {"kind": "chat", "instruction": "", "language": language}
+        return {
+            "kind": "chat",
+            "instruction": "",
+            "language": language,
+            "needs_web_search": False,
+            "search_query": "",
+        }
 
     instruction = decision.instruction.strip()
     kind = decision.kind
@@ -192,7 +229,13 @@ async def _decide(
         instruction = ""
     if kind == "task" and not instruction:
         instruction = latest
-    return {"kind": kind, "instruction": instruction, "language": decision.language}
+    return {
+        "kind": kind,
+        "instruction": instruction,
+        "language": decision.language,
+        "needs_web_search": bool(decision.needs_web_search),
+        "search_query": (decision.search_query or "").strip(),
+    }
 
 
 async def _stream_reply(
@@ -434,6 +477,11 @@ async def _load_attachment_previews(attachments: list[dict[str, Any]]) -> str:
 
 async def _web_research_context(query: str) -> str:
     """Run web_search and format hits for the chat reply prompt."""
+    unavailable = (
+        "Web search results: UNAVAILABLE. Tell the teammate clearly that you "
+        "could not look this up live right now. Do NOT invent facts or scores. "
+        "Do NOT promise to check later."
+    )
     try:
         import app.tools.web  # noqa: F401 — ensure tool registration
         from app.tools.registry import RunContext
@@ -446,16 +494,19 @@ async def _web_research_context(query: str) -> str:
             task_title=query[:200],
         )
         payload = await web_search({"query": query, "max_results": 5}, ctx)
+        if not isinstance(payload, dict):
+            return f"{unavailable} Error: invalid search payload"
+        if payload.get("error") or not (payload.get("results") or []):
+            err = payload.get("error") or "no results"
+            log.warning("direct_chat_web_search_empty", query=query[:120], error=err)
+            return f"{unavailable} Error: {err}"
         body = format_results_for_llm(payload)
         return (
             "Web search results (use ONLY these facts; cite source URLs):\n" + body
         )
     except Exception as exc:  # noqa: BLE001
         log.warning("direct_chat_web_search_failed", error=str(exc))
-        return (
-            "Web search results: (unavailable — say you could not look this up "
-            f"live, do not invent facts. Error: {exc})"
-        )
+        return f"{unavailable} Error: {exc}"
 
 
 async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -> bool:
@@ -489,6 +540,12 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
     start_task = decision["kind"] == "task"
     instruction = decision["instruction"]
     language = decision["language"]
+    needs_web, search_query = resolve_web_research(
+        latest,
+        conversation if isinstance(conversation, list) else None,
+        decision_needs_web=bool(decision.get("needs_web_search")),
+        decision_query=str(decision.get("search_query") or ""),
+    )
 
     if start_task:
         intent_block = (
@@ -497,19 +554,24 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
             "shortly. Do NOT ask blocking clarifying questions — start with sensible "
             f"defaults if details are missing.\nBrief you will execute: {instruction}"
         )
-    elif looks_like_research(latest):
+        needs_web = False
+    elif needs_web:
         intent_block = (
             "This is a RESEARCH / lookup question. Answer inline in 1-3 short "
             "paragraphs using ONLY the web search results provided in the user "
-            "message. Cite sources by URL. Do not invent facts. Do not start a "
-            "task, write a report file, or edit/generate logos."
+            "message. Cite sources by URL. Do not invent facts. If results are "
+            "UNAVAILABLE, say so clearly in this turn — never promise to check "
+            "the internet later. Do not start a task, write a report file, or "
+            "edit/generate logos."
         )
     else:
         intent_block = (
             "This is a conversational message. Answer it directly using any "
             "attached file contents provided in the user message. Do not start "
             "a task or invent deliverables. Do not ask which document they mean "
-            "when an attachment is already provided."
+            "when an attachment is already provided. Do not offer to look "
+            "something up on the internet unless web search results are already "
+            "in the user message."
         )
 
     system = _REPLY_SYSTEM.format(
@@ -534,8 +596,8 @@ async def reply(payload: dict[str, Any], phoenix: PhoenixClient | None = None) -
     if file_preview:
         user_prompt = f"{user_prompt}\n\n{file_preview}"
 
-    if not start_task and looks_like_research(latest):
-        web_block = await _web_research_context(latest)
+    if needs_web:
+        web_block = await _web_research_context(search_query or latest)
         if web_block:
             user_prompt = f"{user_prompt}\n\n{web_block}"
 

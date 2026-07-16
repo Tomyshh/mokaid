@@ -28,6 +28,13 @@ def contains_2d(outer: dict, inner: dict, eps: float = 0.01) -> bool:
 def main() -> None:
     raw = json.loads(SRC.read_text())["obstacles"]
 
+    # Babylon's glTF loader mirrors X (root: 180° Y rotation + Z flip).
+    # Convert to rendered world space: world_x = -gltf_x.
+    raw = [
+        {**b, "minX": -b["maxX"], "maxX": -b["minX"]}
+        for b in raw
+    ]
+
     kept: list[dict] = []
     for b in sorted(raw, key=lambda x: -(x["maxX"] - x["minX"]) * (x["maxZ"] - x["minZ"])):
         # Desktop clutter riding on furniture already blocked: drop.

@@ -81,3 +81,33 @@ def test_format_results_for_llm():
 
 def test_format_results_empty():
     assert "nothing" in format_results_for_llm({"results": [], "error": "oops"})
+
+
+@pytest.mark.asyncio
+async def test_web_search_falls_back_when_tavily_missing(monkeypatch):
+    """Without TAVILY_API_KEY, production path must still use DuckDuckGo."""
+
+    class _Settings:
+        tavily_api_key = ""
+
+    async def fake_ddg(query: str, max_results: int) -> dict[str, Any]:
+        assert query == "Argentina England match"
+        assert max_results == 5
+        return {
+            "provider": "duckduckgo",
+            "results": [
+                {
+                    "title": "Match report",
+                    "url": "https://example.com/match",
+                    "snippet": "Argentina won",
+                }
+            ],
+        }
+
+    monkeypatch.setattr("app.tools.web.get_settings", lambda: _Settings())
+    monkeypatch.setattr("app.tools.web._search_duckduckgo", fake_ddg)
+    fn = get_tool("web_search")
+    assert fn is not None
+    out = await fn({"query": "Argentina England match"}, _ctx())
+    assert out["provider"] == "duckduckgo"
+    assert out["results"][0]["title"] == "Match report"

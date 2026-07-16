@@ -252,9 +252,13 @@ def build_clip(name: str, gltf, builder, nodes, by_name, rig: str) -> dict[str, 
         # Mixamo arms hang via large local Z.
         arm_down_l, arm_down_r = (0.15, 0.0, 1.25), (0.15, 0.0, -1.25)
         fore_rel_l, fore_rel_r = (-0.35, 0.0, 0.1), (-0.35, 0.0, -0.1)
-        sit_hips = (0.0, -0.42, 0.04)
-        sit_thigh_l, sit_thigh_r = (1.15, 0.0, 0.05), (1.15, 0.0, -0.05)
-        sit_leg_l, sit_leg_r = (-1.35, 0.0, 0.0), (-1.35, 0.0, 0.0)
+        # Mixamo exports are often in centimetres (Hips.y ≈ 90–100). Deltas must
+        # match that scale — a −0.42 "meter" delta only lowers hips by ~4 mm.
+        hips_rest_y = abs(rest_translation(nodes[by_name[hips]])[1]) or 1.0
+        unit = hips_rest_y / 0.95 if hips_rest_y > 5.0 else 1.0
+        sit_hips = (0.0, -0.40 * unit, 0.05 * unit)
+        sit_thigh_l, sit_thigh_r = (1.35, 0.0, 0.08), (1.35, 0.0, -0.08)
+        sit_leg_l, sit_leg_r = (-1.45, 0.0, 0.0), (-1.45, 0.0, 0.0)
     else:
         hips, up_l, up_r, leg_l, leg_r = "root.x", "thigh_stretch.l", "thigh_stretch.r", "leg_stretch.l", "leg_stretch.r"
         arm_l, arm_r = "arm_stretch.l", "arm_stretch.r"
@@ -262,10 +266,10 @@ def build_clip(name: str, gltf, builder, nodes, by_name, rig: str) -> dict[str, 
         spine, spine1, head = "spine_02.x", "spine_03.x", "head.x"
         arm_down_l, arm_down_r = (0.10, 0.22, -1.18), (0.10, -0.22, 1.18)
         fore_rel_l, fore_rel_r = (-0.32, 0.06, 0.10), (-0.32, -0.06, -0.10)
-        # Rigify: thighs swing on local Z for sagittal flexion
-        sit_hips = (0.0, -0.38, 0.03)
-        sit_thigh_l, sit_thigh_r = (0.05, 0.0, 1.05), (0.05, 0.0, -1.05)
-        sit_leg_l, sit_leg_r = (0.0, 0.0, -1.25), (0.0, 0.0, 1.25)
+        # Rigify: thighs swing on local Z for sagittal flexion (meters).
+        sit_hips = (0.0, -0.42, 0.04)
+        sit_thigh_l, sit_thigh_r = (0.05, 0.0, 1.15), (0.05, 0.0, -1.15)
+        sit_leg_l, sit_leg_r = (0.0, 0.0, -1.35), (0.0, 0.0, 1.35)
 
     if name == "sitting":
         duration = 2.5

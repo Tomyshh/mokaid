@@ -61,9 +61,12 @@ export const OFFICE_CAMERA: OfficeCameraDef = {
   // the office fills the canvas with minimal empty background.
   position: { x: 7.11, y: 6.96, z: 12.9 },
   // Target lowered (~4° downward tilt) so the office bottom edge stays in
-  // frame and no empty background shows above the back walls.
-  target: { x: -0.146, y: -0.44, z: -0.804 },
-  fovVertical: 0.468,
+  // frame and no empty background shows above the back walls. Raised a touch
+  // (was -0.44) so most of the extra FOV headroom goes to the top of frame.
+  target: { x: -0.146, y: -0.36, z: -0.804 },
+  // Slightly wider than the calibrated 0.468 to leave headroom above the back
+  // of the office so agent tooltips near the top edge aren't clipped.
+  fovVertical: 0.5,
   fovHorizontal: 0.801,
   lens: 85,
   near: 0.1,
