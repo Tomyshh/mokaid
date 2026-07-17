@@ -107,6 +107,6 @@ assets.manifest: ## Regenerate the 3D asset manifest
 tf.fmt: ## Format all terraform files
 	terraform -chdir=infra/terraform fmt -recursive
 
-tf.validate: ## Validate terraform modules (dev environment)
-	terraform -chdir=infra/terraform/environments/dev init -backend=false && \
-	terraform -chdir=infra/terraform/environments/dev validate
+tf.validate: ## Validate terraform modules (prod environment)
+	terraform -chdir=infra/terraform/environments/prod init -backend=false && \
+	terraform -chdir=infra/terraform/environments/prod validate

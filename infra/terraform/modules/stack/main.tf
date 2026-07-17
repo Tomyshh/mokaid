@@ -136,9 +136,21 @@ variable "enable_cloudfront" {
 }
 
 variable "auth_mode" {
-  description = "cognito | dev_fallback (dev only)"
+  description = "cognito | dev_fallback"
   type        = string
   default     = "cognito"
+}
+
+variable "payme_sandbox" {
+  description = "Use the PayMe sandbox (true) or live payments (false)"
+  type        = bool
+  default     = true
+}
+
+variable "db_snapshot_identifier" {
+  description = "Restore the Postgres instance from this snapshot (data migration). Empty = fresh database."
+  type        = string
+  default     = ""
 }
 
 data "aws_caller_identity" "current" {}
@@ -190,13 +202,26 @@ module "alb" {
   tags              = local.tags
 }
 
-# ---------- Registries ----------
+# ---------- Registries (managed in bootstrap; shared across environments) ----------
 
-module "ecr" {
-  source = "../ecr"
+data "aws_ecr_repository" "api" {
+  name = "mokaid-api"
+}
 
-  repositories = ["mokaid-api", "mokaid-ai-worker", "mokaid-web"]
-  tags         = local.tags
+data "aws_ecr_repository" "ai_worker" {
+  name = "mokaid-ai-worker"
+}
+
+data "aws_ecr_repository" "web" {
+  name = "mokaid-web"
+}
+
+locals {
+  ecr_repository_urls = {
+    "mokaid-api"       = data.aws_ecr_repository.api.repository_url
+    "mokaid-ai-worker" = data.aws_ecr_repository.ai_worker.repository_url
+    "mokaid-web"       = data.aws_ecr_repository.web.repository_url
+  }
 }
 
 # ---------- Storage ----------
@@ -342,6 +367,7 @@ module "rds" {
   instance_class      = var.db_instance_class
   multi_az            = var.db_multi_az
   deletion_protection = var.db_deletion_protection
+  snapshot_identifier = var.db_snapshot_identifier
   tags                = local.tags
 }
 
@@ -405,7 +431,7 @@ module "api_service" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  container_image = "${module.ecr.repository_urls["mokaid-api"]}:${var.api_image_tag}"
+  container_image = "${local.ecr_repository_urls["mokaid-api"]}:${var.api_image_tag}"
   container_port  = 4000
   cpu             = var.api_cpu
   memory          = var.api_memory
@@ -436,7 +462,7 @@ module "api_service" {
     SLACK_REDIRECT_URI    = var.app_domain != "" ? "https://${var.app_domain}/oauth/slack/callback" : "https://mokaid.com/oauth/slack/callback"
     NOTION_REDIRECT_URI   = var.app_domain != "" ? "https://${var.app_domain}/auth/notion/callback" : "https://mokaid.com/auth/notion/callback"
     # PayMe hosted checkout: callback goes to the API, customers return to the app.
-    PAYME_SANDBOX = var.environment == "production" ? "false" : "true"
+    PAYME_SANDBOX = var.payme_sandbox ? "true" : "false"
     API_BASE_URL  = var.app_domain != "" ? "https://${var.app_domain}" : "http://${module.alb.alb_dns_name}"
     WEB_BASE_URL  = var.app_domain != "" ? "https://${var.app_domain}" : "http://${module.alb.alb_dns_name}"
   }
@@ -476,7 +502,7 @@ module "web_service" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  container_image = "${module.ecr.repository_urls["mokaid-web"]}:${var.web_image_tag}"
+  container_image = "${local.ecr_repository_urls["mokaid-web"]}:${var.web_image_tag}"
   container_port  = 80
   cpu             = var.web_cpu
   memory          = var.web_memory
@@ -515,7 +541,7 @@ module "worker_service" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  container_image = "${module.ecr.repository_urls["mokaid-ai-worker"]}:${var.worker_image_tag}"
+  container_image = "${local.ecr_repository_urls["mokaid-ai-worker"]}:${var.worker_image_tag}"
   container_port  = 8100
   cpu             = var.worker_cpu
   memory          = var.worker_memory
@@ -583,7 +609,7 @@ output "cognito_web_client_id" {
 }
 
 output "ecr_repository_urls" {
-  value = module.ecr.repository_urls
+  value = local.ecr_repository_urls
 }
 
 output "ai_runs_queue_url" {

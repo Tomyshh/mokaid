@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, prod]
   pull_request:
 
 concurrency:
@@ -136,7 +136,7 @@ jobs:
     name: Docker builds
     runs-on: ubuntu-latest
     needs: [web, ai-worker]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -168,10 +168,3 @@ jobs:
           push: false
           cache-from: type=gha,scope=web
           cache-to: type=gha,scope=web,mode=max
-
-      # ECR push is wired once AWS OIDC role is configured:
-      # - uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: arn:aws:iam::<account>:role/mokaid-ci
-      #     aws-region: il-central-1
-      # - uses: aws-actions/amazon-ecr-login@v2

@@ -17,7 +17,7 @@ mokaid/
     shared-types/   Shared TypeScript domain types & realtime events
   infra/
     docker/       Dockerfiles for all apps
-    terraform/    Full AWS infrastructure (dev / staging / production)
+    terraform/    Full AWS infrastructure (prod)
   docs/           Architecture, API, database, realtime, security docs
   scripts/        3D asset optimization & manifest tooling
 ```

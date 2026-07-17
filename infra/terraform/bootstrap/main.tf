@@ -80,10 +80,27 @@ resource "aws_dynamodb_table" "locks" {
   }
 }
 
+module "ecr" {
+  source = "../modules/ecr"
+
+  repositories = ["mokaid-api", "mokaid-ai-worker", "mokaid-web"]
+
+  tags = {
+    Project     = "mokaid"
+    Owner       = "Yapio"
+    ManagedBy   = "Terraform"
+    Environment = "shared"
+  }
+}
+
 output "state_bucket" {
   value = aws_s3_bucket.state.id
 }
 
 output "lock_table" {
   value = aws_dynamodb_table.locks.name
+}
+
+output "ecr_repository_urls" {
+  value = module.ecr.repository_urls
 }

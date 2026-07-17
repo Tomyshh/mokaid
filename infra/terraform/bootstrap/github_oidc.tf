@@ -37,7 +37,11 @@ resource "aws_iam_role" "github_deploy" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repository}:*"
+            # Only the prod branch (and environment deployments) may assume this role.
+            "token.actions.githubusercontent.com:sub" = [
+              "repo:${var.github_repository}:ref:refs/heads/prod",
+              "repo:${var.github_repository}:environment:prod",
+            ]
           }
         }
       }

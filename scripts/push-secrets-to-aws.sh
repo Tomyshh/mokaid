@@ -44,7 +44,7 @@ put_secret "mokaid/anthropic-api-key" "$ANTHROPIC_KEY" "Anthropic API key for th
 put_secret "mokaid/openai-api-key" "$OPENAI_KEY" "OpenAI API key for the Mokaid AI worker"
 put_secret "mokaid/payme-seller-id" "$PAYME_SELLER" "PayMe seller id for Mokaid billing"
 
-# Terraform-managed stacks (mokaid-dev / mokaid-staging / mokaid-production)
+# Terraform-managed stacks (mokaid-prod)
 # create their own suffixed secrets consumed by the ECS task definitions —
 # update those too wherever the stack exists.
 update_stack_secret() { # update_stack_secret KEY VALUE
@@ -65,5 +65,5 @@ update_stack_secret "openai_api_key" "$OPENAI_KEY"
 update_stack_secret "payme_seller_id" "$PAYME_SELLER"
 
 echo "done — restart ECS services to pick up new values:"
-echo "  aws ecs update-service --cluster mokaid-<env> --service mokaid-<env>-api --force-new-deployment"
-echo "  aws ecs update-service --cluster mokaid-<env> --service mokaid-<env>-ai-worker --force-new-deployment"
+echo "  aws ecs update-service --cluster mokaid-prod --service mokaid-prod-api --force-new-deployment"
+echo "  aws ecs update-service --cluster mokaid-prod --service mokaid-prod-ai-worker --force-new-deployment"

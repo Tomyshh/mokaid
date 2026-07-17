@@ -52,4 +52,4 @@ Every query is scoped by `workspace_id` (enforced by the `WorkspaceScope` plug +
 ## Environments
 
 - **local** — docker-compose: Postgres+pgvector, MinIO, optional ClickHouse, all 3 apps.
-- **dev / staging / production** — full AWS via Terraform (see `docs/AWS_INFRASTRUCTURE.md`).
+- **prod** — full AWS via Terraform (see `docs/AWS_INFRASTRUCTURE.md`). Deployed from the `prod` git branch.

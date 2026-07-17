@@ -11,35 +11,46 @@ make ai.dev       # FastAPI on :8000
 make web.dev      # Vite on :3000
 ```
 
-Demo login: `tom@mokaid.app` / `mokaid-demo` (seeded).
+Demo login: `tom@mokaid.dev` / `mokaid-dev-1234` (seeded).
 
-## AWS deployment (per environment)
+## AWS deployment (prod)
 
 ### 0. Prerequisites (once)
 
 ```bash
 cd infra/terraform/bootstrap
-terraform init && terraform apply       # state bucket + lock table
+terraform init && terraform apply       # state bucket + lock table + GitHub OIDC
 ```
 
 ### 1. Provision infrastructure
 
 ```bash
-cd infra/terraform/environments/dev     # or staging / production
+cd infra/terraform/environments/prod
 terraform init && terraform apply
 ```
 
 Note the outputs: ECR URLs, CloudFront domain, Cognito IDs, ALB DNS.
 
-### 2. Set secrets (once per environment)
+### 2. Set secrets (once)
 
 In Secrets Manager, replace the `CHANGE_ME` placeholders:
 
-- `mokaid-<env>/secret_key_base` — `mix phx.gen.secret`
-- `mokaid-<env>/worker_auth_token` — long random string
-- `mokaid-<env>/openai_api_key` — provider key
+- `mokaid-prod/secret_key_base` — `mix phx.gen.secret`
+- `mokaid-prod/worker_auth_token` — long random string
+- `mokaid-prod/openai_api_key` — provider key
+
+Or push from local `.env` files:
+
+```bash
+aws sso login --profile mokaid
+./scripts/push-secrets-to-aws.sh
+```
 
 ### 3. Build & push images
+
+Preferred path: push to the `prod` branch — GitHub Actions builds and deploys automatically.
+
+Manual alternative:
 
 ```bash
 aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
@@ -54,26 +65,20 @@ terraform apply -var api_image_tag=v1 -var worker_image_tag=v1
 
 ### 4. Run migrations
 
+Handled automatically by `.github/workflows/deploy.yml`. Manual:
+
 ```bash
-aws ecs run-task --cluster mokaid-<env> \
-  --task-definition mokaid-<env>-api \
-  --overrides '{"containerOverrides":[{"name":"mokaid-<env>-api","command":["bin/mokaid","eval","Mokaid.Release.migrate()"]}]}' \
+aws ecs run-task --cluster mokaid-prod \
+  --task-definition mokaid-prod-api \
+  --overrides '{"containerOverrides":[{"name":"mokaid-prod-api","command":["bin/mokaid","eval","Mokaid.Release.migrate()"]}]}' \
   --launch-type FARGATE --network-configuration '...'
-```
-
-### 5. Deploy the SPA
-
-```bash
-VITE_API_URL=https://api.<domain> VITE_WS_URL=wss://api.<domain> npm run build --workspace=apps/web
-aws s3 sync apps/web/dist s3://mokaid-app-<env>-<account>/ --delete
-aws cloudfront create-invalidation --distribution-id <id> --paths "/*"
 ```
 
 ## CI/CD
 
-`.github/workflows/ci.yml` runs typecheck/lint/tests for all three apps + `terraform fmt/validate` on every PR, and Docker builds on `main`.
+`.github/workflows/ci.yml` runs typecheck/lint/tests for all three apps + `terraform fmt/validate` on every PR and on pushes to `main` / `prod`. Docker builds run on `main` and `prod`.
 
-`.github/workflows/deploy.yml` deploys API + AI worker to ECS on `main` after CI succeeds. Enable it once:
+`.github/workflows/deploy.yml` deploys API + AI worker + web to ECS when CI succeeds on the `prod` branch. Enable it once:
 
 ```bash
 cd infra/terraform/bootstrap
@@ -83,10 +88,9 @@ gh secret set AWS_DEPLOY_ROLE_ARN --repo Yapio-Ltd/mokaid
 gh variable set AWS_DEPLOY_ENABLED --repo Yapio-Ltd/mokaid --body true
 ```
 
-Then re-run **Deploy to AWS** from the Actions tab (or push to `main`).
+Then push to `prod` (or re-run **Deploy to AWS** from the Actions tab).
 
 ## Rollback
 
-- API/worker: `terraform apply` with the previous image tag (immutable ECR tags).
-- SPA: re-sync the previous build artifact + CloudFront invalidation.
+- API/worker/web: re-deploy the previous immutable ECR image tag via ECS task definition.
 - DB: migrations are additive by convention; restore from RDS snapshot if required.

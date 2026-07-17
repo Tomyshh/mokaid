@@ -14,7 +14,7 @@ terraform {
 
   backend "s3" {
     bucket         = "mokaid-terraform-state"
-    key            = "dev/terraform.tfstate"
+    key            = "prod/terraform.tfstate"
     region         = "il-central-1"
     dynamodb_table = "mokaid-terraform-locks"
     encrypt        = true
@@ -48,10 +48,26 @@ variable "web_image_tag" {
   default = "v2"
 }
 
+variable "api_image_tag" {
+  type    = string
+  default = "v2"
+}
+
+variable "worker_image_tag" {
+  type    = string
+  default = "latest"
+}
+
+variable "db_snapshot_identifier" {
+  description = "Optional RDS snapshot to restore from (used once when migrating from a previous environment)."
+  type        = string
+  default     = ""
+}
+
 module "stack" {
   source = "../../modules/stack"
 
-  environment        = "dev"
+  environment        = "prod"
   aws_region         = var.aws_region
   vpc_cidr           = "10.10.0.0/16"
   single_nat_gateway = true
@@ -64,11 +80,16 @@ module "stack" {
 
   db_instance_class      = "db.t4g.micro"
   db_multi_az            = false
-  db_deletion_protection = false
+  db_deletion_protection = true
+  db_snapshot_identifier = var.db_snapshot_identifier
 
-  auth_mode          = "dev_fallback"
-  api_image_tag      = "v2"
-  web_image_tag      = var.web_image_tag
+  auth_mode     = "dev_fallback"
+  payme_sandbox = true
+
+  api_image_tag    = var.api_image_tag
+  web_image_tag    = var.web_image_tag
+  worker_image_tag = var.worker_image_tag
+
   alarm_email        = var.alarm_email
   monthly_budget_usd = 100
 }
@@ -95,4 +116,8 @@ output "cognito_web_client_id" {
 
 output "ecr_repository_urls" {
   value = module.stack.ecr_repository_urls
+}
+
+output "db_endpoint" {
+  value = module.stack.db_endpoint
 }

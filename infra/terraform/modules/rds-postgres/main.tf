@@ -51,6 +51,12 @@ variable "database_name" {
   default = "mokaid"
 }
 
+variable "snapshot_identifier" {
+  description = "Restore the instance from this DB snapshot (data migration). Empty = fresh database."
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -121,12 +127,16 @@ resource "aws_db_parameter_group" "this" {
 resource "aws_db_instance" "this" {
   identifier = var.name
 
-  engine         = "postgres"
-  engine_version = "16"
+  # When restoring from a snapshot, engine/db_name/username come from the
+  # snapshot; the password below is applied right after restore.
+  snapshot_identifier = var.snapshot_identifier != "" ? var.snapshot_identifier : null
+
+  engine         = var.snapshot_identifier != "" ? null : "postgres"
+  engine_version = var.snapshot_identifier != "" ? null : "16"
   instance_class = var.instance_class
 
-  db_name  = var.database_name
-  username = "mokaid_admin"
+  db_name  = var.snapshot_identifier != "" ? null : var.database_name
+  username = var.snapshot_identifier != "" ? null : "mokaid_admin"
   password = random_password.master.result
 
   allocated_storage     = var.allocated_storage
@@ -152,6 +162,11 @@ resource "aws_db_instance" "this" {
   monitoring_interval          = 0
 
   tags = var.tags
+
+  lifecycle {
+    # Snapshot restore is a one-shot migration; later applies must not force a replace.
+    ignore_changes = [snapshot_identifier]
+  }
 }
 
 resource "aws_secretsmanager_secret" "database_url" {
