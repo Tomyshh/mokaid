@@ -1,5 +1,5 @@
-from app.memory import ingestion
 from app import llm
+from app.memory import ingestion
 from app.memory.ingestion import chunk_text, contextualize, ingest_document
 from tests.test_extractors import make_docx, make_xlsx
 
