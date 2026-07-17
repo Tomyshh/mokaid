@@ -549,7 +549,7 @@ module "worker_service" {
   max_count       = 3
 
   environment = {
-    PHOENIX_API_URL   = "http://${module.alb.alb_dns_name}"
+    PHOENIX_API_URL   = var.app_domain != "" ? "https://${var.app_domain}" : "http://${module.alb.alb_dns_name}"
     AWS_REGION        = var.aws_region
     AI_RUNS_QUEUE_URL = module.sqs_ai_runs.queue_url
     # LangSmith stays opt-in: set LANGSMITH_API_KEY as an SSM/Secrets override

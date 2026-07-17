@@ -43,6 +43,17 @@ variable "alarm_email" {
   default = ""
 }
 
+variable "app_domain" {
+  type    = string
+  default = "mokaid.com"
+}
+
+variable "alb_certificate_arn" {
+  description = "ACM certificate (il-central-1) for the ALB HTTPS listener"
+  type        = string
+  default     = "arn:aws:acm:il-central-1:660601648321:certificate/527d80b3-bb90-4a7d-aa35-f8adca582d28"
+}
+
 variable "web_image_tag" {
   type    = string
   default = "v2"
@@ -82,6 +93,9 @@ module "stack" {
   db_multi_az            = false
   db_deletion_protection = true
   db_snapshot_identifier = var.db_snapshot_identifier
+
+  app_domain          = var.app_domain
+  alb_certificate_arn = var.alb_certificate_arn
 
   auth_mode     = "dev_fallback"
   payme_sandbox = true

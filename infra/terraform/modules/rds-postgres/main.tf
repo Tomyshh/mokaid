@@ -164,8 +164,10 @@ resource "aws_db_instance" "this" {
   tags = var.tags
 
   lifecycle {
-    # Snapshot restore is a one-shot migration; later applies must not force a replace.
-    ignore_changes = [snapshot_identifier]
+    # Snapshot restore is a one-shot migration; later applies must not force a
+    # replace. The KMS key is inherited from the snapshot and can only change
+    # by replacing the instance, so never let drift there destroy the database.
+    ignore_changes = [snapshot_identifier, kms_key_id]
   }
 }
 
