@@ -109,6 +109,26 @@ class PhoenixClient:
 
     # ---------- Workspace resources ----------
 
+
+    async def load_domain_skill(
+        self,
+        workspace_id: str,
+        agent_id: str | None,
+        name: str,
+        archetype: str | None = None,
+    ) -> dict[str, Any]:
+        """Load a domain-pack skill body for progressive disclosure."""
+        result = await self._post(
+            "/api/worker/agents/domain-skill",
+            {
+                "workspace_id": workspace_id,
+                "agent_id": agent_id,
+                "name": name,
+                "archetype": archetype,
+            },
+        )
+        return (result or {}).get("data") or result or {}
+
     async def search_knowledge(
         self,
         workspace_id: str,

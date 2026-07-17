@@ -1,0 +1,791 @@
+{
+  "domain": "ops_hr",
+  "pack_version": "077da395c52a",
+  "skill_count": 56,
+  "skills": [
+    {
+      "name": "zoom-meeting-sdk-windows",
+      "slug": "zoom-meeting-sdk-windows",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-windows.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/windows/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 44168
+    },
+    {
+      "name": "zoom-meeting-sdk-web",
+      "slug": "zoom-meeting-sdk-web",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-web.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/web/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 34021
+    },
+    {
+      "name": "zoom-apps-sdk",
+      "slug": "zoom-apps-sdk",
+      "description": "Reference skill for Zoom Apps SDK. Use after routing to an in-client app workflow when building web apps that run inside Zoom meetings, webinars, the main client, or Zoom Phone.",
+      "path": "skills/zoom-apps-sdk.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/zoom-apps-sdk/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 25095
+    },
+    {
+      "name": "zoom-meeting-sdk-web-client-view",
+      "slug": "zoom-meeting-sdk-web-client-view",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-web-client-view.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/web/client-view/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 16316
+    },
+    {
+      "name": "power-platform-architect",
+      "slug": "power-platform-architect",
+      "description": "Use this skill when the user needs to transform business requirements, use case descriptions, or meeting transcripts into a technical Power Platform solution architecture, including component selection and Mermaid.js diagrams.",
+      "path": "skills/power-platform-architect.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/power-platform-architect/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14108
+    },
+    {
+      "name": "zoom-meeting-sdk-web-component-view",
+      "slug": "zoom-meeting-sdk-web-component-view",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-web-component-view.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/web/component-view/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 13794
+    },
+    {
+      "name": "onboard-context-matic",
+      "slug": "onboard-context-matic",
+      "description": "Interactive onboarding tour for the context-matic MCP server. Walks the user through what the server does, shows all available APIs, lets them pick one to explore, explains it in their project language, demonstrates model_search and endpoint_search live, and ends with a menu of things the user can ask the agent to do. USE FOR: first-time setup; \"what can this MCP do?\"; \"show me the available APIs\"; \"onboard me\"; \"how do I use the context-matic server\"; \"give me a tour\". DO NOT USE FOR: actually ",
+      "path": "skills/onboard-context-matic.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/onboard-context-matic/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12820
+    },
+    {
+      "name": "mentoring-juniors",
+      "slug": "mentoring-juniors",
+      "description": "Socratic mentoring for junior developers and AI newcomers. Guides through questions, never answers. Triggers: \"help me understand\", \"explain this code\", \"I''m stuck\", \"Im stuck\", \"I''m confused\", \"Im confused\", \"I don''t understand\", \"I dont understand\", \"can you teach me\", \"teach me\", \"mentor me\", \"guide me\", \"what does this error mean\", \"why doesn''t this work\", \"why does not this work\", \"I''m a beginner\", \"Im a beginner\", \"I''m learning\", \"Im learning\", \"I''m new to this\", \"Im new to this\", \"",
+      "path": "skills/mentoring-juniors.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mentoring-juniors/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12719
+    },
+    {
+      "name": "end-to-end-walkthrough",
+      "slug": "end-to-end-walkthrough",
+      "description": "",
+      "path": "skills/end-to-end-walkthrough.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mvvm-toolkit/references/end-to-end-walkthrough.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11376
+    },
+    {
+      "name": "andreessen",
+      "slug": "andreessen",
+      "description": "Marc Andreessen-mode decision and productivity skill. A blunt, market-first operator that pressure-tests ideas, ventures, features, and career bets through Andreessen's actual frameworks — market dominates team and product; the only milestone that matters is product/market fit; bias to build over deliberate. Use when the user says 'andreessen', 'pmarca mode', 'should I build this', 'is there a market', 'are we at product/market fit', 'pmf check', 'pressure-test this idea', 'be brutal about this ",
+      "path": "skills/andreessen.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/andreessen/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10703
+    },
+    {
+      "name": "build-zoom-meeting-sdk-app",
+      "slug": "build-zoom-meeting-sdk-app",
+      "description": "Reference skill for Zoom Meeting SDK. Use after routing to a meeting-embed workflow when implementing real Zoom meeting joins, platform-specific SDK behavior, auth and join flows, waiting room issues, or meeting bot patterns.",
+      "path": "skills/build-zoom-meeting-sdk-app.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 10556
+    },
+    {
+      "name": "named-persona-adversarial-review",
+      "slug": "named-persona-adversarial-review",
+      "description": "Code review through the lens of real engineers' documented philosophies (Torvalds, Thompson, Carmack, Kent Beck, Jobs, Cagan). Complements abstract-role adversarial review with named, sourced perspectives. Use when automated review findings feel generic, when a PR has architectural or UX impact, or when the author wants pre-submit hardening beyond standard checks.",
+      "path": "skills/named-persona-adversarial-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/named-persona-adversarial-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10433
+    },
+    {
+      "name": "react18-class-surgeon.agent",
+      "slug": "react18-class-surgeon-agent",
+      "description": "Class component migration specialist for React 16/17 → 18.3.1. Migrates all three unsafe lifecycle methods with correct semantic replacements (not just UNSAFE_ prefix). Migrates legacy context to createContext, string refs to React.createRef(), findDOMNode to direct refs, and ReactDOM.render to createRoot. Uses memory to checkpoint per-file progress.",
+      "path": "skills/react18-class-surgeon-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react18-class-surgeon.agent.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10394
+    },
+    {
+      "name": "winui3-migration-guide",
+      "slug": "winui3-migration-guide",
+      "description": "UWP-to-WinUI 3 migration reference. Maps legacy UWP APIs to correct Windows App SDK equivalents with before/after code snippets. Covers namespace changes, threading (CoreDispatcher to DispatcherQueue), windowing (CoreWindow to AppWindow), dialogs, pickers, sharing, printing, background tasks, and the most common Copilot code generation mistakes.",
+      "path": "skills/winui3-migration-guide.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/winui3-migration-guide/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8502
+    },
+    {
+      "name": "memory-management",
+      "slug": "memory-management",
+      "description": "Two-tier memory system that makes Claude a true workplace collaborator. Decodes shorthand, acronyms, nicknames, and internal language so Claude understands requests like a colleague would. CLAUDE.md for working memory, memory/ directory for the full knowledge base.",
+      "path": "skills/memory-management.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/productivity/skills/memory-management/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 8336
+    },
+    {
+      "name": "daily-prep",
+      "slug": "daily-prep",
+      "description": "Prepare for tomorrow''s meetings and tasks. Pulls calendar from Outlook via WorkIQ, cross-references open tasks and workspace context, classifies meetings, detects conflicts and day-fit issues, finds learning and deep-work slots, and generates a structured HTML prep file with productivity recommendations.",
+      "path": "skills/daily-prep.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/daily-prep/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8163
+    },
+    {
+      "name": "business-operations-skills",
+      "slug": "business-operations-skills",
+      "description": "Use when running, diagnosing, or designing internal business operations — process documentation, vendor SLAs, capacity planning, internal comms, SOP/runbook authoring, procurement spend. Triggers on \"BizOps review\", \"where's the bottleneck\", \"vendor health\", \"internal SOP\", \"all-hands deck\", \"spend categorization\", \"capacity for Q3\", \"process mapping\". Forks context to route to one of six BizOps sub-skills (process-mapper, vendor-management, capacity-planner, internal-comms, knowledge-ops, procu",
+      "path": "skills/business-operations-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/business-operations-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8085
+    },
+    {
+      "name": "msgraph-sdk",
+      "slug": "msgraph-sdk",
+      "description": "Integrate Microsoft Graph SDK into any project — .NET, TypeScript/JavaScript, or Python. Covers auth patterns (client credentials, OBO, managed identity), SDK setup, calling Graph APIs, batching, delta queries, change notifications, throttling, and permission scopes. Use when accessing Microsoft 365 data (users, mail, calendar, Teams, files, SharePoint) from any application type.",
+      "path": "skills/msgraph-sdk.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/msgraph-sdk/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7791
+    },
+    {
+      "name": "foundry-agent-sync",
+      "slug": "foundry-agent-sync",
+      "description": "Create and synchronize prompt-based AI agents directly within Azure AI Foundry via REST API, from a local JSON manifest. Unlike scaffolding skills that only generate local code, this skill registers agents in the Foundry service itself — making them immediately available for invocation. Use when the user asks to create agents in Foundry, sync, deploy, register, or push agents to Foundry, update agent instructions, or scaffold the manifest and sync script for a new repository. Triggers: 'create a",
+      "path": "skills/foundry-agent-sync.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/foundry-agent-sync/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7681
+    },
+    {
+      "name": "meeting-minutes",
+      "slug": "meeting-minutes",
+      "description": "Generate concise, actionable meeting minutes for internal meetings. Includes metadata, attendees, agenda, decisions, action items (owner + due date), and follow-up steps.",
+      "path": "skills/meeting-minutes.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/meeting-minutes/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7657
+    },
+    {
+      "name": "pester-migration",
+      "slug": "pester-migration",
+      "description": "Pester migration skill for upgrading PowerShell Pester test suites across major versions — v3→v4, v4→v5, and v5→v6. Covers the Discovery/Run two-phase model, moving setup into BeforeAll, $PSScriptRoot vs $MyInvocation, mock changes (Assert-MockCalled → Should -Invoke, removed fall-through), Invoke-Pester parameters → PesterConfiguration, data-driven -ForEach/-TestCases, and the v6 breaking changes. Use when the user asks to upgrade, migrate, or modernize Pester tests, fix *.Tests.ps1 files that ",
+      "path": "skills/pester-migration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/pester-migration/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7593
+    },
+    {
+      "name": "executive-mentor",
+      "slug": "executive-mentor",
+      "description": "Adversarial thinking partner for founders and executives. Stress-tests plans, prepares for brutal board meetings, dissects decisions with no good options, and forces honest post-mortems. Use when you need someone to find the holes before the board does, make a decision you've been avoiding, or understand what actually went wrong.",
+      "path": "skills/executive-mentor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/executive-mentor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6489
+    },
+    {
+      "name": "namecheap",
+      "slug": "namecheap",
+      "description": "Manage DNS records for domains registered with Namecheap via their API. List domains, view/add/update/remove DNS host entries (A, AAAA, CNAME, MX, TXT, etc.), and guide users through API setup including public IP detection and credential configuration. Use when the user mentions Namecheap, DNS records, domain management, or wants to add/change/remove A records, CNAME records, MX records, or TXT records for their domains.",
+      "path": "skills/namecheap.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/namecheap/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6436
+    },
+    {
+      "name": "mentoring-juniors.agent",
+      "slug": "mentoring-juniors-agent",
+      "description": "Socratic mentor for junior developers. Guides through questions, never gives direct answers. Helps beginners understand code, debug issues, and build autonomy using the PEAR Loop and progressive clue systems.",
+      "path": "skills/mentoring-juniors-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/mentoring-juniors.agent.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6378
+    },
+    {
+      "name": "clojure-interactive-programming.agent",
+      "slug": "clojure-interactive-programming-agent",
+      "description": "Expert Clojure pair programmer with REPL-first methodology, architectural oversight, and interactive problem-solving. Enforces quality standards, prevents workarounds, and develops solutions incrementally through live REPL evaluation before file modifications.",
+      "path": "skills/clojure-interactive-programming-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/clojure-interactive-programming.agent.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6311
+    },
+    {
+      "name": "chief-of-staff",
+      "slug": "chief-of-staff",
+      "description": "C-suite orchestration layer. Routes founder questions to the right advisor role(s), triggers multi-role board meetings for complex decisions, synthesizes outputs, and tracks decisions. Every C-suite interaction starts here. Loads company context automatically. Use when a founder question needs routing to the right advisor — e.g. 'should we raise now or cut burn?' — or when a multi-domain decision needs a board meeting convened.",
+      "path": "skills/chief-of-staff.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/chief-of-staff/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5976
+    },
+    {
+      "name": "java-junit5-assertions.instructions",
+      "slug": "java-junit5-assertions-instructions",
+      "description": "Standardizes JUnit 5 (Jupiter) assertions with best practices for performance, readability, and modern features (5.8+). Covers Supplier messages, assertAll, assertThrowsExactly, and performance-critical timeouts.",
+      "path": "skills/java-junit5-assertions-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/java-junit5-assertions.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5883
+    },
+    {
+      "name": "caio-review",
+      "slug": "caio-review",
+      "description": "/cs:caio-review <plan> — Eval-demanding Chief AI Officer interrogation of any plan that involves AI: model selection, risk classification, cost economics, or AI hiring. Use when shipping an AI feature without an eval set, choosing between API, fine-tune, and self-hosted, or classifying a use case under the EU AI Act.",
+      "path": "skills/caio-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/caio-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5535
+    },
+    {
+      "name": "full-page-screenshot",
+      "slug": "full-page-screenshot",
+      "description": "Use when the user asks to capture a full-page screenshot, long screenshot, or complete page capture of a web page. Handles SPA scroll containers, lazy-loaded images, and very tall pages via Chrome DevTools Protocol with zero external dependencies.",
+      "path": "skills/full-page-screenshot.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/full-page-screenshot/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5187
+    },
+    {
+      "name": "componentWillReceiveProps",
+      "slug": "componentwillreceiveprops",
+      "description": "",
+      "path": "skills/componentwillreceiveprops.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react18-lifecycle-patterns/references/componentWillReceiveProps.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5077
+    },
+    {
+      "name": "decision-logger",
+      "slug": "decision-logger",
+      "description": "Two-layer memory architecture for board meeting decisions. Manages raw transcripts (Layer 1) and approved decisions (Layer 2). Use when logging decisions after a board meeting, reviewing past decisions with /cs:decisions, or checking overdue action items with /cs:review. Invoked automatically by the board-meeting skill after Phase 5 founder approval.",
+      "path": "skills/decision-logger.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/decision-logger/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4990
+    },
+    {
+      "name": "meetings",
+      "slug": "meetings",
+      "description": "Use when someone wants to decide whether a meeting is worth calling, price a meeting in dollars, build a timeboxed agenda with desired outcomes, or turn messy meeting notes into owned action items — or says \"should this be a meeting\", \"/cs:meeting-prep\", or \"/cs:meeting-actions\". Runs a cost gate (ASYNC / NOT-READY / MEET), builds a decision-first agenda, and extracts an owner + due-date checklist that flags every orphan.",
+      "path": "skills/meetings.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/meetings/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4942
+    },
+    {
+      "name": "simple-app-idea-generator.agent",
+      "slug": "simple-app-idea-generator-agent",
+      "description": "Brainstorm and develop new application ideas through fun, interactive questioning until ready for specification creation.",
+      "path": "skills/simple-app-idea-generator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/simple-app-idea-generator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4880
+    },
+    {
+      "name": "weekly-review",
+      "slug": "weekly-review",
+      "description": "Use when someone wants to run a weekly review, close open loops, audit stalled projects and commitments, get their system back to trusted, restart a lapsed review habit, or says \"/cs:weekly-review\". Walks David Allen's three-phase loop — GET CLEAR, GET CURRENT, GET CREATIVE — with deterministic scripts that inventory open loops, gate the checklist with named gaps, and score commitment health 0-100.",
+      "path": "skills/weekly-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/weekly-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4844
+    },
+    {
+      "name": "cco-review",
+      "slug": "cco-review",
+      "description": "/cs:cco-review <plan> — Retention-obsessed Chief Customer Officer interrogation of any plan that touches customer retention, segmentation, CS team sizing, or CS team hiring. Use when gross retention is slipping, before approving CSM headcount, or when deciding which customer segments to keep or fire.",
+      "path": "skills/cco-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cco-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4798
+    },
+    {
+      "name": "update",
+      "slug": "update",
+      "description": "Sync tasks and refresh memory from your current activity. Use when pulling new assignments from your project tracker into TASKS.md, triaging stale or overdue tasks, filling memory gaps for unknown people or projects, or running a comprehensive scan to catch todos buried in chat and email.",
+      "path": "skills/update.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/productivity/skills/update/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4665
+    },
+    {
+      "name": "start",
+      "slug": "start",
+      "description": "Initialize the productivity system and open the dashboard. Use when setting up the plugin for the first time, bootstrapping working memory from your existing task list, or decoding the shorthand (nicknames, acronyms, project codenames) you use in your todos.",
+      "path": "skills/start.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/productivity/skills/start/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4598
+    },
+    {
+      "name": "qdrant-indexing-performance-optimization",
+      "slug": "qdrant-indexing-performance-optimization",
+      "description": "Diagnoses and fixes slow Qdrant indexing and data ingestion. Use when someone reports 'uploads are slow', 'indexing takes forever', 'optimizer is stuck', 'HNSW build time too long', or 'data uploaded but search is bad'. Also use when optimizer status shows errors, segments won't merge, or indexing threshold questions arise.",
+      "path": "skills/qdrant-indexing-performance-optimization.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-performance-optimization/indexing-performance-optimization/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4466
+    },
+    {
+      "name": "refactor-method-complexity-reduce",
+      "slug": "refactor-method-complexity-reduce",
+      "description": "Refactor given method `${input:methodName}` to reduce its cognitive complexity to `${input:complexityThreshold}` or below, by extracting helper methods.",
+      "path": "skills/refactor-method-complexity-reduce.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/refactor-method-complexity-reduce/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4213
+    },
+    {
+      "name": "slack-search",
+      "slug": "slack-search",
+      "description": "Guidance for effectively searching Slack to find messages, files, channels, and people",
+      "path": "skills/slack-search.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/slack/skills/slack-search/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3816
+    },
+    {
+      "name": "microsoft-study-mode.agent",
+      "slug": "microsoft-study-mode-agent",
+      "description": "Activate your personal Microsoft/Azure tutor - learn through guided discovery, not just answers.",
+      "path": "skills/microsoft-study-mode-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/microsoft-study-mode.agent.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3420
+    },
+    {
+      "name": "zoom-meeting-sdk-react-native",
+      "slug": "zoom-meeting-sdk-react-native",
+      "description": "Zoom Meeting SDK for React Native. Use when embedding Zoom meetings in React Native iOS/Android apps with @zoom/meetingsdk-react-native, JWT auth, join/start flows, platform setup, and native bridge troubleshooting.",
+      "path": "skills/zoom-meeting-sdk-react-native.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/react-native/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3410
+    },
+    {
+      "name": "qdrant-scaling-qps",
+      "slug": "qdrant-scaling-qps",
+      "description": "Guides Qdrant query throughput (QPS) scaling. Use when someone asks 'how to increase QPS', 'need more throughput', 'queries per second too low', 'batch search', 'read replicas', or 'how to handle more concurrent queries'.",
+      "path": "skills/qdrant-scaling-qps.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-scaling/scaling-qps/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3337
+    },
+    {
+      "name": "c-level-skills",
+      "slug": "c-level-skills",
+      "description": "Index and router for the C-level advisory bundle: 33 skills covering 14 C-suite roles, orchestration, cross-cutting capabilities, and culture. Use when exploring what the c-level-advisor bundle contains, deciding which advisor skill fits a question, or finding the entry points (cs-onboard interview, chief-of-staff routing, board-meeting protocol).",
+      "path": "skills/c-level-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/c-level-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2616
+    },
+    {
+      "name": "zoom-meeting-sdk-electron",
+      "slug": "zoom-meeting-sdk-electron",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-electron.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/electron/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2548
+    },
+    {
+      "name": "task-management",
+      "slug": "task-management",
+      "description": "Simple task management using a shared TASKS.md file. Reference this when the user asks about their tasks, wants to add/complete tasks, or needs help tracking commitments.",
+      "path": "skills/task-management.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/productivity/skills/task-management/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2367
+    },
+    {
+      "name": "mcp-cli",
+      "slug": "mcp-cli",
+      "description": "Interface for MCP (Model Context Protocol) servers via CLI. Use when you need to interact with external tools, APIs, or data sources through MCP servers, list available MCP servers/tools, or call MCP tools from command line.",
+      "path": "skills/mcp-cli.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mcp-cli/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2270
+    },
+    {
+      "name": "pr-dashboard",
+      "slug": "pr-dashboard",
+      "description": "Open a GitHub PR dashboard in the browser. Use when the user asks to see their pull requests, open the PR dashboard, show PRs for a date range, or check PR status. Trigger phrases include \"show my PRs\", \"open PR dashboard\", \"pull request dashboard\".",
+      "path": "skills/pr-dashboard.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/pr-dashboard/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1802
+    },
+    {
+      "name": "03-list-threads",
+      "slug": "03-list-threads",
+      "description": "",
+      "path": "skills/03-list-threads.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/copilot-pr-autopilot/references/03-list-threads.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1752
+    },
+    {
+      "name": "wiki-init",
+      "slug": "wiki-init",
+      "description": "Bootstrap a fresh LLM Wiki vault with the three-layer structure, schema files, and starter templates. Usage /wiki-init <path> --topic \"<topic>\" [--tool all|claude-code|codex|cursor|antigravity]",
+      "path": "skills/wiki-init.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/wiki-init/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "ops_hr",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1569
+    },
+    {
+      "name": "qdrant-scaling",
+      "slug": "qdrant-scaling",
+      "description": "Guides Qdrant scaling decisions. Use when someone asks 'how many nodes do I need', 'data doesn't fit on one node', 'need more throughput', 'cluster is slow', 'too many tenants', 'vertical or horizontal', 'how to shard', or 'need to add capacity'.",
+      "path": "skills/qdrant-scaling.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-scaling/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "ops_hr",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1532
+    },
+    {
+      "name": "zoom-meeting-sdk-android",
+      "slug": "zoom-meeting-sdk-android",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-android.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/android/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1381
+    },
+    {
+      "name": "zoom-meeting-sdk-unreal",
+      "slug": "zoom-meeting-sdk-unreal",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-unreal.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/unreal/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1046
+    },
+    {
+      "name": "zoom-meeting-sdk-macos",
+      "slug": "zoom-meeting-sdk-macos",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-macos.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/macos/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1023
+    },
+    {
+      "name": "zoom-meeting-sdk-ios",
+      "slug": "zoom-meeting-sdk-ios",
+      "description": "|",
+      "path": "skills/zoom-meeting-sdk-ios.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/ios/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1007
+    },
+    {
+      "name": "build-zoom-bot",
+      "slug": "build-zoom-bot",
+      "description": "Build a Zoom meeting bot, recorder, or real-time media workflow. Use when joining meetings programmatically, processing live media or transcripts, or combining Meeting SDK, RTMS, and backend services.",
+      "path": "skills/build-zoom-bot.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/build-zoom-bot/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "ops_hr",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1006
+    }
+  ]
+}

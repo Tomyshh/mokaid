@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 const AgentPreview3D = lazy(() =>
@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import {
+  useAgentCatalog,
   useBillingOverview,
   useBillingPlans,
   useConnectIntegration,
@@ -42,6 +43,8 @@ import {
   useUploadWorkspaceLogo,
   useWorkspace,
 } from "@/api/hooks";
+import { recommendAgentPacks } from "@/lib/recommend-agent-packs";
+import { formatNumber } from "@/lib/format";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -264,6 +267,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const updateOnboarding = useUpdateOnboarding();
   const createProject = useCreateProject();
   const createAgent = useCreateAgent();
+  const { data: catalogData } = useAgentCatalog();
   const inviteMember = useInviteMember();
   const { data: integrationsData } = useIntegrations();
   const { data: plansData } = useBillingPlans();
@@ -302,6 +306,8 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const [logoError, setLogoError] = useState<string | null>(null);
   const logoObjectUrlRef = useRef<string | null>(null);
   const [industry, setIndustry] = useState("");
+  const [companySummary, setCompanySummary] = useState("");
+  const [agentNeeds, setAgentNeeds] = useState("");
   const [inviteEmails, setInviteEmails] = useState<string[]>([]);
   const [emailDraft, setEmailDraft] = useState("");
 
@@ -315,6 +321,9 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const [agentName, setAgentName] = useState("Nova");
   const [agentColor, setAgentColor] = useState(agentColors[0]);
   const [agentCreated, setAgentCreated] = useState(false);
+  const [agentPath, setAgentPath] = useState<"blank" | "specialist">("blank");
+  const [archetypeKey, setArchetypeKey] = useState("blank");
+  const [agentError, setAgentError] = useState<string | null>(null);
 
   // Project step
   const [projectName, setProjectName] = useState("");
@@ -322,6 +331,24 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
   const [projectCreated, setProjectCreated] = useState(false);
 
   const firstName = user?.full_name?.split(" ")[0] ?? "there";
+  const archetypes = catalogData?.data.archetypes ?? [];
+  const specialistCredits = catalogData?.data.specialist_credits ?? 5000;
+  const spendable = billingData?.data.credits.spendable ?? 0;
+  const briefText = `${companySummary} ${agentNeeds} ${industry}`.trim();
+  const specialists = useMemo(
+    () => archetypes.filter((a) => a.tier === "specialist" || (a.key !== "blank" && a.tier !== "blank")),
+    [archetypes],
+  );
+  const recommended = useMemo(
+    () => recommendAgentPacks(archetypes, briefText, 3),
+    [archetypes, briefText],
+  );
+  const recommendedKeys = useMemo(() => new Set(recommended.map((a) => a.key)), [recommended]);
+  const selectedArchetype =
+    archetypes.find((a) => a.key === archetypeKey) ??
+    specialists.find((a) => a.key === archetypeKey) ??
+    specialists[0];
+  const canAffordSpecialist = spendable >= specialistCredits;
   const providers = integrationsData?.data.providers ?? [];
   const connections = integrationsData?.data.connections ?? [];
   const connectedKeys = new Set(
@@ -371,7 +398,12 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
     const updates: Record<string, string> = {};
     if (companyName.trim()) updates.name = companyName.trim();
     if (industry) updates.industry = industry;
+    if (companySummary.trim()) updates.description = companySummary.trim();
     if (Object.keys(updates).length > 0) await updateWorkspace.mutateAsync(updates);
+    await updateOnboarding.mutateAsync({
+      company_summary: companySummary.trim() || undefined,
+      agent_needs: agentNeeds.trim() || undefined,
+    });
     for (const email of inviteEmails) {
       try {
         await inviteMember.mutateAsync({ email });
@@ -451,14 +483,44 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
 
   const submitAgent = async () => {
     if (!agentName.trim()) return;
-    await createAgent.mutateAsync({
-      display_name: agentName.trim(),
-      kind: "ai",
-      archetype_key: "generalist",
-      avatar_config: { primary_color: agentColor },
-    });
-    setAgentCreated(true);
-    setTimeout(() => setStep(4), 700);
+    setAgentError(null);
+    const brief = [companySummary.trim(), agentNeeds.trim()].filter(Boolean).join("\n\n");
+
+    try {
+      if (agentPath === "specialist") {
+        const key = archetypeKey === "blank" ? selectedArchetype?.key : archetypeKey;
+        if (!key || key === "blank") {
+          setAgentError("Choose a specialist domain.");
+          return;
+        }
+        if (!canAffordSpecialist) {
+          setAgentError(`Need ${specialistCredits} credits for a level-10 specialist.`);
+          return;
+        }
+        await createAgent.mutateAsync({
+          display_name: agentName.trim(),
+          kind: "ai",
+          archetype_key: key,
+          boost_key: "boost_l10",
+          knowledge_brief: brief || undefined,
+          role_title: selectedArchetype?.role_title,
+          department: selectedArchetype?.department,
+          avatar_config: { primary_color: agentColor },
+        });
+      } else {
+        await createAgent.mutateAsync({
+          display_name: agentName.trim(),
+          kind: "ai",
+          archetype_key: "blank",
+          knowledge_brief: brief || undefined,
+          avatar_config: { primary_color: agentColor },
+        });
+      }
+      setAgentCreated(true);
+      setTimeout(() => setStep(4), 700);
+    } catch (e) {
+      setAgentError(e instanceof ApiError ? e.message : e instanceof Error ? e.message : "Could not create agent.");
+    }
   };
 
   const submitProject = async () => {
@@ -633,7 +695,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                 </div>
               </div>
 
-              <Field label="What does your company do?">
+              <Field label="Industry">
                 <div className="flex flex-wrap gap-2">
                   {industries.map((ind) => (
                     <button
@@ -651,6 +713,27 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                     </button>
                   ))}
                 </div>
+              </Field>
+
+              <Field label="What does your company do?" hint="A short summary helps agents understand your context.">
+                <Textarea
+                  className="min-h-[88px]"
+                  placeholder="We build B2B billing software for SMBs…"
+                  value={companySummary}
+                  onChange={(e) => setCompanySummary(e.target.value)}
+                />
+              </Field>
+
+              <Field
+                label="What should your agents help with?"
+                hint="Describe the jobs you want agents to take on."
+              >
+                <Textarea
+                  className="min-h-[88px]"
+                  placeholder="Ship features from GitHub, draft marketing pages, research competitors…"
+                  value={agentNeeds}
+                  onChange={(e) => setAgentNeeds(e.target.value)}
+                />
               </Field>
 
               <Field label="Invite your team" hint="They'll get an email invite. You can also do this later.">
@@ -797,28 +880,69 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
           {step === 3 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-xl font-bold text-text">Meet your first AI agent</h2>
+                <h2 className="text-xl font-bold text-text">Choose your first agent</h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                  Your agent starts with a clean slate. As you send it missions it will
-                  learn, grow stronger, and gradually specialise — no setup required.
+                  Start blank at level 1, or unlock a level-10 specialist with domain knowledge packs
+                  already loaded.
                 </p>
               </div>
 
-              {/* 2-column layout: 3D preview left, controls right */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAgentPath("blank");
+                    setArchetypeKey("blank");
+                  }}
+                  className={cn(
+                    "rounded-xl border px-3.5 py-3 text-left transition-all",
+                    agentPath === "blank"
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-surface-raised/50 hover:border-primary/40",
+                  )}
+                >
+                  <span className="block text-xs font-semibold text-text">New agent · Level 1</span>
+                  <span className="mt-1 block text-[10px] leading-relaxed text-text-muted">
+                    Free. Basic skills, trains alone from your missions.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAgentPath("specialist");
+                    const first = recommended[0] ?? specialists[0];
+                    if (first) setArchetypeKey(first.key);
+                  }}
+                  className={cn(
+                    "rounded-xl border px-3.5 py-3 text-left transition-all",
+                    agentPath === "specialist"
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-surface-raised/50 hover:border-primary/40",
+                  )}
+                >
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-text">
+                    <Sparkles size={12} className="text-primary" />
+                    Specialist · Level 10
+                  </span>
+                  <span className="mt-1 block text-[10px] leading-relaxed text-text-muted">
+                    {formatNumber(specialistCredits)} credits · domain packs preloaded
+                  </span>
+                </button>
+              </div>
+
               <div className="flex items-start gap-5">
-                {/* 3D character preview */}
                 <div className="relative shrink-0 overflow-hidden rounded-xl border border-border bg-surface-raised/30">
                   <Suspense
                     fallback={
                       <div
                         className="flex items-center justify-center"
-                        style={{ width: 220, height: 300 }}
+                        style={{ width: 200, height: 260 }}
                       >
                         <Avatar name={agentName || "?"} size="xl" isAi color={agentColor} />
                       </div>
                     }
                   >
-                    <AgentPreview3D color={agentColor} name={agentName || "?"} width={220} height={300} />
+                    <AgentPreview3D color={agentColor} name={agentName || "?"} width={200} height={260} />
                   </Suspense>
                   {agentCreated && (
                     <span className="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-success text-white shadow-lg mk-fade-up">
@@ -827,8 +951,7 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                   )}
                 </div>
 
-                {/* Name + color */}
-                <div className="flex flex-1 flex-col gap-4 pt-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-4 pt-1">
                   <Field label="Name" required>
                     <input
                       className="mk-input"
@@ -856,12 +979,76 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                     </div>
                   </Field>
 
-                  <div className="rounded-lg border border-border bg-surface-raised/40 px-3 py-2.5 text-xs leading-relaxed text-text-muted">
-                    <Sparkles size={11} className="mb-0.5 mr-1 inline text-primary-light" />
-                    Skills and role are assigned automatically as your agent completes missions.
-                  </div>
+                  {agentPath === "blank" ? (
+                    <div className="rounded-lg border border-border bg-surface-raised/40 px-3 py-2.5 text-xs leading-relaxed text-text-muted">
+                      <Sparkles size={11} className="mb-0.5 mr-1 inline text-primary-light" />
+                      Starts weak on purpose — role and specialty emerge as it completes missions.
+                    </div>
+                  ) : (
+                    <Field
+                      label="Specialist domain"
+                      hint={
+                        recommended.length
+                          ? `Suggested for your brief: ${recommended.map((r) => r.name).join(", ")}`
+                          : `Balance: ${formatNumber(spendable)} credits`
+                      }
+                    >
+                      <div className="grid max-h-[220px] gap-2 overflow-y-auto sm:grid-cols-2">
+                        {specialists.map((archetype) => {
+                          const active = archetype.key === archetypeKey;
+                          const suggested = recommendedKeys.has(archetype.key);
+                          return (
+                            <button
+                              key={archetype.key}
+                              type="button"
+                              onClick={() => setArchetypeKey(archetype.key)}
+                              className={cn(
+                                "rounded-xl border px-3 py-2.5 text-left transition-colors",
+                                active
+                                  ? "border-primary bg-primary/10"
+                                  : "border-border bg-surface-raised/40 hover:border-primary/40",
+                              )}
+                            >
+                              <span className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-semibold text-text">{archetype.name}</span>
+                                {suggested && (
+                                  <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[9px] font-medium text-primary-light">
+                                    Match
+                                  </span>
+                                )}
+                              </span>
+                              <span className="mt-0.5 block text-[10px] text-text-muted line-clamp-2">
+                                {archetype.description}
+                              </span>
+                              <span className="mt-1 block text-[9px] text-text-secondary">
+                                L10 · {archetype.skill_count ?? archetype.corpus_doc_count ?? 0} skills
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </Field>
+                  )}
                 </div>
               </div>
+
+              {agentPath === "specialist" && !canAffordSpecialist && (
+                <p className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-xs text-warning">
+                  You need {formatNumber(specialistCredits)} credits (you have {formatNumber(spendable)}).
+                 {" "}
+                  <button type="button" className="underline" onClick={() => setStep(5)}>
+                    Choose a plan / buy credits
+                  </button>
+                  {" "}
+                  or continue with a free blank agent.
+                </p>
+              )}
+
+              {agentError && (
+                <p className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-xs text-danger">
+                  {agentError}
+                </p>
+              )}
 
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => setStep(2)}>
@@ -873,12 +1060,21 @@ export function OnboardingWizard({ onFinish }: { onFinish: () => void }) {
                 <Button
                   className="flex-1"
                   loading={busy}
-                  disabled={!agentName.trim() || agentCreated}
+                  disabled={
+                    !agentName.trim() ||
+                    agentCreated ||
+                    (agentPath === "specialist" && !canAffordSpecialist)
+                  }
                   onClick={submitAgent}
                 >
                   {agentCreated ? (
                     <>
                       <Check size={14} /> Created!
+                    </>
+                  ) : agentPath === "specialist" ? (
+                    <>
+                      <Coins size={14} /> Unlock {selectedArchetype?.name ?? "specialist"} ·{" "}
+                      {formatNumber(specialistCredits)}
                     </>
                   ) : (
                     <>

@@ -24,7 +24,7 @@ defmodule Mokaid.Knowledge.Workers.IngestionWorker do
       item ->
         case build_payload(item) do
           {:ok, payload} ->
-            dispatch(config[:dispatch], payload, config)
+            dispatch(config[:dispatch], payload, config, item)
 
           {:error, :nothing_to_ingest} ->
             {:cancel, :no_text_to_ingest}
@@ -90,27 +90,56 @@ defmodule Mokaid.Knowledge.Workers.IngestionWorker do
     end
   end
 
-  defp dispatch(:sqs, payload, config) do
-    config[:sqs_queue_url]
-    |> ExAws.SQS.send_message(Jason.encode!(Map.put(payload, :type, "ingest")))
-    |> ExAws.request()
-    |> case do
-      {:ok, _} -> :ok
-      {:error, reason} -> {:error, inspect(reason)}
+  # Tests / offline mode: do not hit the network; leave the item untouched.
+  defp dispatch(:none, _payload, _config, _item), do: {:cancel, :ai_worker_disabled}
+
+  defp dispatch(:sqs, payload, config, item) do
+    queue_url = config[:sqs_queue_url]
+
+    if blank?(queue_url) do
+      Knowledge.mark_failed(item, "AI worker SQS queue URL is not configured")
+      {:cancel, :sqs_not_configured}
+    else
+      queue_url
+      |> ExAws.SQS.send_message(Jason.encode!(Map.put(payload, :type, "ingest")))
+      |> ExAws.request()
+      |> case do
+        {:ok, _} -> :ok
+        {:error, reason} -> {:error, inspect(reason)}
+      end
     end
   end
 
-  defp dispatch(_http, payload, config) do
-    case Req.post(
-           url: "#{config[:url]}/ingest",
-           json: payload,
-           headers: [{"authorization", "Bearer #{config[:token]}"}],
-           receive_timeout: 120_000,
-           retry: false
-         ) do
-      {:ok, %{status: status}} when status in 200..299 -> :ok
-      {:ok, %{status: status}} -> {:error, "ai worker returned #{status}"}
-      {:error, reason} -> {:error, inspect(reason)}
+  defp dispatch(:http, payload, config, item) do
+    url = config[:url]
+
+    if blank?(url) or not String.contains?(to_string(url), "://") do
+      Knowledge.mark_failed(item, "AI worker URL is not configured")
+      {:cancel, :ai_worker_url_missing}
+    else
+      case Req.post(
+             url: "#{url}/ingest",
+             json: payload,
+             headers: [{"authorization", "Bearer #{config[:token]}"}],
+             receive_timeout: 120_000,
+             retry: false
+           ) do
+        {:ok, %{status: status}} when status in 200..299 ->
+          :ok
+
+        {:ok, %{status: status}} ->
+          {:error, "ai worker returned #{status}"}
+
+        {:error, reason} ->
+          {:error, inspect(reason)}
+      end
     end
   end
+
+  # Unknown dispatch values fall back to HTTP (legacy).
+  defp dispatch(_other, payload, config, item), do: dispatch(:http, payload, config, item)
+
+  defp blank?(nil), do: true
+  defp blank?(""), do: true
+  defp blank?(_), do: false
 end

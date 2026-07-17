@@ -1,0 +1,1085 @@
+{
+  "domain": "writer_content",
+  "pack_version": "3d28bea59b8b",
+  "skill_count": 77,
+  "skills": [
+    {
+      "name": "README.instructions",
+      "slug": "readme-instructions",
+      "description": "",
+      "path": "skills/readme-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/docs/README.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 182444
+    },
+    {
+      "name": "adobe-illustrator-scripting",
+      "slug": "adobe-illustrator-scripting",
+      "description": "Write, debug, and optimize Adobe Illustrator automation scripts using ExtendScript (JavaScript/JSX). Use when creating or modifying scripts that manipulate documents, layers, paths, text frames, colors, symbols, artboards, or any Illustrator DOM objects. Covers the complete JavaScript object model, coordinate system, measurement units, export workflows, and scripting best practices.",
+      "path": "skills/adobe-illustrator-scripting.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/adobe-illustrator-scripting/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 34578
+    },
+    {
+      "name": "technical-content-evaluator.agent",
+      "slug": "technical-content-evaluator-agent",
+      "description": "Elite technical content editor and curriculum architect for evaluating technical training materials, documentation, and educational content. Reviews for technical accuracy, pedagogical excellence, content flow, code validation, and ensures A-grade quality standards.",
+      "path": "skills/technical-content-evaluator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/technical-content-evaluator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 25897
+    },
+    {
+      "name": "aws-resource-query",
+      "slug": "aws-resource-query",
+      "description": "Query AWS resources using natural language. Covers EC2, S3, RDS, Lambda, ECS, EKS, Secrets Manager, IAM, VPC, networking, messaging, and more. Strictly read-only — no writes, deletes, or mutations.",
+      "path": "skills/aws-resource-query.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/aws-resource-query/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 21836
+    },
+    {
+      "name": "freecad-scripts",
+      "slug": "freecad-scripts",
+      "description": "Expert skill for writing FreeCAD Python scripts, macros, and automation. Use when asked to create FreeCAD models, parametric objects, Part/Mesh/Sketcher scripts, workbench tools, GUI dialogs with PySide, Coin3D scenegraph manipulation, or any FreeCAD Python API task. Covers FreeCAD scripting basics, geometry creation, FeaturePython objects, interface tools, and macro development.",
+      "path": "skills/freecad-scripts.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/freecad-scripts/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 20891
+    },
+    {
+      "name": "dart-n-flutter.instructions",
+      "slug": "dart-n-flutter-instructions",
+      "description": "Instructions for writing Dart and Flutter code following the official recommendations.",
+      "path": "skills/dart-n-flutter-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/dart-n-flutter.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 20636
+    },
+    {
+      "name": "prompt-optimizer",
+      "slug": "prompt-optimizer",
+      "description": "Turn any rough prompt, half-formed idea, or task description into a finished, ready-to-send prompt optimized for any LLM model inside a chat interface — NOT the API. Use this skill whenever the user wants to write, rewrite, optimize, improve, sharpen, or polish a prompt for chat. Trigger phrases include \"rewrite this prompt\", \"make this a better prompt\", \"optimize this prompt\", \"turn this into a prompt\", \"help me prompt this\", \"draft a prompt that...\", \"I want to ask...\", or whenever the user pa",
+      "path": "skills/prompt-optimizer.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/prompt-optimizer/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 18890
+    },
+    {
+      "name": "update-docs-on-code-change.instructions",
+      "slug": "update-docs-on-code-change-instructions",
+      "description": "Automatically update README.md and documentation files when application code changes require documentation updates",
+      "path": "skills/update-docs-on-code-change-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/update-docs-on-code-change.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 18022
+    },
+    {
+      "name": "batch-files",
+      "slug": "batch-files",
+      "description": "Expert-level Windows batch file (.bat/.cmd) skill for writing, debugging, and maintaining CMD scripts. Use when asked to \"create a batch file\", \"write a .bat script\", \"automate a Windows task\", \"CMD scripting\", \"batch automation\", \"scheduled task script\", \"Windows shell script\", or when working with .bat/.cmd files in the workspace. Covers cmd.exe syntax, environment variables, control flow, string processing, error handling, and integration with system tools.",
+      "path": "skills/batch-files.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/batch-files/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 16733
+    },
+    {
+      "name": "go.instructions",
+      "slug": "go-instructions",
+      "description": "Instructions for writing Go code following idiomatic Go practices and community standards",
+      "path": "skills/go-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/go.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 16091
+    },
+    {
+      "name": "microsoft learn contributor.agent",
+      "slug": "microsoft-learn-contributor-agent",
+      "description": "Microsoft Learn Contributor chatmode for editing and writing Microsoft Learn documentation following Microsoft Writing Style Guide and authoring best practices.",
+      "path": "skills/microsoft-learn-contributor-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/microsoft_learn_contributor.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15716
+    },
+    {
+      "name": "spec-driven-workflow",
+      "slug": "spec-driven-workflow",
+      "description": "Use when the user asks to write specs before code, define acceptance criteria, plan features before implementation, generate tests from specifications, or follow spec-first development practices.",
+      "path": "skills/spec-driven-workflow.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/spec-driven-workflow/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15247
+    },
+    {
+      "name": "write-coding-standards-from-file",
+      "slug": "write-coding-standards-from-file",
+      "description": "Write a coding standards document for a project using the coding styles from the file(s) and/or folder(s) passed as arguments in the prompt.",
+      "path": "skills/write-coding-standards-from-file.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/write-coding-standards-from-file/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15174
+    },
+    {
+      "name": "roundup-setup",
+      "slug": "roundup-setup",
+      "description": "Interactive onboarding that learns your communication style, audiences, and data sources to configure personalized status briefings. Paste in examples of updates you already write, answer a few questions, and roundup calibrates itself to your workflow.",
+      "path": "skills/roundup-setup.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/roundup-setup/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14377
+    },
+    {
+      "name": "community-docs",
+      "slug": "community-docs",
+      "description": "",
+      "path": "skills/community-docs.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/python-pypi-package-builder/references/community-docs.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13213
+    },
+    {
+      "name": "zero-hallucination-coder",
+      "slug": "zero-hallucination-coder",
+      "description": "Runs a disciplined Discuss -> Map -> Decompose -> Execute -> Verify loop that grounds code in verified structure — no invented APIs, no assumed imports, no placeholder code — with a lazy-senior-dev YAGNI ladder that deletes unnecessary code before it is written. Use when a coding task is high-stakes, complex, or spans existing code (auth, databases, migrations, multi-file features), or when the user explicitly asks to plan carefully before coding, avoid hallucinated code, or work rigorously. Not",
+      "path": "skills/zero-hallucination-coder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/zero-hallucination-coder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13095
+    },
+    {
+      "name": "atlassian-templates",
+      "slug": "atlassian-templates",
+      "description": "Atlassian Template and Files Creator/Modifier expert for creating, modifying, and managing Jira and Confluence templates, blueprints, custom layouts, reusable components, and standardized content structures. Use when building org-wide templates, custom blueprints, page layouts, and automated content generation.",
+      "path": "skills/atlassian-templates.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/atlassian-templates/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12057
+    },
+    {
+      "name": "rhino3d-scripts",
+      "slug": "rhino3d-scripts",
+      "description": "Authoring and debugging scripts for Rhinoceros 3D (Rhino 8 and later). Use when asked to write RhinoScript (VBScript / .rvb / .vbs), RhinoPython, or RhinoCommon-based scripts; automate Rhino modeling tasks; build command macros; manipulate Rhino geometry, layers, blocks, or document objects; pick objects from the viewport; control redraw and undo; or load and run scripts from the Rhino Script Editor. Covers `rhinoscriptsyntax`, `scriptcontext`, the `Rhino.*` RhinoCommon namespaces (`Rhino.Geomet",
+      "path": "skills/rhino3d-scripts.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/rhino3d-scripts/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11251
+    },
+    {
+      "name": "react18-test-guardian.agent",
+      "slug": "react18-test-guardian-agent",
+      "description": "Test suite fixer and verifier for React 16/17 → 18.3.1 migration. Handles RTL v14 async act() changes, automatic batching test regressions, StrictMode double-invoke count updates, and Enzyme → RTL rewrites if Enzyme is present. Loops until zero test failures. Invoked as subagent by react18-commander.",
+      "path": "skills/react18-test-guardian-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react18-test-guardian.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10614
+    },
+    {
+      "name": "se-technical-writer.agent",
+      "slug": "se-technical-writer-agent",
+      "description": "Technical writing specialist for creating developer documentation, technical blogs, tutorials, and educational content",
+      "path": "skills/se-technical-writer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/se-technical-writer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10524
+    },
+    {
+      "name": "em-dash",
+      "slug": "em-dash",
+      "description": "Expert on the history, origin, and correct use of the em dash. Use when writing or reviewing code, comments, or data files to avoid em and en dashes, defaulting to never using them and replacing any found with a hyphen (-). Includes strong knowledge of punctuation marks and the proper usage of punctuation characters when writing comments.",
+      "path": "skills/em-dash.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/em-dash/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9283
+    },
+    {
+      "name": "spark-performance.agent",
+      "slug": "spark-performance-agent",
+      "description": "Diagnose PySpark performance bottlenecks, distributed execution pitfalls, and suggest Spark-native rewrites and safer distributed patterns (incl. mapInPandas guidance).",
+      "path": "skills/spark-performance-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/spark-performance.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8995
+    },
+    {
+      "name": "fable-goal",
+      "slug": "fable-goal",
+      "description": "Convert a rambling description of a desired outcome into one polished, autonomous /goal prompt ready to paste into a fresh session. Use when the user says \"/fable-goal\", \"turn this into a goal prompt\", \"write me a fable prompt\", \"write the prompt that builds X\", or rambles about something they want made and asks for the prompt that makes it happen. The output is a single copy-paste prompt, never the build itself. Do NOT use when the user wants the thing built right now in this session — only whe",
+      "path": "skills/fable-goal.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/fable-goal/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8910
+    },
+    {
+      "name": "handoff",
+      "slug": "handoff",
+      "description": "Compact the current conversation into a handoff document for another agent to pick up. Save to a user-configured location (OS temp, home folder, or per-project .handoff/), redact secrets before write, suggest skills for the next session, and auto-load the latest handoff on the next SessionStart. First-run setup asks where to save so the project folder never gets cluttered. Use when the user says 'hand this off', 'handoff doc', 'summarize this for a new session', 'compact this conversation', 'I'm",
+      "path": "skills/handoff.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/handoff/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8805
+    },
+    {
+      "name": "zoom-mcp",
+      "slug": "zoom-mcp",
+      "description": "Guidance for the bundled Zoom MCP connectors. Use after routing to an MCP workflow when planning or troubleshooting tool-based access to meetings, recordings, meeting assets, or transcripts. Route Zoom Docs requests to the dedicated Docs MCP server and Whiteboard-specific requests to `zoom-mcp/whiteboard`.",
+      "path": "skills/zoom-mcp.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/zoom-mcp/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 8518
+    },
+    {
+      "name": "acquire-codebase-knowledge",
+      "slug": "acquire-codebase-knowledge",
+      "description": "Use this skill when the user explicitly asks to map, document, or onboard into an existing codebase. Trigger for prompts like \"map this codebase\", \"document this architecture\", \"onboard me to this repo\", or \"create codebase docs\". Do not trigger for routine feature implementation, bug fixes, or narrow code edits unless the user asks for repository-level discovery.",
+      "path": "skills/acquire-codebase-knowledge.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/acquire-codebase-knowledge/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8119
+    },
+    {
+      "name": "use-cliche-data-in-docs.instructions",
+      "slug": "use-cliche-data-in-docs-instructions",
+      "description": "Ensure documentation and examples use only generic, cliche placeholder data — never real or sensitive data sourced from local scripts, configuration, task files, or prompt context.",
+      "path": "skills/use-cliche-data-in-docs-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/use-cliche-data-in-docs.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7657
+    },
+    {
+      "name": "astro.instructions",
+      "slug": "astro-instructions",
+      "description": "Astro 7 development standards and best practices for content-driven websites",
+      "path": "skills/astro-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/astro.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7548
+    },
+    {
+      "name": "pester-should-migration",
+      "slug": "pester-should-migration",
+      "description": "Experimental (preview) Pester skill for migrating classic Should -Be (v5) assertion syntax to the new Should-* (v6) assertions (note the hyphen, no space), e.g. `Should -Be` -> `Should-Be`, `Should -Not -Be` -> `Should-NotBe`. Tracks Pester 6, which is still a release candidate, so this guidance may change; verified against Pester 6.0.0-rc2. Use when converting Pester v5 assertions to Pester v6 Should-* operators, modernizing a Pester test suite, or when a user asks to migrate, convert, or rewri",
+      "path": "skills/pester-should-migration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/pester-should-migration/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7210
+    },
+    {
+      "name": "gem-documentation-writer.agent",
+      "slug": "gem-documentation-writer-agent",
+      "description": "Technical documentation, README files, API docs, diagrams, walkthroughs.",
+      "path": "skills/gem-documentation-writer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-documentation-writer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6843
+    },
+    {
+      "name": "unit-test-vue-pinia",
+      "slug": "unit-test-vue-pinia",
+      "description": "Write and review unit tests for Vue 3 + TypeScript + Vitest + Pinia codebases. Use when creating or updating tests for components, composables, and stores; mocking Pinia with createTestingPinia; applying Vue Test Utils patterns; and enforcing black-box assertions over implementation details.",
+      "path": "skills/unit-test-vue-pinia.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/unit-test-vue-pinia/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6747
+    },
+    {
+      "name": "finnish-humanizer",
+      "slug": "finnish-humanizer",
+      "description": "Detect and remove AI-generated markers from Finnish text, making it sound like a native Finnish speaker wrote it. Use when asked to \"humanize\", \"naturalize\", or \"remove AI feel\" from Finnish text, or when editing .md/.txt files containing Finnish content. Identifies 26 patterns (12 Finnish-specific + 14 universal) and 4 style markers.",
+      "path": "skills/finnish-humanizer.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/finnish-humanizer/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6551
+    },
+    {
+      "name": "grill-with-docs",
+      "slug": "grill-with-docs",
+      "description": "Docs-anchored grilling session — challenges a plan against the project's existing language (CONTEXT.md) and recorded decisions (docs/adr/), and updates those files inline as terminology and decisions crystallise. Use when user wants to stress-test a plan against documented domain language, or mentions \"grill with docs\".",
+      "path": "skills/grill-with-docs.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/grill-with-docs/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6459
+    },
+    {
+      "name": "exclude-prompt-data.instructions",
+      "slug": "exclude-prompt-data-instructions",
+      "description": "Write only the resulting content into files. Never echo prompt instructions, rationale, or meta-commentary into documentation, comments, or code being produced from a prompt.",
+      "path": "skills/exclude-prompt-data-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/exclude-prompt-data.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6331
+    },
+    {
+      "name": "react19-migrator.agent",
+      "slug": "react19-migrator-agent",
+      "description": "Source code migration engine. Rewrites every deprecated React pattern to React 19 APIs - forwardRef, defaultProps, ReactDOM.render, legacy context, string refs, useRef(). Uses memory to checkpoint progress per file. Never touches test files. Returns zero-deprecated-pattern confirmation to commander.",
+      "path": "skills/react19-migrator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react19-migrator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5886
+    },
+    {
+      "name": "extract",
+      "slug": "extract",
+      "description": "Turn a proven pattern or debugging solution into a standalone reusable skill with SKILL.md, reference docs, and examples. Use when the user runs /si:extract or asks to package a recurring solution from memory into a skill.",
+      "path": "skills/extract.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/extract/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5390
+    },
+    {
+      "name": "microsoft-docs",
+      "slug": "microsoft-docs",
+      "description": "Query official Microsoft documentation to find concepts, tutorials, and code examples across Azure, .NET, Agent Framework, Aspire, VS Code, GitHub, and more. Uses Microsoft Learn MCP as the default, with Context7 and Aspire MCP for content that lives outside learn.microsoft.com.",
+      "path": "skills/microsoft-docs.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/microsoft-docs/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5347
+    },
+    {
+      "name": "ai-team-orchestration",
+      "slug": "ai-team-orchestration",
+      "description": "Bootstrap and run a multi-agent AI development team. Use when: starting a new software project with AI agents, setting up parallel dev/QA teams, creating sprint plans, writing brainstorm prompts with distinct agent voices, recovering a project workflow, or planning sprints.",
+      "path": "skills/ai-team-orchestration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/ai-team-orchestration/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5272
+    },
+    {
+      "name": "component-architecture",
+      "slug": "component-architecture",
+      "description": "",
+      "path": "skills/component-architecture.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react-container-presentation-component/references/component-architecture.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5239
+    },
+    {
+      "name": "workiq-copilot",
+      "slug": "workiq-copilot",
+      "description": "Guides the Copilot CLI on how to use the WorkIQ CLI/MCP server to query Microsoft 365 Copilot data (emails, meetings, docs, Teams, people) for live context, summaries, and recommendations.",
+      "path": "skills/workiq-copilot.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/workiq-copilot/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5209
+    },
+    {
+      "name": "oo-component-documentation",
+      "slug": "oo-component-documentation",
+      "description": "Create or update standardized object-oriented component documentation using a shared template plus mode-specific guidance for new and existing docs.",
+      "path": "skills/oo-component-documentation.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/oo-component-documentation/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5178
+    },
+    {
+      "name": "compose-outreach",
+      "slug": "compose-outreach",
+      "description": "Generate personalized outreach messages using Common Room signals. Triggers on 'draft outreach to [person]', 'write an email to [name]', 'compose a message for [contact]', or any outreach drafting request.",
+      "path": "skills/compose-outreach.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/common-room/skills/compose-outreach/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5177
+    },
+    {
+      "name": "karpathy-coder",
+      "slug": "karpathy-coder",
+      "description": "Use when writing, reviewing, or committing code to enforce Karpathy's 4 coding principles — surface assumptions before coding, keep it simple, make surgical changes, define verifiable goals. Triggers on \"review my diff\", \"check complexity\", \"am I overcomplicating this\", \"karpathy check\", \"before I commit\", or any code quality concern where the LLM might be overcoding.",
+      "path": "skills/karpathy-coder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/karpathy-coder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5043
+    },
+    {
+      "name": "create-viz",
+      "slug": "create-viz",
+      "description": "Create publication-quality visualizations with Python. Use when turning query results or a DataFrame into a chart, selecting the right chart type for a trend or comparison, generating a plot for a report or presentation, or needing an interactive chart with hover and zoom.",
+      "path": "skills/create-viz.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/data/skills/create-viz/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4794
+    },
+    {
+      "name": "self-explanatory-code-commenting.instructions",
+      "slug": "self-explanatory-code-commenting-instructions",
+      "description": "Guidelines for GitHub Copilot to write comments to achieve self-explanatory code with less comments. Examples are in JavaScript but it should work on any language that has comments.",
+      "path": "skills/self-explanatory-code-commenting-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/self-explanatory-code-commenting.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4666
+    },
+    {
+      "name": "performance-review",
+      "slug": "performance-review",
+      "description": "Structure a performance review with self-assessment, manager template, and calibration prep. Use when review season kicks off and you need a self-assessment template, writing a manager review for a direct report, prepping rating distributions and promotion cases for calibration, or turning vague feedback into specific behavioral examples.",
+      "path": "skills/performance-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/human-resources/skills/performance-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4449
+    },
+    {
+      "name": "context7.instructions",
+      "slug": "context7-instructions",
+      "description": "Use Context7 for authoritative external docs and API references when local context is insufficient",
+      "path": "skills/context7-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/context7.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4275
+    },
+    {
+      "name": "mkdocs-translations",
+      "slug": "mkdocs-translations",
+      "description": "Generate a language translation for a mkdocs documentation stack.",
+      "path": "skills/mkdocs-translations.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mkdocs-translations/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4175
+    },
+    {
+      "name": "team-communications",
+      "slug": "team-communications",
+      "description": "Write internal company communications — 3P updates (Progress/Plans/Problems), company-wide newsletters, FAQ roundups, incident reports, leadership updates, status reports, project updates, and general internal comms. Use this skill any time the user asks to draft, edit, or format something meant for internal audiences. Trigger on keywords like \"3P\", \"weekly update\", \"newsletter\", \"FAQ\", \"internal comms\", \"status report\", \"company update\", \"team update\", \"incident report\", or any request to summa",
+      "path": "skills/team-communications.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/team-communications/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3676
+    },
+    {
+      "name": "microsoft-code-reference",
+      "slug": "microsoft-code-reference",
+      "description": "Look up Microsoft API references, find working code samples, and verify SDK code is correct. Use when working with Azure SDKs, .NET libraries, or Microsoft APIs—to find the right method, check parameters, get working examples, or troubleshoot errors. Catches hallucinated methods, wrong signatures, and deprecated patterns by querying official docs.",
+      "path": "skills/microsoft-code-reference.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/microsoft-code-reference/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3643
+    },
+    {
+      "name": "react-container-presentation-component",
+      "slug": "react-container-presentation-component",
+      "description": "Create a React component using the Container/Presentation pattern in src/components by asking for the component name and type (ui or features), then scaffold files that follow this repository's TypeScript, Storybook, and SCSS conventions. Use when the user explicitly asks for a Container/Presentation-based component or runs /react-container-presentation-component.",
+      "path": "skills/react-container-presentation-component.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react-container-presentation-component/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3629
+    },
+    {
+      "name": "write-a-skill",
+      "slug": "write-a-skill",
+      "description": "Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, build, or author a new skill.",
+      "path": "skills/write-a-skill.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/write-a-skill/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3568
+    },
+    {
+      "name": "dotnet-timezone",
+      "slug": "dotnet-timezone",
+      "description": ".NET timezone handling guidance for C# applications. Use when working with TimeZoneInfo, DateTimeOffset, NodaTime, UTC conversion, daylight saving time, scheduling across timezones, cross-platform Windows/IANA timezone IDs, or when a .NET user needs the timezone for a city, address, region, or country and copy-paste-ready C# code.",
+      "path": "skills/dotnet-timezone.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/dotnet-timezone/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3522
+    },
+    {
+      "name": "tdd-red.agent",
+      "slug": "tdd-red-agent",
+      "description": "Guide test-first development by writing failing tests that describe desired behaviour from GitHub issue context before implementation exists.",
+      "path": "skills/tdd-red-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/tdd-red.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3434
+    },
+    {
+      "name": "close-month",
+      "slug": "close-month",
+      "description": "Closes the month — reconciles QB vs payment processors, flags gaps, writes P&L narrative, exports close packet. Accepts optional month and save-to arguments.",
+      "path": "skills/close-month.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/close-month/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3384
+    },
+    {
+      "name": "cms-platform-workflows",
+      "slug": "cms-platform-workflows",
+      "description": "",
+      "path": "skills/cms-platform-workflows.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/content-management-systems/references/cms-platform-workflows.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3314
+    },
+    {
+      "name": "markdown-content-creation.instructions",
+      "slug": "markdown-content-creation-instructions",
+      "description": "Markdown guidelines and content creation standards for blog posts",
+      "path": "skills/markdown-content-creation-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/markdown-content-creation.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3137
+    },
+    {
+      "name": "react18-enzyme-to-rtl",
+      "slug": "react18-enzyme-to-rtl",
+      "description": "Provides exact Enzyme → React Testing Library migration patterns for React 18 upgrades. Use this skill whenever Enzyme tests need to be rewritten - shallow, mount, wrapper.find(), wrapper.simulate(), wrapper.prop(), wrapper.state(), wrapper.instance(), Enzyme configure/Adapter calls, or any test file that imports from enzyme. This skill covers the full API mapping and the philosophy shift from implementation testing to behavior testing. Always read this skill before rewriting Enzyme tests - do n",
+      "path": "skills/react18-enzyme-to-rtl.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react18-enzyme-to-rtl/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3053
+    },
+    {
+      "name": "react18-lifecycle-patterns",
+      "slug": "react18-lifecycle-patterns",
+      "description": "Provides exact before/after migration patterns for the three unsafe class component lifecycle methods - componentWillMount, componentWillReceiveProps, and componentWillUpdate - targeting React 18.3.1. Use this skill whenever a class component needs its lifecycle methods migrated, when deciding between getDerivedStateFromProps vs componentDidUpdate, when adding getSnapshotBeforeUpdate, or when fixing React 18 UNSAFE_ lifecycle warnings. Always use this skill before writing any lifecycle migration",
+      "path": "skills/react18-lifecycle-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react18-lifecycle-patterns/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2968
+    },
+    {
+      "name": "quarterly-review",
+      "slug": "quarterly-review",
+      "description": "Generates a full QBR narrative — revenue trend, margin trend, customer health, top opportunities and risks — as a presentation-ready PDF or deck. Accepts optional quarter and save-to arguments.",
+      "path": "skills/quarterly-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/quarterly-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2738
+    },
+    {
+      "name": "documentation-writer",
+      "slug": "documentation-writer",
+      "description": "Diátaxis Documentation Expert. An expert technical writer specializing in creating high-quality software documentation, guided by the principles and structure of the Diátaxis technical documentation authoring framework.",
+      "path": "skills/documentation-writer.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/documentation-writer/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2472
+    },
+    {
+      "name": "ai-team-qa.agent",
+      "slug": "ai-team-qa-agent",
+      "description": "AI QA engineer agent (Ivy). Use when: testing features, running E2E tests, playtesting, filing bug reports, writing test automation, creating QA sign-off documents, or verifying bug fixes. Reports bugs as GitHub Issues.",
+      "path": "skills/ai-team-qa-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/ai-team-qa.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2457
+    },
+    {
+      "name": "linkedin-post-writer.agent",
+      "slug": "linkedin-post-writer-agent",
+      "description": "Draft and format compelling LinkedIn posts with Unicode bold/italic styling, visual separators, and engagement-optimized structure. Transforms raw content, technical material, images, or ideas into copy-paste-ready LinkedIn posts.",
+      "path": "skills/linkedin-post-writer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/linkedin-post-writer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2435
+    },
+    {
+      "name": "wiki-ingest",
+      "slug": "wiki-ingest",
+      "description": "Ingest a source file from raw/ into the LLM Wiki — read, discuss, write summary page, update cross-references across 5-15 pages, regenerate index, append to log. Usage /wiki-ingest <path-to-source>",
+      "path": "skills/wiki-ingest.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/wiki-ingest/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2253
+    },
+    {
+      "name": "ai-team-producer.agent",
+      "slug": "ai-team-producer-agent",
+      "description": "AI team producer agent (Remy). Use when: planning sprints, creating PROJECT_BRIEF.md, triaging bugs, merging PRs, coordinating between dev and QA teams, filing GitHub Issues, writing sprint plans, running brainstorms, or recovering project context. NEVER writes application code.",
+      "path": "skills/ai-team-producer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/ai-team-producer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2234
+    },
+    {
+      "name": "board",
+      "slug": "board",
+      "description": "Read, write, and browse the AgentHub message board for agent coordination. Use when the user runs /hub:board or asks to post, read, or inspect coordination messages between competing AgentHub agents.",
+      "path": "skills/board.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/board/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "writer_content",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2179
+    },
+    {
+      "name": "process-doc",
+      "slug": "process-doc",
+      "description": "Document a business process — flowcharts, RACI, and SOPs. Use when formalizing a process that lives in someone's head, building a RACI to clarify who owns what, writing an SOP for a handoff or audit, or capturing the exceptions and edge cases of how work actually gets done.",
+      "path": "skills/process-doc.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/operations/skills/process-doc/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2131
+    },
+    {
+      "name": "status-report",
+      "slug": "status-report",
+      "description": "Generate a status report with KPIs, risks, and action items. Use when writing a weekly or monthly update for leadership, summarizing project health with green/yellow/red status, surfacing risks and decisions that need stakeholder attention, or turning a pile of project tracker activity into a readable narrative.",
+      "path": "skills/status-report.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/operations/skills/status-report/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2121
+    },
+    {
+      "name": "runbook",
+      "slug": "runbook",
+      "description": "Create or update an operational runbook for a recurring task or procedure. Use when documenting a task that on-call or ops needs to run repeatably, turning tribal knowledge into exact step-by-step commands, adding troubleshooting and rollback steps to an existing procedure, or writing escalation paths for when things go wrong.",
+      "path": "skills/runbook.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/operations/skills/runbook/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "writer_content",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2108
+    },
+    {
+      "name": "javascript-typescript-jest",
+      "slug": "javascript-typescript-jest",
+      "description": "Best practices for writing JavaScript/TypeScript tests using Jest, including mocking strategies, test structure, and common patterns.",
+      "path": "skills/javascript-typescript-jest.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/javascript-typescript-jest/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2044
+    },
+    {
+      "name": "react18-batching-patterns",
+      "slug": "react18-batching-patterns",
+      "description": "Provides exact patterns for diagnosing and fixing automatic batching regressions in React 18 class components. Use this skill whenever a class component has multiple setState calls in an async method, inside setTimeout, inside a Promise .then() or .catch(), or in a native event handler. Use it before writing any flushSync call - the decision tree here prevents unnecessary flushSync overuse. Also use this skill when fixing test failures caused by intermediate state assertions that break after Rea",
+      "path": "skills/react18-batching-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react18-batching-patterns/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1912
+    },
+    {
+      "name": "react18-legacy-context",
+      "slug": "react18-legacy-context",
+      "description": "Provides the complete migration pattern for React legacy context API (contextTypes, childContextTypes, getChildContext) to the modern createContext API. Use this skill whenever migrating legacy context in class components - this is always a cross-file migration requiring the provider AND all consumers to be updated together. Use it before touching any contextTypes or childContextTypes code, because migrating only the provider without the consumers (or vice versa) will cause a runtime failure. Al",
+      "path": "skills/react18-legacy-context.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react18-legacy-context/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1780
+    },
+    {
+      "name": "react18-string-refs",
+      "slug": "react18-string-refs",
+      "description": "Provides exact migration patterns for React string refs (ref=\"name\" + this.refs.name) to React.createRef() in class components. Use this skill whenever migrating string ref usage - including single element refs, multiple refs in a component, refs in lists, callback refs, and refs passed to child components. Always use this skill before writing any ref migration code - the multiple-refs-in-list pattern is particularly tricky and this skill prevents the most common mistakes. Use it for React 18.3.",
+      "path": "skills/react18-string-refs.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react18-string-refs/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1479
+    },
+    {
+      "name": "typescript-and-scss-rules",
+      "slug": "typescript-and-scss-rules",
+      "description": "",
+      "path": "skills/typescript-and-scss-rules.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react-container-presentation-component/references/typescript-and-scss-rules.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1362
+    },
+    {
+      "name": "java-docs",
+      "slug": "java-docs",
+      "description": "Ensure that Java types are documented with Javadoc comments and follow best practices for documentation.",
+      "path": "skills/java-docs.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/java-docs/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1294
+    },
+    {
+      "name": "nodejs-javascript-vitest.instructions",
+      "slug": "nodejs-javascript-vitest-instructions",
+      "description": "Guidelines for writing Node.js and JavaScript code with Vitest testing",
+      "path": "skills/nodejs-javascript-vitest-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/nodejs-javascript-vitest.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1293
+    },
+    {
+      "name": "boost-prompt",
+      "slug": "boost-prompt",
+      "description": "Interactive prompt refinement workflow: interrogates scope, deliverables, constraints; copies final markdown to clipboard; never writes code. Requires the Joyride extension.",
+      "path": "skills/boost-prompt.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/boost-prompt/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "writer_content",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1194
+    }
+  ]
+}

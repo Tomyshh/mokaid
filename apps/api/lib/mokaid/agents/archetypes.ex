@@ -4,89 +4,257 @@ defmodule Mokaid.Agents.Archetypes do
 
   Clients may only send archetype/boost keys — all skill levels, roles and
   credit prices are owned by this module.
+
+  Dual-path creation:
+  - `blank` — level-1 agent with weak starter skills (free)
+  - specialist archetypes — optionally purchased at level 10 via `boost_l10`
   """
 
+  alias Mokaid.Agents.DomainPacks
   alias Mokaid.Agents.Progression
 
-  @skill_seed_level 40
-  @generalist_skills ~w(research planning)
+  @specialist_skill_seed 40
+  @blank_skill_seed 15
+  @blank_skills ~w(research planning)
+
+  @aliases %{
+    "generalist" => "blank",
+    "data_analyst" => "data_scientist",
+    "designer" => "design",
+    "writer" => "writer_content",
+    "media" => "media_video",
+    "presenter" => "writer_content"
+  }
 
   @archetypes [
     %{
-      key: "generalist",
-      name: "Generalist",
+      key: "blank",
+      name: "New agent",
       domain: nil,
-      description: "Starts from scratch and learns from every mission.",
-      role_title: "Generalist",
+      tier: "blank",
+      description:
+        "Starts at level 1 with basic skills. Chooses a role and trains through missions.",
+      role_title: "Trainee",
       department: "Operations",
-      skills: @generalist_skills
+      skills: @blank_skills,
+      tags: ~w(blank trainee general learn),
+      suggested_mcp: []
     },
     %{
       key: "developer",
       name: "Developer",
       domain: "code",
-      description: "Oriented toward coding, debugging and code review.",
+      tier: "specialist",
+      description: "Level-ready software engineer: coding, debugging, reviews, GitHub workflows.",
       role_title: "Software Engineer",
       department: "Engineering",
-      skills: ~w(coding debugging code-review)
+      skills: ~w(coding debugging code-review architecture),
+      tags: ~w(code engineering github software devops),
+      suggested_mcp: ["github"]
     },
     %{
-      key: "designer",
-      name: "Designer",
+      key: "data_scientist",
+      name: "Data Scientist",
+      domain: "data",
+      tier: "specialist",
+      description: "Analysis, modeling, spreadsheets and decision-ready reporting.",
+      role_title: "Data Scientist",
+      department: "Data",
+      skills: ~w(data-analysis statistics modeling reporting),
+      tags: ~w(data analytics ml sql spreadsheets),
+      suggested_mcp: ["google_sheets"]
+    },
+    %{
+      key: "research",
+      name: "Researcher",
+      domain: "research",
+      tier: "specialist",
+      description: "Deep research, synthesis, source evaluation and brief writing.",
+      role_title: "Research Analyst",
+      department: "Research",
+      skills: ~w(research synthesis source-critique briefing),
+      tags: ~w(research science literature discovery),
+      suggested_mcp: []
+    },
+    %{
+      key: "finance",
+      name: "Finance",
+      domain: "finance",
+      tier: "specialist",
+      description: "Financial analysis, budgeting, forecasting and investment literacy.",
+      role_title: "Finance Analyst",
+      department: "Finance",
+      skills: ~w(financial-analysis budgeting forecasting modeling),
+      tags: ~w(finance accounting trading fp&a),
+      suggested_mcp: ["google_sheets"]
+    },
+    %{
+      key: "marketing",
+      name: "Marketing",
+      domain: "marketing",
+      tier: "specialist",
+      description: "Growth, SEO, campaigns, brand messaging and content marketing.",
+      role_title: "Marketing Specialist",
+      department: "Marketing",
+      skills: ~w(seo content-marketing campaigns branding),
+      tags: ~w(marketing seo growth social media),
+      suggested_mcp: ["notion"]
+    },
+    %{
+      key: "sales",
+      name: "Sales",
+      domain: "sales",
+      tier: "specialist",
+      description: "Pipeline, outreach, discovery calls and closing playbooks.",
+      role_title: "Sales Specialist",
+      department: "Sales",
+      skills: ~w(outbound discovery negotiation crm),
+      tags: ~w(sales revenue pipeline crm),
+      suggested_mcp: ["slack"]
+    },
+    %{
+      key: "sciences",
+      name: "Sciences",
+      domain: "sciences",
+      tier: "specialist",
+      description: "Scientific method, experimental design and technical communication.",
+      role_title: "Science Specialist",
+      department: "Science",
+      skills: ~w(scientific-method experiment-design literature analysis),
+      tags: ~w(science biology chemistry physics lab),
+      suggested_mcp: []
+    },
+    %{
+      key: "legal",
+      name: "Legal",
+      domain: "legal",
+      tier: "specialist",
+      description:
+        "Contracts, compliance checklists and legal research support (not legal advice).",
+      role_title: "Legal Specialist",
+      department: "Legal",
+      skills: ~w(contracts compliance legal-research risk),
+      tags: ~w(legal compliance contracts policy),
+      suggested_mcp: ["notion"]
+    },
+    %{
+      key: "ops_hr",
+      name: "Ops & HR",
+      domain: "ops",
+      tier: "specialist",
+      description: "Operations, people processes, SOPs and internal communications.",
+      role_title: "Ops Specialist",
+      department: "Operations",
+      skills: ~w(operations people-ops sop process-design),
+      tags: ~w(ops hr productivity office people),
+      suggested_mcp: ["slack", "google_drive"]
+    },
+    %{
+      key: "product",
+      name: "Product",
+      domain: "product",
+      tier: "specialist",
+      description: "Roadmaps, specs, prioritization and cross-functional delivery.",
+      role_title: "Product Specialist",
+      department: "Product",
+      skills: ~w(roadmapping specs prioritization discovery),
+      tags: ~w(product roadmap pm agents workflow),
+      suggested_mcp: ["linear", "notion"]
+    },
+    %{
+      key: "design",
+      name: "Design",
       domain: "design",
-      description: "Oriented toward UI, Figma and branding.",
+      tier: "specialist",
+      description: "UI/UX, Figma workflows, design systems and brand craft.",
       role_title: "Designer",
       department: "Design",
-      skills: ~w(ui-design figma branding)
+      skills: ~w(ui-design ux figma design-systems),
+      tags: ~w(design ux ui figma creative branding),
+      suggested_mcp: ["figma"]
     },
     %{
-      key: "data_analyst",
-      name: "Data Analyst",
-      domain: "data",
-      description: "Oriented toward analysis, spreadsheets and reporting.",
-      role_title: "Data Analyst",
-      department: "Data",
-      skills: ~w(data-analysis spreadsheets reporting)
-    },
-    %{
-      key: "writer",
+      key: "writer_content",
       name: "Writer",
       domain: "document",
-      description: "Oriented toward writing, editing and research.",
+      tier: "specialist",
+      description: "Long-form writing, editing, storytelling and presentations.",
       role_title: "Content Specialist",
       department: "Content",
-      skills: ~w(writing editing research)
+      skills: ~w(writing editing storytelling presentations),
+      tags: ~w(writing content documents slides storytelling),
+      suggested_mcp: ["google_docs", "notion"]
     },
     %{
-      key: "media",
-      name: "Media Creator",
+      key: "security",
+      name: "Security",
+      domain: "security",
+      tier: "specialist",
+      description: "AppSec, threat modeling, secure reviews and vulnerability triage.",
+      role_title: "Security Specialist",
+      department: "Security",
+      skills: ~w(threat-modeling code-review compliance incident-response),
+      tags: ~w(security appsec owasp vuln pentest codeql),
+      suggested_mcp: ["github"]
+    },
+    %{
+      key: "devops",
+      name: "DevOps",
+      domain: "devops",
+      tier: "specialist",
+      description: "CI/CD, infrastructure, observability and reliable releases.",
+      role_title: "DevOps Engineer",
+      department: "Engineering",
+      skills: ~w(ci-cd infrastructure observability runbooks),
+      tags: ~w(devops kubernetes docker terraform sre cicd),
+      suggested_mcp: ["github"]
+    },
+    %{
+      key: "support_cs",
+      name: "Support & CS",
+      domain: "support",
+      tier: "specialist",
+      description: "Customer support, success playbooks and ticket resolution.",
+      role_title: "Support Specialist",
+      department: "Support",
+      skills: ~w(support troubleshooting customer-success documentation),
+      tags: ~w(support helpdesk customer-success tickets zendesk),
+      suggested_mcp: ["slack", "notion"]
+    },
+    %{
+      key: "media_video",
+      name: "Media & Video",
       domain: "media",
-      description: "Oriented toward images, video and content.",
+      tier: "specialist",
+      description: "Video, audio, scripting and media production workflows.",
       role_title: "Media Specialist",
       department: "Marketing",
-      skills: ~w(image-editing video content)
-    },
-    %{
-      key: "presenter",
-      name: "Presenter",
-      domain: "slides",
-      description: "Oriented toward decks, storytelling and design.",
-      role_title: "Presentation Specialist",
-      department: "Content",
-      skills: ~w(presentations storytelling design)
+      skills: ~w(video scripting editing transcription),
+      tags: ~w(video media podcast youtube ffmpeg audio),
+      suggested_mcp: ["notion"]
     }
   ]
 
   @domain_to_archetype %{
     "code" => "developer",
-    "design" => "designer",
-    "data" => "data_analyst",
-    "document" => "writer",
-    "media" => "media",
-    "slides" => "presenter"
+    "design" => "design",
+    "data" => "data_scientist",
+    "document" => "writer_content",
+    "media" => "media_video",
+    "slides" => "writer_content",
+    "research" => "research",
+    "finance" => "finance",
+    "marketing" => "marketing",
+    "sales" => "sales",
+    "sciences" => "sciences",
+    "legal" => "legal",
+    "ops" => "ops_hr",
+    "product" => "product",
+    "security" => "security",
+    "devops" => "devops",
+    "support" => "support_cs"
   }
 
-  # Boost keys are billed in credits and applied only server-side.
   @boosts [
     %{
       key: "boost_l3",
@@ -103,6 +271,14 @@ defmodule Mokaid.Agents.Archetypes do
       credits: 1_500,
       target_level: 5,
       skill_bonus: 30
+    },
+    %{
+      key: "boost_l10",
+      name: "Specialist ready",
+      description: "Start at level 10 with domain knowledge packs preloaded.",
+      credits: 5_000,
+      target_level: 10,
+      skill_bonus: 50
     }
   ]
 
@@ -110,11 +286,21 @@ defmodule Mokaid.Agents.Archetypes do
 
   def list_boosts, do: @boosts
 
-  def get_archetype(nil), do: get_archetype("generalist")
-  def get_archetype(""), do: get_archetype("generalist")
+  def specialist_boost_key, do: "boost_l10"
+
+  def specialist_credits do
+    case get_boost("boost_l10") do
+      %{credits: credits} -> credits
+      _ -> 5_000
+    end
+  end
+
+  def get_archetype(nil), do: get_archetype("blank")
+  def get_archetype(""), do: get_archetype("blank")
 
   def get_archetype(key) when is_binary(key) do
-    Enum.find(@archetypes, &(&1.key == key))
+    resolved = Map.get(@aliases, key, key)
+    Enum.find(@archetypes, &(&1.key == resolved))
   end
 
   def get_archetype(_), do: nil
@@ -130,10 +316,10 @@ defmodule Mokaid.Agents.Archetypes do
 
   @doc "Maps a detected mission domain to an archetype key."
   def archetype_key_for_domain(domain) when is_binary(domain) do
-    Map.get(@domain_to_archetype, domain, "generalist")
+    Map.get(@domain_to_archetype, domain, "blank")
   end
 
-  def archetype_key_for_domain(_), do: "generalist"
+  def archetype_key_for_domain(_), do: "blank"
 
   @doc """
   Builds create attrs from an archetype (+ optional boost). Role/department
@@ -141,15 +327,16 @@ defmodule Mokaid.Agents.Archetypes do
   """
   def build_create_attrs(attrs, archetype_key, boost_key \\ nil) do
     with {:ok, archetype} <- fetch_archetype(archetype_key),
-         {:ok, boost} <- fetch_boost(boost_key) do
+         {:ok, boost} <- fetch_boost(boost_key, archetype) do
       skill_bonus = if boost, do: boost.skill_bonus, else: 0
       target_level = if boost, do: boost.target_level, else: 1
       {level, xp, next} = starting_progression(target_level)
       kind = resolve_kind(attrs)
+      seed = skill_seed_for(archetype)
 
       skills =
         Enum.map(archetype.skills, fn name ->
-          %{"name" => name, "level" => min(@skill_seed_level + skill_bonus, 100)}
+          %{"name" => name, "level" => min(seed + skill_bonus, 100)}
         end)
 
       base_caps =
@@ -170,7 +357,8 @@ defmodule Mokaid.Agents.Archetypes do
           "specialty" => nil,
           "specialized_at" => nil,
           "role_source" => "archetype",
-          "archetype" => archetype.key
+          "archetype" => archetype.key,
+          "tier" => archetype.tier
         })
 
       created =
@@ -217,19 +405,30 @@ defmodule Mokaid.Agents.Archetypes do
     end
   end
 
+  defp skill_seed_for(%{tier: "blank"}), do: @blank_skill_seed
+  defp skill_seed_for(_), do: @specialist_skill_seed
+
   @doc "Public catalog for the API/UI."
   def catalog do
     %{
       archetypes:
         Enum.map(@archetypes, fn a ->
+          seed = skill_seed_for(a)
+
           %{
             key: a.key,
             name: a.name,
             domain: a.domain,
+            tier: a.tier,
             description: a.description,
             role_title: a.role_title,
             department: a.department,
-            skills: Enum.map(a.skills, &%{name: &1, level: @skill_seed_level})
+            tags: a.tags,
+            suggested_mcp: a.suggested_mcp,
+            corpus_doc_count: DomainPacks.corpus_doc_count(a.key),
+            skill_count: DomainPacks.skill_count(a.key),
+            credits_for_specialist: if(a.tier == "specialist", do: specialist_credits(), else: 0),
+            skills: Enum.map(a.skills, &%{name: &1, level: seed})
           }
         end),
       boosts:
@@ -242,24 +441,32 @@ defmodule Mokaid.Agents.Archetypes do
             target_level: b.target_level,
             skill_bonus: b.skill_bonus
           }
-        end)
+        end),
+      specialist_boost_key: specialist_boost_key(),
+      specialist_credits: specialist_credits()
     }
   end
 
   defp fetch_archetype(key) do
-    case get_archetype(key || "generalist") do
+    case get_archetype(key || "blank") do
       nil -> {:error, :invalid_archetype}
       archetype -> {:ok, archetype}
     end
   end
 
-  defp fetch_boost(nil), do: {:ok, nil}
-  defp fetch_boost(""), do: {:ok, nil}
+  defp fetch_boost(nil, _archetype), do: {:ok, nil}
+  defp fetch_boost("", _archetype), do: {:ok, nil}
 
-  defp fetch_boost(key) do
+  defp fetch_boost(key, archetype) do
     case get_boost(key) do
-      nil -> {:error, :invalid_boost}
-      boost -> {:ok, boost}
+      nil ->
+        {:error, :invalid_boost}
+
+      %{key: "boost_l10"} when archetype.tier == "blank" ->
+        {:error, :invalid_boost}
+
+      boost ->
+        {:ok, boost}
     end
   end
 
@@ -267,13 +474,11 @@ defmodule Mokaid.Agents.Archetypes do
   defp starting_progression(1), do: {1, 0, Progression.xp_required(1)}
 
   defp starting_progression(target_level) when target_level > 1 do
-    xp_spent =
+    _xp_spent =
       1..(target_level - 1)
       |> Enum.map(&Progression.xp_required/1)
       |> Enum.sum()
 
-    # Store at the target level with an empty bar; xp field is into-current-level.
-    _ = xp_spent
     {target_level, 0, Progression.xp_required(target_level)}
   end
 

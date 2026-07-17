@@ -12,6 +12,7 @@ from app.schemas import RiskLevel
 TOOL_RISK: dict[str, RiskLevel] = {
     # Read-only / internal
     "search_knowledge": RiskLevel.LOW,
+    "load_domain_skill": RiskLevel.LOW,
     "traverse_knowledge": RiskLevel.LOW,
     "knowledge_path": RiskLevel.LOW,
     "explain_concept": RiskLevel.LOW,

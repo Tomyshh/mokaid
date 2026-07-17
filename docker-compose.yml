@@ -100,6 +100,7 @@ services:
     environment:
       PHOENIX_API_URL: http://api:4000
       WORKER_AUTH_TOKEN: dev-worker-token
+      # Required for knowledge embeddings (text-embedding-3-small → pgvector).
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}

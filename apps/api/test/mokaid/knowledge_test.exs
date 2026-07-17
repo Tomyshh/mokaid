@@ -174,4 +174,110 @@ defmodule Mokaid.KnowledgeTest do
       assert updated.metadata["indexing_error"] =~ "unsupported format"
     end
   end
+
+  describe "ingestion enqueue + worker callback" do
+    setup do
+      {workspace, _owner} = workspace_fixture()
+      %{workspace: workspace}
+    end
+
+    test "create_item with body does not stick in indexing when dispatch is :none",
+         %{workspace: workspace} do
+      assert Application.fetch_env!(:mokaid, :ai_worker)[:dispatch] == :none
+
+      {:ok, item} =
+        Knowledge.create_item(workspace.id, %{
+          "title" => "Pack skill",
+          "type" => "document",
+          "body" => "# Skill\n\nDo the thing carefully.",
+          "status" => "processing"
+        })
+
+      item = Knowledge.get_item(workspace.id, item.id)
+      refute item.indexing_status == "indexing"
+    end
+
+    test "worker chunk callback stores embeddings and marks indexed",
+         %{workspace: workspace} do
+      {:ok, item} =
+        Knowledge.create_item(workspace.id, %{
+          "title" => "Domain pack doc",
+          "type" => "document",
+          "body" => "Guide for reviewing pull requests on GitHub.",
+          "status" => "processing",
+          "indexing_status" => "indexing"
+        })
+
+      # Simulate AI worker POST /api/worker/knowledge/:id/chunks
+      {count, _} =
+        Knowledge.replace_chunks(item, [
+          %{
+            content: "Guide for reviewing pull requests on GitHub.",
+            embedding: axis_embedding(3)
+          }
+        ])
+
+      assert count == 1
+      assert {:ok, indexed} = Knowledge.mark_indexed(item)
+      assert indexed.indexing_status == "indexed"
+      assert indexed.status == "published"
+
+      results = Knowledge.search_chunks(workspace.id, axis_embedding(3), 1)
+      assert hd(results).chunk.content =~ "pull requests"
+    end
+
+    test "IngestionWorker cancels cleanly when AI worker is disabled",
+         %{workspace: workspace} do
+      {:ok, item} =
+        Knowledge.create_item(workspace.id, %{
+          "title" => "Skip me",
+          "type" => "document",
+          "body" => "text body for ingest",
+          "status" => "processing"
+        })
+
+      assert {:cancel, :ai_worker_disabled} =
+               Mokaid.Knowledge.Workers.IngestionWorker.perform(%Oban.Job{
+                 args: %{
+                   "knowledge_item_id" => item.id,
+                   "workspace_id" => workspace.id
+                 }
+               })
+    end
+
+    test "IngestionWorker marks failed when HTTP URL is missing",
+         %{workspace: workspace} do
+      {:ok, item} =
+        Knowledge.create_item(workspace.id, %{
+          "title" => "No URL",
+          "type" => "document",
+          "body" => "needs embedding",
+          "status" => "processing"
+        })
+
+      previous = Application.fetch_env!(:mokaid, :ai_worker)
+
+      on_exit(fn ->
+        Application.put_env(:mokaid, :ai_worker, previous)
+      end)
+
+      Application.put_env(:mokaid, :ai_worker,
+        dispatch: :http,
+        url: nil,
+        token: "test-token"
+      )
+
+      assert {:cancel, :ai_worker_url_missing} =
+               Mokaid.Knowledge.Workers.IngestionWorker.perform(%Oban.Job{
+                 args: %{
+                   "knowledge_item_id" => item.id,
+                   "workspace_id" => workspace.id
+                 }
+               })
+
+      failed = Knowledge.get_item(workspace.id, item.id)
+      assert failed.indexing_status == "failed"
+      assert failed.metadata["indexing_error"] =~ "URL"
+    end
+  end
 end

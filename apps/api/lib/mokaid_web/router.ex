@@ -169,6 +169,7 @@ defmodule MokaidWeb.Router do
     post "/runs/:run_id/fail", WorkerCallbackController, :fail
 
     post "/knowledge/search", WorkerResourceController, :search_knowledge
+    post "/agents/domain-skill", WorkerResourceController, :load_domain_skill
     post "/knowledge/traverse", WorkerResourceController, :traverse_knowledge
     post "/knowledge/path", WorkerResourceController, :knowledge_path
     post "/knowledge/explain", WorkerResourceController, :explain_concept

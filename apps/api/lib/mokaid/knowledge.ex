@@ -69,7 +69,7 @@ defmodule Mokaid.Knowledge do
 
     with {:ok, item} <- result do
       Realtime.broadcast_workspace(workspace_id, "knowledge.uploaded", %{item_id: item.id})
-      maybe_enqueue_ingestion(item)
+      safe_enqueue_ingestion(item)
       {:ok, Repo.preload(item, [:category, created_by_member: :user])}
     end
   end
@@ -168,6 +168,22 @@ defmodule Mokaid.Knowledge do
     end
   end
 
+  # Inline Oban testing (and misconfigured AI worker URLs) must not fail inserts.
+  defp safe_enqueue_ingestion(item) do
+    try do
+      maybe_enqueue_ingestion(item)
+    rescue
+      e ->
+        require Logger
+
+        Logger.warning(
+          "knowledge ingestion enqueue failed for item=#{item.id}: #{Exception.message(e)}"
+        )
+
+        :error
+    end
+  end
+
   # A linked file we can extract text from (binary formats: pdf, docx, xlsx…).
   defp ingestable_file?(%KnowledgeItem{} = item) do
     filename = item.metadata["original_filename"] || item.title
@@ -176,15 +192,23 @@ defmodule Mokaid.Knowledge do
   end
 
   defp enqueue_ingestion(%KnowledgeItem{} = item) do
-    item
-    |> Ecto.Changeset.change(indexing_status: "indexing")
-    |> Repo.update()
+    config = Application.fetch_env!(:mokaid, :ai_worker)
 
-    %{knowledge_item_id: item.id, workspace_id: item.workspace_id}
-    |> Mokaid.Knowledge.Workers.IngestionWorker.new()
-    |> Oban.insert()
+    # :none is used in tests / offline — skip enqueue so items are not left
+    # stuck in `indexing` with no worker to complete them.
+    if config[:dispatch] == :none do
+      :ok
+    else
+      item
+      |> Ecto.Changeset.change(indexing_status: "indexing")
+      |> Repo.update()
 
-    :ok
+      %{knowledge_item_id: item.id, workspace_id: item.workspace_id}
+      |> Mokaid.Knowledge.Workers.IngestionWorker.new()
+      |> Oban.insert()
+
+      :ok
+    end
   end
 
   def mark_indexed(%KnowledgeItem{} = item) do

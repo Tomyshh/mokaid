@@ -55,6 +55,15 @@ def is_configured() -> bool:
     return bool(settings.deepseek_api_key or settings.anthropic_api_key or settings.openai_api_key)
 
 
+def embeddings_configured() -> bool:
+    """Embeddings always use OpenAI text-embedding-3-small (1536 dims).
+
+    Chat may run on Anthropic/DeepSeek alone, but knowledge indexing requires
+    an OpenAI key — otherwise vectors never land in pgvector.
+    """
+    return bool(get_settings().openai_api_key)
+
+
 def _get_client() -> AsyncOpenAI:
     global _client
     if _client is None:

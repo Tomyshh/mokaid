@@ -89,11 +89,21 @@ defmodule Mokaid.AI.Workers.DispatchWorker do
   defp agent_persona(nil), do: %{}
 
   defp agent_persona(agent) do
+    caps = agent.capabilities || %{}
+    learning = Map.get(caps, "learning", %{})
+    domain_pack = Map.get(caps, "domain_pack", %{})
+
     %{
       display_name: agent.display_name,
       role_title: agent.role_title,
       department: agent.department,
-      skills: skill_names(agent.skills)
+      skills: skill_names(agent.skills),
+      knowledge_brief: Map.get(caps, "knowledge_brief"),
+      archetype: Map.get(learning, "archetype") || Map.get(domain_pack, "archetype"),
+      tier: Map.get(learning, "tier") || Map.get(domain_pack, "tier"),
+      domain_skill_index: Map.get(domain_pack, "skill_index", []),
+      suggested_mcp: Map.get(domain_pack, "suggested_mcp") || [],
+      level: agent.level
     }
   end
 

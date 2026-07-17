@@ -1,0 +1,889 @@
+{
+  "domain": "finance",
+  "pack_version": "109183f8e455",
+  "skill_count": 63,
+  "skills": [
+    {
+      "name": "arize-trace",
+      "slug": "arize-trace",
+      "description": "Downloads, exports, and inspects existing Arize traces and spans to understand what an LLM app is doing or debug runtime issues. Covers exporting traces by ID, spans by ID, sessions by ID, and root-cause investigation using the ax CLI. Use when the user wants to look at existing trace data, see what their LLM app is doing, export traces, download spans, investigate errors, or analyze behavior regressions.",
+      "path": "skills/arize-trace.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/arize-trace/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 22852
+    },
+    {
+      "name": "gtm-board-and-investor-communication",
+      "slug": "gtm-board-and-investor-communication",
+      "description": "Board meeting preparation, investor updates, and executive communication. Use when preparing board decks, writing investor updates, handling bad news with the board, structuring QBRs, or building board-level metric discipline. Includes the \"Three Things\" narrative model, the 4-tier metric hierarchy, and the pre-brief pattern that prevents board surprises.",
+      "path": "skills/gtm-board-and-investor-communication.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-board-and-investor-communication/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 18060
+    },
+    {
+      "name": "metrics-review",
+      "slug": "metrics-review",
+      "description": "Review and analyze product metrics with trend analysis and actionable insights. Use when running a weekly, monthly, or quarterly metrics review, investigating a sudden spike or drop, comparing performance against targets, or turning raw numbers into a scorecard with recommended actions.",
+      "path": "skills/metrics-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/metrics-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 17640
+    },
+    {
+      "name": "litreview",
+      "slug": "litreview",
+      "description": "Academic literature orientation skill that searches papers via free keyless APIs (PubMed E-utilities + OpenAlex) by default — with the Consensus MCP as an optional enhancement lane when connected — builds a strategic search plan using PICO (default) or SPIDER / Decomposition / hybrid as fallbacks, and synthesizes findings into a formatted Word (.docx) research guide. Grill-me intake (research question specificity + framework hint + tentative depth) before the recon search; a second forcing check",
+      "path": "skills/litreview.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/litreview/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 17019
+    },
+    {
+      "name": "cs-agile-product-owner",
+      "slug": "cs-agile-product-owner",
+      "description": "Agile product owner agent for epic breakdown, sprint planning, backlog refinement, and INVEST-compliant user story generation. Use when preparing work for a development team — e.g., decomposing a large epic into INVEST-compliant stories with acceptance criteria, or refining a messy backlog ahead of sprint planning.",
+      "path": "skills/cs-agile-product-owner.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/product/cs-agile-product-owner.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 16382
+    },
+    {
+      "name": "audit-support",
+      "slug": "audit-support",
+      "description": "Support SOX 404 compliance with control testing methodology, sample selection, and documentation standards. Use when generating testing workpapers, selecting audit samples, classifying control deficiencies, or preparing for internal or external audits.",
+      "path": "skills/audit-support.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/audit-support/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 16338
+    },
+    {
+      "name": "research",
+      "slug": "research",
+      "description": "Default entry point for any research request — a hybrid router that classifies the question deterministically and either delegates to a specialist research skill (pulse for trends/sentiment, grants for NIH funding, litreview for academic literature, syllabus for course reading, patent for prior-art + IP landscape, dossier for entity research) or runs its own plan-decompose-multi-source-search-synthesize-cite fallback workflow when no specialist matches. Always surfaces the routing decision so us",
+      "path": "skills/research.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/research-bundle/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15766
+    },
+    {
+      "name": "senior-pm",
+      "slug": "senior-pm",
+      "description": "Senior Project Manager for enterprise software, SaaS, and digital transformation projects. Specializes in portfolio management, quantitative risk analysis, resource optimization, stakeholder alignment, and executive reporting. Uses advanced methodologies including EMV analysis, Monte Carlo simulation, WSJF prioritization, and multi-dimensional health scoring. Use when a user needs help with project plans, project status reports, risk assessments, resource allocation, project roadmaps, milestone ",
+      "path": "skills/senior-pm.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-pm/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15765
+    },
+    {
+      "name": "phoenix-cli",
+      "slug": "phoenix-cli",
+      "description": "Debug LLM applications using the Phoenix CLI. Fetch traces, analyze errors, structure trace review with open coding and axial coding, inspect datasets, review experiments, query annotation configs, and use the GraphQL API. Use whenever the user is analyzing traces or spans, investigating LLM/agent failures, deciding what to do after instrumenting an app, building failure taxonomies, choosing what evals to write, or asking \"what's going wrong\", \"what kinds of mistakes\", or \"where do I focus\" — ev",
+      "path": "skills/phoenix-cli.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-cli/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15432
+    },
+    {
+      "name": "cs-ceo-advisor",
+      "slug": "cs-ceo-advisor",
+      "description": "Strategic leadership advisor for CEOs covering vision, strategy, board management, investor relations, and organizational culture. Use when a founder or CEO faces a company-level strategic decision — e.g., preparing the narrative and metrics for a quarterly board meeting, or stress-testing a pivot or market-expansion decision against vision, runway, and stakeholder expectations.",
+      "path": "skills/cs-ceo-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/c-level/cs-ceo-advisor.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15429
+    },
+    {
+      "name": "capa-officer",
+      "slug": "capa-officer",
+      "description": "CAPA system management for medical device QMS. Covers root cause analysis, corrective action planning, effectiveness verification, and CAPA metrics. Use when running CAPA investigations, 5-Why analysis, fishbone diagrams, root cause determination, corrective action tracking, effectiveness verification, or CAPA program optimization.",
+      "path": "skills/capa-officer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/capa-officer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15301
+    },
+    {
+      "name": "gtm-enterprise-account-planning",
+      "slug": "gtm-enterprise-account-planning",
+      "description": "Strategic account planning and execution for enterprise deals. Use when planning complex sales cycles, managing multiple stakeholders, applying MEDDICC qualification, tracking deal health, or building mutual action plans. Includes the \"stale MAP equals dead deal\" pattern.",
+      "path": "skills/gtm-enterprise-account-planning.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-enterprise-account-planning/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15170
+    },
+    {
+      "name": "competitive-brief",
+      "slug": "competitive-brief",
+      "description": "Create a competitive analysis brief for one or more competitors or a feature area. Use when informing product strategy or feature prioritization, building sales battle cards, prepping board or investor materials, or deciding where to differentiate vs. achieve parity.",
+      "path": "skills/competitive-brief.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/competitive-brief/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 14390
+    },
+    {
+      "name": "financial-statements",
+      "slug": "financial-statements",
+      "description": "Generate financial statements (income statement, balance sheet, cash flow) with period-over-period comparison and variance analysis. Use when preparing a monthly or quarterly P&L, closing the books and need to flag material variances, comparing actuals to budget, building a financial summary for leadership review, or looking up GAAP presentation requirements and period-end adjustments.",
+      "path": "skills/financial-statements.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/financial-statements/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 14205
+    },
+    {
+      "name": "grants",
+      "slug": "grants",
+      "description": "NIH grant research skill for clinical researchers. Grill-me intake (research idea + career stage + preliminary data + environment + submission posture + known institute targets) locks down the funding strategy before any search runs. Runs a 5-facet Consensus positioning analysis (with draft Significance/Innovation language), maps the research to the right NIH institutes and study sections via RePORTER, finds NOSIs and funded overlap, and produces an editable Word document (.docx) with budget/sco",
+      "path": "skills/grants.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/grants/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13441
+    },
+    {
+      "name": "commercial-forecaster",
+      "slug": "commercial-forecaster",
+      "description": "Use when building a quarterly bookings forecast, ARR projection, pipeline forecast, NRR projection, or commit/best-case/pipe-only board number — especially when the CRO needs to walk the board through funnel math + cohort ARR + per-stage conversion assumptions without the theatre of a single undefended number. Decomposes pipeline into commit, best-case, and pipe-only tiers; projects cohort-level NRR/GRR to surface leaky cohorts before they show up in the consolidated number; scores per-stage fun",
+      "path": "skills/commercial-forecaster.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/commercial-forecaster/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10910
+    },
+    {
+      "name": "variance-analysis",
+      "slug": "variance-analysis",
+      "description": "Decompose financial variances into drivers with narrative explanations and waterfall analysis. Use when analyzing budget vs. actual, period-over-period changes, revenue or expense variances, or preparing variance commentary for leadership.",
+      "path": "skills/variance-analysis.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/variance-analysis/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 10862
+    },
+    {
+      "name": "aws-cloudwatch-investigation",
+      "slug": "aws-cloudwatch-investigation",
+      "description": ">",
+      "path": "skills/aws-cloudwatch-investigation.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/aws-cloudwatch-investigation/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10241
+    },
+    {
+      "name": "company-os",
+      "slug": "company-os",
+      "description": "The meta-framework for how a company runs — the connective tissue between all C-suite roles. Covers operating system selection (EOS, Scaling Up, OKR-native, hybrid), accountability charts, scorecards, meeting pulse, issue resolution, and 90-day rocks. Use when setting up company operations, selecting a management framework, designing meeting rhythms, building accountability systems, implementing OKRs, or when user mentions EOS, Scaling Up, operating system, L10 meetings, rocks, scorecard, accoun",
+      "path": "skills/company-os.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/company-os/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9861
+    },
+    {
+      "name": "internal-narrative",
+      "slug": "internal-narrative",
+      "description": "Build and maintain one coherent company story across all audiences — employees, investors, customers, candidates, and partners. Detects narrative contradictions and ensures the same truth is framed for each audience's needs. Use when preparing investor updates, all-hands presentations, board communications, recruiting narratives, crisis communications, or when user mentions company narrative, messaging consistency, storytelling, all-hands, investor update, or crisis communication.",
+      "path": "skills/internal-narrative.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/internal-narrative/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9854
+    },
+    {
+      "name": "close-management",
+      "slug": "close-management",
+      "description": "Manage the month-end close process with task sequencing, dependencies, and status tracking. Use when planning the close calendar, tracking close progress, identifying blockers, or sequencing close activities by day.",
+      "path": "skills/close-management.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/close-management/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 9813
+    },
+    {
+      "name": "roast",
+      "slug": "roast",
+      "description": "Use when someone asks to roast an idea, pressure-test or stress-test an idea, validate a business idea, \"convene the panel\", get a brutal second opinion before building something, or says \"/roast\". Spins up a 5-angle panel (Critic, Champion, Analyst, Investigator, Customer) that attacks the idea from every angle, then a Judge returns one GO / RESHAPE / KILL verdict with the cheapest test to de-risk it.",
+      "path": "skills/roast.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/roast/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9667
+    },
+    {
+      "name": "business-investment-advisor",
+      "slug": "business-investment-advisor",
+      "description": "Business investment analysis and capital allocation advisor. Use when evaluating whether to invest in equipment, real estate, a new business, hiring, technology, or any capital expenditure. Also use for ROI calculations, IRR, NPV, payback period, build vs buy decisions, lease vs buy analysis, vendor evaluation, or deciding where to allocate limited budget for maximum return.",
+      "path": "skills/business-investment-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/business-investment-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9507
+    },
+    {
+      "name": "research-technical-spike.agent",
+      "slug": "research-technical-spike-agent",
+      "description": "Systematically research and validate technical spike documents through exhaustive investigation and controlled experimentation.",
+      "path": "skills/research-technical-spike-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/research-technical-spike.agent.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9430
+    },
+    {
+      "name": "senior-prompt-engineer",
+      "slug": "senior-prompt-engineer",
+      "description": "Use when the user asks to optimize prompts, design prompt templates, evaluate LLM outputs with an eval set, measure RAG retrieval quality, validate agent/tool configurations, analyze token usage, or design structured-output contracts. Covers eval-driven prompt iteration, RAG metrics (relevance, faithfulness, coverage), agent workflow validation, and token/cost budgeting — all model-agnostic, with three stdlib Python tools.",
+      "path": "skills/senior-prompt-engineer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-prompt-engineer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9416
+    },
+    {
+      "name": "comet-opik.agent",
+      "slug": "comet-opik-agent",
+      "description": "Unified Comet Opik agent for instrumenting LLM apps, managing prompts/projects, auditing prompts, and investigating traces/metrics via the latest Opik MCP server.",
+      "path": "skills/comet-opik-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/comet-opik.agent.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9207
+    },
+    {
+      "name": "sox-testing",
+      "slug": "sox-testing",
+      "description": "Generate SOX sample selections, testing workpapers, and control assessments. Use when planning quarterly or annual SOX 404 testing, pulling a sample for a control (revenue, P2P, ITGC, close), building a testing workpaper template, or evaluating and classifying a control deficiency.",
+      "path": "skills/sox-testing.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/sox-testing/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 8876
+    },
+    {
+      "name": "aws-cost-optimize",
+      "slug": "aws-cost-optimize",
+      "description": "Analyze AWS resources used in the app (IaC files and/or resources in a target account/region) and optimize costs - creating GitHub issues for identified optimizations.",
+      "path": "skills/aws-cost-optimize.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/aws-cost-optimize/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7964
+    },
+    {
+      "name": "microsoft-skill-creator",
+      "slug": "microsoft-skill-creator",
+      "description": "Create agent skills for Microsoft technologies using Learn MCP tools. Use when users want to create a skill that teaches agents about any Microsoft technology, library, framework, or service (Azure, .NET, M365, VS Code, Bicep, etc.). Investigates topics deeply, then generates a hybrid skill storing essential knowledge locally while enabling dynamic deeper investigation.",
+      "path": "skills/microsoft-skill-creator.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/microsoft-skill-creator/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7817
+    },
+    {
+      "name": "reconciliation",
+      "slug": "reconciliation",
+      "description": "Reconcile accounts by comparing GL balances to subledgers, bank statements, or third-party data. Use when performing bank reconciliations, GL-to-subledger recs, intercompany reconciliations, or identifying and categorizing reconciling items.",
+      "path": "skills/reconciliation.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/reconciliation/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 7809
+    },
+    {
+      "name": "journal-entry-prep",
+      "slug": "journal-entry-prep",
+      "description": "Prepare journal entries with proper debits, credits, and supporting documentation for month-end close. Use when booking accruals, prepaid amortization, fixed asset depreciation, payroll entries, revenue recognition, or any manual journal entry.",
+      "path": "skills/journal-entry-prep.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/journal-entry-prep/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 7525
+    },
+    {
+      "name": "call-prep",
+      "slug": "call-prep",
+      "description": "Prepare for a sales call with account context, attendee research, and suggested agenda. Works standalone with user input and web research, supercharged when you connect your CRM, email, chat, or transcripts. Trigger with \"prep me for my call with [company]\", \"I'm meeting with [company] prep me\", \"call prep [company]\", or \"get me ready for [meeting]\".",
+      "path": "skills/call-prep.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/call-prep/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 7455
+    },
+    {
+      "name": "ceo-advisor",
+      "slug": "ceo-advisor",
+      "description": "Executive leadership guidance for strategic decision-making, organizational development, and stakeholder management. Use when planning strategy, preparing board presentations, managing investors, developing organizational culture, making executive decisions, fundraising, or when user mentions CEO, strategic planning, board meetings, investor updates, organizational leadership, or executive strategy.",
+      "path": "skills/ceo-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ceo-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7431
+    },
+    {
+      "name": "board-deck-builder",
+      "slug": "board-deck-builder",
+      "description": "Assembles comprehensive board and investor update decks by pulling perspectives from all C-suite roles. Use when preparing board meetings, investor updates, quarterly business reviews, or fundraising narratives. Covers structure, narrative framework, bad news delivery, and common mistakes.",
+      "path": "skills/board-deck-builder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/board-deck-builder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6956
+    },
+    {
+      "name": "financial-analyst",
+      "slug": "financial-analyst",
+      "description": "Performs financial ratio analysis, DCF valuation, budget variance analysis, and rolling forecast construction for strategic decision-making. Use when analyzing financial statements, building valuation models, assessing budget variances, or constructing financial projections and forecasts. Also applicable when users mention financial modeling, cash flow analysis, company valuation, financial projections, or spreadsheet analysis.",
+      "path": "skills/financial-analyst.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/financial-analyst/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6720
+    },
+    {
+      "name": "cfo-advisor",
+      "slug": "cfo-advisor",
+      "description": "Financial leadership for startups and scaling companies. Financial modeling, unit economics, fundraising strategy, cash management, and board financial packages. Use when building financial models, analyzing unit economics, planning fundraising, managing cash runway, preparing board materials, or when user mentions CFO, burn rate, runway, fundraising, unit economics, LTV, CAC, term sheets, or financial strategy.",
+      "path": "skills/cfo-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cfo-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6502
+    },
+    {
+      "name": "gdpr-audit-prep",
+      "slug": "gdpr-audit-prep",
+      "description": "/cs:gdpr-audit-prep <scope> — GDPR audit 6-question Article-cited forcing interrogation. Use before annual internal GDPR review, post-breach internal audit, DPA investigation readiness, or acquisition due diligence.",
+      "path": "skills/gdpr-audit-prep.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/gdpr-audit-prep/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6500
+    },
+    {
+      "name": "challenge",
+      "slug": "challenge",
+      "description": "Pre-mortem plan analysis. Imagine the plan failed 12 months from now and work backwards to find the weaknesses. Surfaces assumptions, dependencies, and execution risks before committing resources. Use when before significant resource commitment, before presenting to a board or investors, when feedback has been one-sidedly positive, or when there is pressure to move fast and figure it out later.",
+      "path": "skills/challenge.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/challenge/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6343
+    },
+    {
+      "name": "board-prep",
+      "slug": "board-prep",
+      "description": "Board meeting preparation for the adversarial scenario, not the friendly one. Forces numbers-cold mastery, anticipates hard questions, builds a narrative that acknowledges weakness without losing the room. Use when preparing for a board meeting, an investor update, fundraising presentation, or any high-stakes adversarial review where every number must live in your head not just on a slide.",
+      "path": "skills/board-prep.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/board-prep/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6198
+    },
+    {
+      "name": "convert-pdf-to-md",
+      "slug": "convert-pdf-to-md",
+      "description": "Converts PDF (.pdf) documents into Markdown so their contents can be accurately analyzed, summarized, searched, or extracted from. Use this skill whenever the user shares, references, or asks about a .pdf file — even if they don''t say \"convert\" or \"markdown\" explicitly. This includes requests to \"read\", \"summarize\", \"review\", \"extract data from\", \"compare\", or \"analyze\" a PDF report, paper, invoice, form, contract, or scanned document. Always run the bundled conversion script to produce Markdow",
+      "path": "skills/convert-pdf-to-md.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/convert-pdf-to-md/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5889
+    },
+    {
+      "name": "prospect",
+      "slug": "prospect",
+      "description": "Build targeted account or contact lists using Common Room's Prospector. Triggers on 'find companies that match [criteria]', 'build a prospect list', 'find contacts at [type of company]', 'show me companies hiring [role]', or any list-building request.",
+      "path": "skills/prospect.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/common-room/skills/prospect/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5856
+    },
+    {
+      "name": "convert-excel-to-md",
+      "slug": "convert-excel-to-md",
+      "description": "Converts Excel (.xlsx) workbooks into Markdown so their contents can be accurately analyzed, summarized, searched, or extracted from. Use this skill whenever the user shares, references, or asks about a .xlsx file — even if they don''t say \"convert\" or \"markdown\" explicitly. This includes requests to \"read\", \"summarize\", \"review\", \"extract data from\", \"compare\", \"chart\", or \"analyze\" a spreadsheet, workbook, budget, data export, or tracker. Always run the bundled conversion script to produce Mar",
+      "path": "skills/convert-excel-to-md.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/convert-excel-to-md/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5759
+    },
+    {
+      "name": "frontend-performance-investigator.agent",
+      "slug": "frontend-performance-investigator-agent",
+      "description": "Runtime web-performance specialist for diagnosing Core Web Vitals, Lighthouse regressions, layout shifts, long tasks, and slow network paths with Chrome DevTools MCP.",
+      "path": "skills/frontend-performance-investigator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/frontend-performance-investigator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5524
+    },
+    {
+      "name": "saas-metrics-coach",
+      "slug": "saas-metrics-coach",
+      "description": "SaaS financial health advisor. Use when a user shares revenue or customer numbers, or mentions ARR, MRR, churn, LTV, CAC, NRR, or asks how their SaaS business is doing.",
+      "path": "skills/saas-metrics-coach.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/saas-metrics-coach/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5400
+    },
+    {
+      "name": "deep-work",
+      "slug": "deep-work",
+      "description": "Use when someone wants to plan a deep work day, time-block their calendar or task list, budget or cut shallow work, protect focus hours, track deep-work sessions and streaks, run an end-of-day shutdown ritual, or says \"/deep-work\" or \"/time-block\". Classifies tasks deep vs shallow, builds an energy-first time-blocked schedule that refuses deep demand past the 4-hour ceiling, batches shallow work into at most two windows, and logs focus sessions against a weekly target.",
+      "path": "skills/deep-work.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/deep-work/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5127
+    },
+    {
+      "name": "journal-entry",
+      "slug": "journal-entry",
+      "description": "Prepare journal entries with proper debits, credits, and supporting detail. Use when booking month-end accruals (AP, payroll, prepaid), recording depreciation or amortization, posting revenue recognition or deferred revenue adjustments, or documenting an entry for audit review.",
+      "path": "skills/journal-entry.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/finance/skills/journal-entry/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4764
+    },
+    {
+      "name": "finance-lead",
+      "slug": "finance-lead",
+      "description": "Startup CFO who builds models that survive contact with reality. Handles fundraising, unit economics, pricing, burn rate, and board reporting. Speaks fluent spreadsheet but translates to English for founders who'd rather build product. Use when a money question needs a model, not a vibe — e.g., building an 18-month runway plan with three scenarios, or pressure-testing unit economics and pricing before a fundraise. (For DCF and SaaS-metrics tooling, see cs-financial-analyst.)",
+      "path": "skills/finance-lead.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/personas/finance-lead.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4749
+    },
+    {
+      "name": "devtools-regression-investigator.agent",
+      "slug": "devtools-regression-investigator-agent",
+      "description": "Browser regression specialist for reproducing broken user flows, collecting console and network evidence, and narrowing likely root causes with Chrome DevTools MCP.",
+      "path": "skills/devtools-regression-investigator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/devtools-regression-investigator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4310
+    },
+    {
+      "name": "cs-financial-analyst",
+      "slug": "cs-financial-analyst",
+      "description": "Financial Analyst agent for DCF valuation, financial modeling, budgeting, forecasting, and SaaS metrics (ARR, MRR, churn, CAC, LTV, NRR). Orchestrates finance skills. Spawn when users need financial analysis, valuation models, budget planning, ratio analysis, SaaS health checks, or unit economics projections.",
+      "path": "skills/cs-financial-analyst.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/finance/cs-financial-analyst.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4303
+    },
+    {
+      "name": "boardroom",
+      "slug": "boardroom",
+      "description": "/cs:boardroom <brief> — 6-phase multi-role deliberation across the C-suite with Phase 2 isolation, critic pre-screen, and synthesis. Outputs a board memo. Use when a decision spans multiple executive domains — e.g. a pricing change touching finance, positioning, and product, or a raise-vs-cut runway call.",
+      "path": "skills/boardroom.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/boardroom/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4246
+    },
+    {
+      "name": "analyze",
+      "slug": "analyze",
+      "description": "Answer data questions -- from quick lookups to full analyses. Use when looking up a single metric, investigating what's driving a trend or drop, comparing segments over time, or preparing a formal data report for stakeholders.",
+      "path": "skills/analyze.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/data/skills/analyze/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4141
+    },
+    {
+      "name": "invoice-chase",
+      "slug": "invoice-chase",
+      "description": ">",
+      "path": "skills/invoice-chase.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/invoice-chase/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4090
+    },
+    {
+      "name": "sprint-planning",
+      "slug": "sprint-planning",
+      "description": "Plan a sprint — scope work, estimate capacity, set goals, and draft a sprint plan. Use when kicking off a new sprint, sizing a backlog against team availability (accounting for PTO and meetings), deciding what's P0 vs. stretch, or handling carryover from the last sprint.",
+      "path": "skills/sprint-planning.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/sprint-planning/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3181
+    },
+    {
+      "name": "cfo-review",
+      "slug": "cfo-review",
+      "description": "/cs:cfo-review <plan> — Numerate-skeptic interrogation of any plan that touches money. Unit economics, runway, dilution, capital allocation. Use when a plan commits meaningful spend — e.g. a hiring wave, a fundraise decision, or a new channel budget.",
+      "path": "skills/cfo-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cfo-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2920
+    },
+    {
+      "name": "onboarding",
+      "slug": "onboarding",
+      "description": "Generate an onboarding checklist and first-week plan for a new hire. Use when someone has a start date coming up, building the pre-start task list (accounts, equipment, buddy), scheduling Day 1 and Week 1, or setting 30/60/90-day goals for a new team member.",
+      "path": "skills/onboarding.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/human-resources/skills/onboarding/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2847
+    },
+    {
+      "name": "price-check",
+      "slug": "price-check",
+      "description": "Produces a margin-by-product table and three pricing-scenario data views so the owner can see the full financial picture before making a pricing decision. Accepts optional product name argument.",
+      "path": "skills/price-check.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/price-check/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2679
+    },
+    {
+      "name": "plan-payroll",
+      "slug": "plan-payroll",
+      "description": "Forecasts cash, ranks overdue invoices, and stages PayPal reminders so the owner can confidently run payroll. Accepts optional horizon and payroll-date arguments.",
+      "path": "skills/plan-payroll.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/plan-payroll/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2355
+    },
+    {
+      "name": "performance-profiler",
+      "slug": "performance-profiler",
+      "description": "Systematic performance profiling for Node.js, Python, and Go applications. Identifies CPU, memory, and I/O bottlenecks, generates flamegraphs, analyzes bundle sizes, optimizes database queries, runs load tests with k6 and Artillery. Always measures before and after. Use when investigating a slow endpoint, planning a performance budget, or hunting a memory leak in production.",
+      "path": "skills/performance-profiler.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/performance-profiler/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2304
+    },
+    {
+      "name": "tax-prep",
+      "slug": "tax-prep",
+      "description": "Prepares tax-season materials — quarterly estimated tax calculation or year-end 1099 prep — and produces an accountant handoff packet. Accepts optional mode and year arguments.",
+      "path": "skills/tax-prep.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/tax-prep/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "finance",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2254
+    },
+    {
+      "name": "refactor-plan",
+      "slug": "refactor-plan",
+      "description": "Create a concrete plan before starting a multi-file refactor. Use when the user asks to plan, sequence, scope, or safely execute a refactor across multiple files; always investigate first, output the plan, and wait for confirmation before making code changes.",
+      "path": "skills/refactor-plan.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/refactor-plan/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "finance",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1985
+    },
+    {
+      "name": "slo-design",
+      "slug": "slo-design",
+      "description": "Interactive wizard to design an SLO with SLI, target, error budget, and burn-rate alerts",
+      "path": "skills/slo-design.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/slo-design/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1898
+    },
+    {
+      "name": "finance-skills",
+      "slug": "finance-skills",
+      "description": "Router/index for the 2 finance skills bundled in this plugin: financial-analyst (ratio analysis, DCF valuation, budget variance, rolling forecasts) and saas-metrics-coach (ARR/MRR, churn, CAC/LTV, NRR, quick ratio). Use when a finance request doesn't obviously match one skill and you need to pick the right one (e.g., 'analyze these financials', 'how healthy are my SaaS metrics').",
+      "path": "skills/finance-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/finance-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1440
+    },
+    {
+      "name": "financial-health",
+      "slug": "financial-health",
+      "description": "Run financial ratio analysis, DCF valuation, budget variance analysis, and rolling forecasts. Usage: /financial-health <ratios|dcf|budget|forecast> <data.json>",
+      "path": "skills/financial-health.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/financial-health/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "finance",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1328
+    }
+  ]
+}

@@ -1,0 +1,385 @@
+{
+  "domain": "media_video",
+  "pack_version": "aae5fa4beae9",
+  "skill_count": 27,
+  "skills": [
+    {
+      "name": "video-sdk/windows",
+      "slug": "video-sdk-windows",
+      "description": "Zoom Video SDK for Windows - C++ integration for video sessions, raw audio/video capture, screen sharing, recording, and real-time communication",
+      "path": "skills/video-sdk-windows.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/windows/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 40422
+    },
+    {
+      "name": "video-sdk/web",
+      "slug": "video-sdk-web",
+      "description": "Zoom Video SDK for Web - JavaScript/TypeScript integration for browser-based video sessions, real-time communication, screen sharing, recording, and live transcription",
+      "path": "skills/video-sdk-web.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/web/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 25827
+    },
+    {
+      "name": "zoom-rtms",
+      "slug": "zoom-rtms",
+      "description": "Reference skill for Zoom RTMS. Use after routing to a live-media workflow when processing real-time audio, video, chat, transcripts, screen share, or contact-center voice streams.",
+      "path": "skills/zoom-rtms.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/rtms/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 23194
+    },
+    {
+      "name": "ui-toolkit/web",
+      "slug": "ui-toolkit-web",
+      "description": "Reference skill for Zoom Video SDK UI Toolkit. Use after routing to a web video workflow when you want prebuilt React UI instead of building a fully custom Video SDK interface.",
+      "path": "skills/ui-toolkit-web.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/ui-toolkit/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 17268
+    },
+    {
+      "name": "resemble-detect",
+      "slug": "resemble-detect",
+      "description": "Deepfake detection and media safety — detect AI-generated audio, images, video, and text, trace synthesis sources, apply watermarks, verify speaker identity, and analyze media intelligence using Resemble AI",
+      "path": "skills/resemble-detect.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/resemble-detect/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "media_video",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15851
+    },
+    {
+      "name": "meeting-sdk/linux",
+      "slug": "meeting-sdk-linux",
+      "description": "Zoom Meeting SDK for Linux - C++ headless meeting bots with raw audio/video access, transcription, recording, and AI integration for server-side automation",
+      "path": "skills/meeting-sdk-linux.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/meeting-sdk/linux/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 15109
+    },
+    {
+      "name": "notebooklm",
+      "slug": "notebooklm",
+      "description": "Browser automation skill for controlling Google's NotebookLM. Use when the user wants anything done in NotebookLM (e.g., 'open NotebookLM', 'check my [name] notebook', 'ask my notebook about X', 'add [source] to NotebookLM', 'generate a Video Overview from my notebook', 'use NotebookLM Studio'). Handles reading and querying notebooks, adding sources (URLs, text, files, YouTube links, synthesized content), generating Studio outputs (Audio/Video Overviews, Mind Maps, Reports incl. Briefing Doc/Stu",
+      "path": "skills/notebooklm.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/notebooklm/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "media_video",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15106
+    },
+    {
+      "name": "build-zoom-video-sdk-app",
+      "slug": "build-zoom-video-sdk-app",
+      "description": "Reference skill for Zoom Video SDK. Use after routing to a custom-session workflow when the user needs full control over the video experience rather than an actual Zoom meeting.",
+      "path": "skills/build-zoom-video-sdk-app.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 13388
+    },
+    {
+      "name": "automate-this",
+      "slug": "automate-this",
+      "description": "Analyze a screen recording of a manual process and produce targeted, working automation scripts. Extracts frames and audio narration from video files, reconstructs the step-by-step workflow, and proposes automation at multiple complexity levels using tools already installed on the user machine.",
+      "path": "skills/automate-this.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/automate-this/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "media_video",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12085
+    },
+    {
+      "name": "video-content-strategist",
+      "slug": "video-content-strategist",
+      "description": "Use when planning video content strategy, writing video scripts, optimizing YouTube channels, building short-form video pipelines (Reels, TikTok, Shorts), or repurposing long-form content into video. Triggers: 'start a YouTube channel', 'video content strategy', 'write a video script', 'repurpose into video', 'YouTube SEO', 'short-form video'. NOT for written blog content (use content-production). NOT for social captions without video (use social-media-manager).",
+      "path": "skills/video-content-strategist.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/video-content-strategist/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "media_video",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10904
+    },
+    {
+      "name": "youtube-full",
+      "slug": "youtube-full",
+      "description": "Use when the user needs YouTube transcripts, video search, channel browsing, playlist extraction, or content monitoring. Trigger phrases: 'get the transcript for', 'search YouTube for', 'what are the latest videos on', 'list this playlist', 'monitor this channel', or any request involving a YouTube URL, video ID, or @handle. Do NOT use for downloading video or audio files, YouTube engagement data (likes, comments), or private/age-restricted videos.",
+      "path": "skills/youtube-full.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/youtube-full/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "media_video",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6791
+    },
+    {
+      "name": "pcf-community-resources.instructions",
+      "slug": "pcf-community-resources-instructions",
+      "description": "PCF community resources including gallery, videos, blogs, and development tools",
+      "path": "skills/pcf-community-resources-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/pcf-community-resources.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "media_video",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6749
+    },
+    {
+      "name": "scribe",
+      "slug": "scribe",
+      "description": "Reference skill for Zoom AI Services Scribe. Use after routing to a transcription workflow when handling uploaded or stored media, Build-platform JWT auth, fast mode transcription, batch jobs, or transcript pipeline design.",
+      "path": "skills/scribe.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/scribe/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5454
+    },
+    {
+      "name": "transloadit-media-processing",
+      "slug": "transloadit-media-processing",
+      "description": "Process media files (video, audio, images, documents) using Transloadit. Use when asked to encode video to HLS/MP4, generate thumbnails, resize or watermark images, extract audio, concatenate clips, add subtitles, OCR documents, or run any media processing pipeline. Covers 86+ processing robots for file transformation at scale.",
+      "path": "skills/transloadit-media-processing.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/transloadit-media-processing/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "media_video",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4561
+    },
+    {
+      "name": "probe-sdk",
+      "slug": "probe-sdk",
+      "description": "Reference skill for Zoom Probe SDK. Use after routing to a preflight workflow when testing browser compatibility, media permissions, audio or video diagnostics, and network readiness before users join.",
+      "path": "skills/probe-sdk.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/probe-sdk/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3105
+    },
+    {
+      "name": "zoom-video-sdk-flutter",
+      "slug": "zoom-video-sdk-flutter",
+      "description": "|",
+      "path": "skills/zoom-video-sdk-flutter.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/flutter/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2618
+    },
+    {
+      "name": "zoom-video-sdk-react-native",
+      "slug": "zoom-video-sdk-react-native",
+      "description": "|",
+      "path": "skills/zoom-video-sdk-react-native.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/react-native/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2534
+    },
+    {
+      "name": "choose-zoom-approach",
+      "slug": "choose-zoom-approach",
+      "description": "Choose the right Zoom architecture for a use case. Use when deciding between REST API, Webhooks, WebSockets, Meeting SDK, Video SDK, Zoom Apps SDK, Zoom MCP, Phone, Contact Center, or a hybrid approach.",
+      "path": "skills/choose-zoom-approach.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/choose-zoom-approach/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1587
+    },
+    {
+      "name": "contact-center/web",
+      "slug": "contact-center-web",
+      "description": "Zoom Contact Center SDK for Web. Use for web chat/video/campaign embeds, engagement event handling, app-context integrations, and Smart Embed postMessage workflows.",
+      "path": "skills/contact-center-web.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/contact-center/web/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1355
+    },
+    {
+      "name": "contact-center/android",
+      "slug": "contact-center-android",
+      "description": "Zoom Contact Center SDK for Android. Use for native Android chat/video/ZVA/scheduled callback integrations, campaign mode, service lifecycle, and rejoin handling.",
+      "path": "skills/contact-center-android.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/contact-center/android/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1271
+    },
+    {
+      "name": "contact-center/ios",
+      "slug": "contact-center-ios",
+      "description": "Zoom Contact Center SDK for iOS. Use for native iOS chat/video/ZVA/scheduled callback integrations, app lifecycle bridging, rejoin flow, and callback handling.",
+      "path": "skills/contact-center-ios.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/contact-center/ios/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1229
+    },
+    {
+      "name": "plan-zoom-product",
+      "slug": "plan-zoom-product",
+      "description": "Choose the right Zoom building surface for a use case and explain the tradeoffs clearly. Use when deciding between REST API, Webhooks, WebSockets, Meeting SDK, Video SDK, Zoom Apps SDK, Phone, Contact Center, or MCP for a specific product idea or integration goal.",
+      "path": "skills/plan-zoom-product.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/plan-zoom-product/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1185
+    },
+    {
+      "name": "build-zoom-meeting-app",
+      "slug": "build-zoom-meeting-app",
+      "description": "Build or embed a Zoom meeting flow. Use when implementing Meeting SDK joins, web or mobile meeting embeds, meeting lifecycle flows, or when deciding between Meeting SDK and Video SDK.",
+      "path": "skills/build-zoom-meeting-app.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/build-zoom-meeting-app/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1082
+    },
+    {
+      "name": "zoom-video-sdk-android",
+      "slug": "zoom-video-sdk-android",
+      "description": "|",
+      "path": "skills/zoom-video-sdk-android.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/android/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1031
+    },
+    {
+      "name": "zoom-video-sdk-unity",
+      "slug": "zoom-video-sdk-unity",
+      "description": "|",
+      "path": "skills/zoom-video-sdk-unity.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/unity/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1021
+    },
+    {
+      "name": "zoom-video-sdk-macos",
+      "slug": "zoom-video-sdk-macos",
+      "description": "|",
+      "path": "skills/zoom-video-sdk-macos.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/macos/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1011
+    },
+    {
+      "name": "zoom-video-sdk-ios",
+      "slug": "zoom-video-sdk-ios",
+      "description": "|",
+      "path": "skills/zoom-video-sdk-ios.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/ios/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "media_video",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 994
+    }
+  ]
+}

@@ -1,0 +1,707 @@
+{
+  "domain": "sales",
+  "pack_version": "8b67e141ef24",
+  "skill_count": 50,
+  "skills": [
+    {
+      "name": "apex.instructions",
+      "slug": "apex-instructions",
+      "description": "Guidelines and best practices for Apex development on the Salesforce Platform",
+      "path": "skills/apex-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/apex.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 46497
+    },
+    {
+      "name": "requirements pipeline",
+      "slug": "requirements-pipeline",
+      "description": "",
+      "path": "skills/requirements-pipeline.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/quality-playbook/references/requirements_pipeline.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 24554
+    },
+    {
+      "name": "commercial-policy",
+      "slug": "commercial-policy",
+      "description": "Use when designing or revising a company's commercial policy — the rules of engagement governing discounts off list price, approver thresholds, exception flows, and the deal framework that Deal Desk and AEs operate under. Covers discount matrix design (ARR band x term length x payment terms x strategic value), commercial policy design, exception policy, discount governance, approval thresholds, deal framework structure, and policy linting (contradictions, gaps, cliff edges, gaming surfaces). For",
+      "path": "skills/commercial-policy.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/commercial-policy/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13251
+    },
+    {
+      "name": "gcp-cloud-architect",
+      "slug": "gcp-cloud-architect",
+      "description": "Design GCP architectures for startups and enterprises. Use when asked to design Google Cloud infrastructure, deploy to GKE or Cloud Run, configure BigQuery pipelines, optimize GCP costs, or migrate to GCP. Covers Cloud Run, GKE, Cloud Functions, Cloud SQL, BigQuery, and cost optimization.",
+      "path": "skills/gcp-cloud-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/gcp-cloud-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12553
+    },
+    {
+      "name": "snowflake-development",
+      "slug": "snowflake-development",
+      "description": "Use when writing Snowflake SQL, building data pipelines with Dynamic Tables or Streams/Tasks, using Cortex AI functions, creating Cortex Agents, writing Snowpark Python, configuring dbt for Snowflake, or troubleshooting Snowflake errors.",
+      "path": "skills/snowflake-development.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/snowflake-development/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12491
+    },
+    {
+      "name": "lwc.instructions",
+      "slug": "lwc-instructions",
+      "description": "Guidelines and best practices for developing Lightning Web Components (LWC) on Salesforce Platform.",
+      "path": "skills/lwc-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/lwc.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12298
+    },
+    {
+      "name": "channel-economics",
+      "slug": "channel-economics",
+      "description": "Use when reviewing or rebalancing direct vs. partner-led channel economics — computing fully-loaded cost-to-serve per channel, channel ROI with cash / LTV / marginal lenses, and optimal channel mix subject to constraints. For Head of Commercial, RevOps, and VP Sales doing quarterly channel review when pipeline is mixed (e.g., 60% direct + 40% partner-led) and nobody actually knows which channel makes money after CAC, support load, partner discount, deal-velocity differences, retention differenti",
+      "path": "skills/channel-economics.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/channel-economics/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12217
+    },
+    {
+      "name": "competitive-intelligence",
+      "slug": "competitive-intelligence",
+      "description": "Research your competitors and build an interactive battlecard. Outputs an HTML artifact with clickable competitor cards and a comparison matrix. Trigger with \"competitive intel\", \"research competitors\", \"how do we compare to [competitor]\", \"battlecard for [competitor]\", or \"what's new with [competitor]\".",
+      "path": "skills/competitive-intelligence.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/competitive-intelligence/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 12003
+    },
+    {
+      "name": "prompt-governance",
+      "slug": "prompt-governance",
+      "description": "Use when managing prompts in production at scale: versioning prompts, running A/B tests on prompts, building prompt registries, preventing prompt regressions, or creating eval pipelines for production AI features. Triggers: 'manage prompts in production', 'prompt versioning', 'prompt regression', 'prompt A/B test', 'prompt registry', 'eval pipeline'. NOT for writing or improving individual prompts (use senior-prompt-engineer). NOT for RAG pipeline design (use rag-architect). NOT for LLM cost red",
+      "path": "skills/prompt-governance.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/prompt-governance/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10630
+    },
+    {
+      "name": "llm-cost-optimizer",
+      "slug": "llm-cost-optimizer",
+      "description": "Use proactively whenever LLM API costs come up -- or should. Triggers include: 'my AI costs are too high', 'optimize token usage', 'which model should I use', 'LLM spend is out of control', 'implement prompt caching', 'we're about to launch an AI feature', 'build me an AI endpoint'. Don't wait for an explicit cost complaint -- if someone is building an AI feature, designing an LLM endpoint, or choosing between models, cost architecture belongs in the conversation. Apply immediately when any of t",
+      "path": "skills/llm-cost-optimizer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/llm-cost-optimizer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10401
+    },
+    {
+      "name": "deal-desk",
+      "slug": "deal-desk",
+      "description": "Use when reviewing a specific inbound deal before close — when sales has asked for a discount that exceeds AE authority, when the customer has redlined the MSA, when per-deal economics (margin after discount, multi-year payment shape, indemnity exposure) need to be quantified, or when discount approval needs to be routed to a named human approver (Sales Director, VP Sales, CFO, CRO, General Counsel). Covers deal review, discount approval routing, per-deal margin scoring, deal exception handling,",
+      "path": "skills/deal-desk.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/deal-desk/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10243
+    },
+    {
+      "name": "draft-outreach",
+      "slug": "draft-outreach",
+      "description": "Research a prospect then draft personalized outreach. Uses web research by default, supercharged with enrichment and CRM. Trigger with \"draft outreach to [person/company]\", \"write cold email to [prospect]\", \"reach out to [name]\".",
+      "path": "skills/draft-outreach.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/draft-outreach/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 9801
+    },
+    {
+      "name": "aws-solution-architect",
+      "slug": "aws-solution-architect",
+      "description": "Design AWS architectures for startups using serverless patterns and IaC templates. Use when asked to design serverless architecture, create CloudFormation templates, optimize AWS costs, set up CI/CD pipelines, or migrate to AWS. Covers Lambda, API Gateway, DynamoDB, ECS, Aurora, and cost optimization.",
+      "path": "skills/aws-solution-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/aws-solution-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9715
+    },
+    {
+      "name": "gtm-developer-ecosystem",
+      "slug": "gtm-developer-ecosystem",
+      "description": "Build and scale developer-led adoption through ecosystem programs. Use when deciding open vs curated ecosystems, building developer programs, scaling platform adoption, or designing student program pipelines.",
+      "path": "skills/gtm-developer-ecosystem.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-developer-ecosystem/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8836
+    },
+    {
+      "name": "commercial-skills",
+      "slug": "commercial-skills",
+      "description": "Use when reviewing, approving, or designing commercial motion — pricing models, deal review, discount approval, partnership economics, channel mix, commercial policy, RFP/RFI response, bookings forecast. Triggers on \"review this deal\", \"should we discount\", \"pricing model\", \"partner economics\", \"RFP response\", \"bookings forecast\", \"channel mix\". Forks context to route to one of seven Commercial sub-skills (pricing-strategist, deal-desk, partnerships-architect, channel-economics, commercial-polic",
+      "path": "skills/commercial-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/commercial-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8215
+    },
+    {
+      "name": "salesforce-apex-triggers.agent",
+      "slug": "salesforce-apex-triggers-agent",
+      "description": "Implement Salesforce business logic using Apex classes and triggers with production-quality code following Salesforce best practices.",
+      "path": "skills/salesforce-apex-triggers-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/salesforce-apex-triggers.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8185
+    },
+    {
+      "name": "salesforce-aura-lwc.agent",
+      "slug": "salesforce-aura-lwc-agent",
+      "description": "Implement Salesforce UI components using Lightning Web Components and Aura components following Lightning framework best practices.",
+      "path": "skills/salesforce-aura-lwc-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/salesforce-aura-lwc.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7986
+    },
+    {
+      "name": "process-mapper",
+      "slug": "process-mapper",
+      "description": "Use when a BizOps lead, COO, or process-improvement owner needs to document an end-to-end business process (procurement, employee onboarding, incident handoff, customer-onboarding, claims adjudication) in BPMN-style notation, measure cycle times by stage, surface where work spends most of its time waiting vs. being worked, and quantify the gap between processing time and total elapsed time. Pairs Lean / Six Sigma / Theory-of-Constraints canon with deterministic stdlib-only Python tools to produc",
+      "path": "skills/process-mapper.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/process-mapper/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7862
+    },
+    {
+      "name": "pipeline-review",
+      "slug": "pipeline-review",
+      "description": "Analyze pipeline health — prioritize deals, flag risks, get a weekly action plan. Use when running a weekly pipeline review, deciding which deals to focus on this week, spotting stale or stuck opportunities, auditing for hygiene issues like bad close dates, or identifying single-threaded deals.",
+      "path": "skills/pipeline-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/pipeline-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 7143
+    },
+    {
+      "name": "salesforce-expert.agent",
+      "slug": "salesforce-expert-agent",
+      "description": "Provide expert Salesforce Platform guidance, including Apex Enterprise Patterns, LWC, integration, and Aura-to-LWC migration.",
+      "path": "skills/salesforce-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/salesforce-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6589
+    },
+    {
+      "name": "salesforce-flow-design",
+      "slug": "salesforce-flow-design",
+      "description": "Salesforce Flow architecture decisions, flow type selection, bulk safety validation, and fault handling standards. Use this skill when designing or reviewing Record-Triggered, Screen, Autolaunched, Scheduled, or Platform Event flows to ensure correct type selection, no DML/Get Records in loops, proper fault connectors on all data-changing elements, and appropriate automation density checks before deployment.",
+      "path": "skills/salesforce-flow-design.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/salesforce-flow-design/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6492
+    },
+    {
+      "name": "salesforce-visualforce.agent",
+      "slug": "salesforce-visualforce-agent",
+      "description": "Implement Visualforce pages and controllers following Salesforce MVC architecture and best practices.",
+      "path": "skills/salesforce-visualforce-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/salesforce-visualforce.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6480
+    },
+    {
+      "name": "slang-shader-engineer",
+      "slug": "slang-shader-engineer",
+      "description": "Use when working with Slang shaders, shader modules, HLSL-compatible GPU code, graphics pipelines, compute shaders, tessellation, ray tracing, parameter blocks, generics, interfaces, capabilities, cross-compilation, shader optimization, shader review, or C++ engine integration for Slang. Trigger on any mention of Slang, .slang files, slangc, SPIR-V from Slang, Slang modules, [shader(\"compute\")], [shader(\"vertex\")], or requests to write/review/refactor shader code with modern language features. A",
+      "path": "skills/slang-shader-engineer.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/slang-shader-engineer/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6476
+    },
+    {
+      "name": "daily-briefing",
+      "slug": "daily-briefing",
+      "description": "Start your day with a prioritized sales briefing. Works standalone when you tell me your meetings and priorities, supercharged when you connect your calendar, CRM, and email. Trigger with \"morning briefing\", \"daily brief\", \"what's on my plate today\", \"prep my day\", or \"start my day\".",
+      "path": "skills/daily-briefing.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/daily-briefing/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 6424
+    },
+    {
+      "name": "salesforce-flow.agent",
+      "slug": "salesforce-flow-agent",
+      "description": "Implement business automation using Salesforce Flow following declarative automation best practices.",
+      "path": "skills/salesforce-flow-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/salesforce-flow.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6090
+    },
+    {
+      "name": "forecast",
+      "slug": "forecast",
+      "description": "Generate a weighted sales forecast with best/likely/worst scenarios, commit vs. upside breakdown, and gap analysis. Use when preparing a quarterly forecast call, assessing gap-to-quota from a pipeline CSV, deciding which deals to commit vs. call upside, or checking pipeline coverage against your number.",
+      "path": "skills/forecast.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/forecast/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5949
+    },
+    {
+      "name": "react19-commander.agent",
+      "slug": "react19-commander-agent",
+      "description": "Master orchestrator for React 19 migration. Invokes specialist subagents in sequence - auditor, dep-surgeon, migrator, test-guardian - and gates advancement between steps. Uses memory to track migration state across the pipeline. Zero tolerance for incomplete migrations.",
+      "path": "skills/react19-commander-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react19-commander.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5929
+    },
+    {
+      "name": "ma-playbook",
+      "slug": "ma-playbook",
+      "description": "M&A strategy for acquiring companies or being acquired. Due diligence, valuation, integration, and deal structure. Use when evaluating acquisitions, preparing for acquisition, M&A due diligence, integration planning, or deal negotiation.",
+      "path": "skills/ma-playbook.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ma-playbook/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5668
+    },
+    {
+      "name": "datanalysis-credit-risk",
+      "slug": "datanalysis-credit-risk",
+      "description": "Credit risk data cleaning and variable screening pipeline for pre-loan modeling. Use when working with raw credit data that needs quality assessment,  missing value analysis, or variable selection before modeling. it covers data loading and formatting, abnormal period filtering, missing rate calculation, high-missing variable removal,low-IV variable filtering, high-PSI variable removal, Null Importance denoising, high-correlation variable removal, and cleaning report generation. Applicable scena",
+      "path": "skills/datanalysis-credit-risk.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/datanalysis-credit-risk/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5541
+    },
+    {
+      "name": "crm-maintenance",
+      "slug": "crm-maintenance",
+      "description": ">",
+      "path": "skills/crm-maintenance.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/crm-maintenance/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5212
+    },
+    {
+      "name": "content-management-systems",
+      "slug": "content-management-systems",
+      "description": "Workflow for building and modifying content management systems across WordPress, Shopify, Wix, Squarespace, Drupal, WooCommerce, Joomla, HubSpot CMS Hub, Webflow, Adobe Experience Manager, and similar platforms. Use when working on CMS themes, plugins, apps, modules, admin panels, media uploads, content models, editors, markdown pipelines, or static export workflows.",
+      "path": "skills/content-management-systems.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/content-management-systems/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4869
+    },
+    {
+      "name": "call-summary",
+      "slug": "call-summary",
+      "description": "Process call notes or a transcript — extract action items, draft follow-up email, generate internal summary. Use when pasting rough notes or a transcript after a discovery, demo, or negotiation call, drafting a customer follow-up, logging the activity for your CRM, or capturing objections and next steps for your team.",
+      "path": "skills/call-summary.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/call-summary/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4805
+    },
+    {
+      "name": "bigquery-pipeline-audit",
+      "slug": "bigquery-pipeline-audit",
+      "description": "Audits Python + BigQuery pipelines for cost safety, idempotency, and production readiness. Returns a structured report with exact patch locations.",
+      "path": "skills/bigquery-pipeline-audit.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/bigquery-pipeline-audit/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4802
+    },
+    {
+      "name": "doublecheck.agent",
+      "slug": "doublecheck-agent",
+      "description": "Interactive verification agent for AI-generated output. Runs a three-layer pipeline (self-audit, source verification, adversarial review) and produces structured reports with source links for human review.",
+      "path": "skills/doublecheck-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/doublecheck.agent.md",
+      "license": "MIT",
+      "tags": [
+        "sales",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4732
+    },
+    {
+      "name": "workflow-builder",
+      "slug": "workflow-builder",
+      "description": "Design and write deterministic multi-agent workflow scripts (.js files in .claude/workflows/) for Claude Code's Workflow tool. Use when a user wants to build, create, author, scaffold, or run a custom Claude Code workflow, orchestrate sub-agents (fan-out, pipeline, loop, judge-panel), or automate a repeatable multi-step task across fresh-context agents.",
+      "path": "skills/workflow-builder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/workflow-builder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4732
+    },
+    {
+      "name": "universal-scraping-architect",
+      "slug": "universal-scraping-architect",
+      "description": "Use for web scraping, crawling, document extraction, API parsing, or building validation-heavy data pipelines using Firecrawl or local Python scripts.",
+      "path": "skills/universal-scraping-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/universal-scraping-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4374
+    },
+    {
+      "name": "rag-architect",
+      "slug": "rag-architect",
+      "description": "Use when the user asks to design a RAG pipeline, choose a chunking strategy or embedding model, pick a vector database, or evaluate retrieval quality (precision@k, recall@k, NDCG). Examples: 'design a RAG system for our docs', 'what chunk size should I use for this corpus', 'evaluate my retriever against ground truth'. NOT for general LLM cost tuning (use llm-cost-optimizer) or agent loops over retrieval (use agenthub).",
+      "path": "skills/rag-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/rag-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4012
+    },
+    {
+      "name": "c-level-agents",
+      "slug": "c-level-agents",
+      "description": "Founder-mode executive team. 13 cs-* C-suite agents (CFO, CMO, CRO, CPO, COO, CHRO, CISO, GC, CDO, CAIO, CCO, VPE, Chief of Staff) and 21 /cs:* slash commands for forcing-question office hours, multi-role boardroom deliberation, strategic sprint pipeline, and meta routing. Use when the founder needs a virtual executive team, when invoking /cs:* commands, or when orchestrating multi-role decisions.",
+      "path": "skills/c-level-agents.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/c-level-agents/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3922
+    },
+    {
+      "name": "build-zoom-phone-integration",
+      "slug": "build-zoom-phone-integration",
+      "description": "Reference skill for Zoom Phone. Use after routing to a phone workflow when implementing OAuth, Phone APIs, webhooks, Smart Embed events, URI schemes, CRM or CTI dialers, or call handling automation.",
+      "path": "skills/build-zoom-phone-integration.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/phone/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3800
+    },
+    {
+      "name": "agent-designer",
+      "slug": "agent-designer",
+      "description": "Use when the user asks to design a multi-agent system, pick an orchestration pattern (supervisor/swarm/pipeline), generate tool schemas for agents, or evaluate agent execution logs for cost, latency, and failure bottlenecks. Examples: 'design an agent architecture for research automation', 'generate Anthropic tool schemas from these tool descriptions', 'analyze these agent run logs for bottlenecks'. NOT for Claude Code workflow files (use workflow-builder) or single-agent prompt design (use agen",
+      "path": "skills/agent-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/agent-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3648
+    },
+    {
+      "name": "cro-review",
+      "slug": "cro-review",
+      "description": "/cs:cro-review <plan> — Pipeline-paranoid interrogation of revenue, win rate, NRR, and ramp time. Use when the forecast misses pipeline coverage, win rates drop, or before scaling the sales team.",
+      "path": "skills/cro-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cro-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2801
+    },
+    {
+      "name": "vendor-review",
+      "slug": "vendor-review",
+      "description": "Evaluate a vendor — cost analysis, risk assessment, and recommendation. Use when reviewing a new vendor proposal, deciding whether to renew or replace a contract, comparing two vendors side-by-side, or building a TCO breakdown and negotiation points before procurement sign-off.",
+      "path": "skills/vendor-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/operations/skills/vendor-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2796
+    },
+    {
+      "name": "monday-brief",
+      "slug": "monday-brief",
+      "description": "Generates a one-page Monday morning briefing — cash, sales, pipeline, week ahead, top three to-dos. Accepts optional post destination and save-to arguments.",
+      "path": "skills/monday-brief.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/monday-brief/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2742
+    },
+    {
+      "name": "sales-brief",
+      "slug": "sales-brief",
+      "description": "Surfaces top and bottom sellers, identifies seasonality patterns, and produces a 2-week content brief to push winners and clear slow movers. Accepts optional lookback window of 30, 60, or 90 days.",
+      "path": "skills/sales-brief.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/sales-brief/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2547
+    },
+    {
+      "name": "crm-cleanup",
+      "slug": "crm-cleanup",
+      "description": "Scans HubSpot for stale deals, duplicate contacts, and missing fields, then fixes what the owner approves. Accepts optional scope argument for deals, contacts, or all.",
+      "path": "skills/crm-cleanup.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/crm-cleanup/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2429
+    },
+    {
+      "name": "agent-workflow-designer",
+      "slug": "agent-workflow-designer",
+      "description": "Design production-grade multi-agent workflows with clear pattern choice (sequential, parallel, hierarchical), handoff contracts, failure handling, and cost/context controls. Use when architecting a multi-step agent pipeline, choosing between single-agent vs multi-agent approaches, or refactoring an LLM workflow that suffers from context bloat or unreliable handoffs.",
+      "path": "skills/agent-workflow-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/agent-workflow-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2299
+    },
+    {
+      "name": "draft-offer",
+      "slug": "draft-offer",
+      "description": "Draft an offer letter with comp details and terms. Use when a candidate is ready for an offer, assembling a total comp package (base, equity, signing bonus), writing the offer letter text itself, or prepping negotiation guidance for the hiring manager.",
+      "path": "skills/draft-offer.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/human-resources/skills/draft-offer/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2024
+    },
+    {
+      "name": "interview-system-designer",
+      "slug": "interview-system-designer",
+      "description": "This skill should be used when the user asks to \"design interview processes\", \"create hiring pipelines\", \"calibrate interview loops\", \"generate interview questions\", \"design competency matrices\", \"analyze interviewer bias\", \"create scoring rubrics\", \"build question banks\", or \"optimize hiring systems\". Use for designing role-specific interview loops, competency assessments, and hiring calibration systems.",
+      "path": "skills/interview-system-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/interview-system-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1805
+    },
+    {
+      "name": "recruiting-pipeline",
+      "slug": "recruiting-pipeline",
+      "description": "Track and manage recruiting pipeline stages. Trigger with \"recruiting update\", \"candidate pipeline\", \"how many candidates\", \"hiring status\", or when the user discusses sourcing, screening, interviewing, or extending offers.",
+      "path": "skills/recruiting-pipeline.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/human-resources/skills/recruiting-pipeline/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "sales",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 941
+    },
+    {
+      "name": "pipeline",
+      "slug": "pipeline",
+      "description": "Detect stack and generate CI/CD pipeline configs. Usage: /pipeline <detect|generate> [options]",
+      "path": "skills/pipeline.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/pipeline/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "sales",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 875
+    }
+  ]
+}

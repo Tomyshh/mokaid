@@ -3,7 +3,7 @@ defmodule Mokaid.Agents do
 
   import Ecto.Query
 
-  alias Mokaid.Agents.{Agent, AgentStatusEvent, Archetypes}
+  alias Mokaid.Agents.{Agent, AgentStatusEvent, Archetypes, DomainPacks}
   alias Mokaid.Audit
   alias Mokaid.Billing
   alias Mokaid.Billing.Credits
@@ -53,10 +53,11 @@ defmodule Mokaid.Agents do
 
   def create_agent(workspace_id, attrs, created_by \\ nil) do
     attrs = stringify_attrs(attrs)
-    archetype_key = attrs["archetype_key"] || "generalist"
+    archetype_key = attrs["archetype_key"] || "blank"
     boost_key = attrs["boost_key"]
+    knowledge_brief = attrs["knowledge_brief"]
 
-    with {:ok, prepared, _archetype, boost} <-
+    with {:ok, prepared, archetype, boost} <-
            Archetypes.build_create_attrs(sanitize_client_attrs(attrs), archetype_key, boost_key) do
       prepared =
         if blank?(prepared["avatar_asset_id"]) do
@@ -120,6 +121,21 @@ defmodule Mokaid.Agents do
       case result do
         {:ok, agent} ->
           if boost_key not in [nil, ""], do: Credits.broadcast_balance(workspace_id)
+
+          agent =
+            if boost && boost.key == "boost_l10" do
+              case DomainPacks.seed_for_agent(workspace_id, agent,
+                     archetype_key: archetype.key,
+                     brief: knowledge_brief,
+                     suggested_mcp: Map.get(archetype, :suggested_mcp) || [],
+                     member: created_by
+                   ) do
+                {:ok, _count, updated} -> updated
+              end
+            else
+              agent
+            end
+
           Realtime.broadcast_workspace(workspace_id, "agent.created", %{agent_id: agent.id})
           {:ok, agent}
 

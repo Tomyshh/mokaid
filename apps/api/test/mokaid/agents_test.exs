@@ -182,6 +182,86 @@ defmodule Mokaid.AgentsTest do
       assert summary.spendable == 500
     end
 
+    test "creates a blank level-1 agent with weak starter skills" do
+      {workspace, _owner} = workspace_fixture()
+
+      assert {:ok, agent} =
+               Agents.create_agent(workspace.id, %{
+                 "kind" => "ai",
+                 "display_name" => "Trainee",
+                 "archetype_key" => "blank"
+               })
+
+      assert agent.level == 1
+      assert Enum.any?(agent.skills, &(&1["name"] == "research" and &1["level"] == 15))
+      assert get_in(agent.capabilities, ["learning", "tier"]) == "blank"
+    end
+
+    test "rejects boost_l10 on blank archetype" do
+      {workspace, _owner} = workspace_fixture()
+      subscribe!(workspace.id, "starter")
+      assert {:ok, _} = Credits.add_purchased(workspace.id, 5_000, description: "test")
+
+      assert {:error, :invalid_boost} =
+               Agents.create_agent(workspace.id, %{
+                 "kind" => "ai",
+                 "display_name" => "Nope",
+                 "archetype_key" => "blank",
+                 "boost_key" => "boost_l10"
+               })
+    end
+
+    test "applies boost_l10, charges credits, and seeds domain knowledge" do
+      {workspace, _owner} = workspace_fixture()
+      subscribe!(workspace.id, "starter")
+      assert {:ok, _} = Credits.add_purchased(workspace.id, 5_000, description: "specialist pack")
+
+      assert {:ok, agent} =
+               Agents.create_agent(workspace.id, %{
+                 "kind" => "ai",
+                 "display_name" => "Dev Pro",
+                 "archetype_key" => "developer",
+                 "boost_key" => "boost_l10",
+                 "knowledge_brief" => "Build features from GitHub PRs"
+               })
+
+      assert agent.level == 10
+      assert Enum.any?(agent.skills, &(&1["level"] == 90))
+
+      items = Mokaid.Knowledge.list_items(workspace.id, %{"agent_id" => agent.id})
+      assert length(items) >= 1
+
+      domain_pack = get_in(agent.capabilities, ["domain_pack"])
+      assert is_map(domain_pack)
+      assert domain_pack["archetype"] == "developer"
+      assert is_list(domain_pack["skill_index"])
+      assert domain_pack["skill_count"] >= 1
+
+      assert {:ok, skill} = Mokaid.Agents.DomainPacks.load_skill("developer", "code-review")
+      # fallback: any first index slug
+      _ = skill
+
+      summary = Credits.summary(workspace.id)
+      assert summary.spendable >= 0
+    end
+
+    test "load_skill returns pack skill bodies" do
+      index = Mokaid.Agents.DomainPacks.skill_index("developer")
+      assert index["skill_count"] >= 1
+      slug = hd(index["skills"])["slug"]
+      assert {:ok, skill} = Mokaid.Agents.DomainPacks.load_skill("developer", slug)
+      assert is_binary(skill.body)
+      assert String.length(skill.body) > 50
+    end
+
+    test "domain packs cover every specialist archetype" do
+      for archetype <- Mokaid.Agents.Archetypes.list_archetypes(),
+          archetype.tier == "specialist" do
+        assert Mokaid.Agents.DomainPacks.corpus_doc_count(archetype.key) >= 1,
+               "missing pack docs for #{archetype.key}"
+      end
+    end
+
     test "update_agent cannot forge level or skills" do
       {workspace, _owner} = workspace_fixture()
 

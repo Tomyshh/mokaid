@@ -1,0 +1,637 @@
+{
+  "domain": "support_cs",
+  "pack_version": "b6feba51d73b",
+  "skill_count": 45,
+  "skills": [
+    {
+      "name": "zoom-cobrowse-sdk",
+      "slug": "zoom-cobrowse-sdk",
+      "description": "Reference skill for Zoom Cobrowse SDK. Use after routing to a collaborative-support workflow when implementing browser co-browsing, annotation tools, privacy masking, remote assist, or PIN-based session sharing.",
+      "path": "skills/zoom-cobrowse-sdk.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/cobrowse-sdk/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 32431
+    },
+    {
+      "name": "WinFormsExpert.agent",
+      "slug": "winformsexpert-agent",
+      "description": "Support development of .NET (OOP) WinForms Designer compatible Apps.",
+      "path": "skills/winformsexpert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/WinFormsExpert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 25847
+    },
+    {
+      "name": "cs-project-manager",
+      "slug": "cs-project-manager",
+      "description": "Project Manager agent for sprint planning, Jira/Confluence workflows, Scrum ceremonies, and stakeholder reporting. Orchestrates project-management skills. Use when running delivery operations — e.g., planning a sprint with capacity and carry-over math in Jira, or assembling a portfolio health report for stakeholders from ticket and velocity data.",
+      "path": "skills/cs-project-manager.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/project-management/cs-project-manager.md",
+      "license": "check-repo",
+      "tags": [
+        "support_cs",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 25183
+    },
+    {
+      "name": "markdown-to-html",
+      "slug": "markdown-to-html",
+      "description": "Convert Markdown files to HTML similar to `marked.js`, `pandoc`, `gomarkdown/markdown`, or similar tools; or writing custom script to convert markdown to html and/or working on web template systems like `jekyll/jekyll`, `gohugoio/hugo`, or similar web templating systems that utilize markdown documents, converting them to html. Use when asked to \"convert markdown to html\", \"transform md to html\", \"render markdown\", \"generate html from markdown\", or when working with .md files and/or web a templat",
+      "path": "skills/markdown-to-html.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/markdown-to-html/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 23917
+    },
+    {
+      "name": "excalidraw-diagram-generator",
+      "slug": "excalidraw-diagram-generator",
+      "description": "Generate Excalidraw diagrams from natural language descriptions. Use when asked to \"create a diagram\", \"make a flowchart\", \"visualize a process\", \"draw a system architecture\", \"create a mind map\", or \"generate an Excalidraw file\". Supports flowcharts, relationship diagrams, mind maps, and system architecture diagrams. Outputs .excalidraw JSON files that can be opened directly in Excalidraw.",
+      "path": "skills/excalidraw-diagram-generator.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/excalidraw-diagram-generator/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 23236
+    },
+    {
+      "name": "msstore-cli",
+      "slug": "msstore-cli",
+      "description": "Microsoft Store Developer CLI (msstore) for publishing Windows applications to the Microsoft Store. Use when asked to configure Store credentials, list Store apps, check submission status, publish submissions, manage package flights, set up CI/CD for Store publishing, or integrate with Partner Center. Supports Windows App SDK/WinUI, UWP, .NET MAUI, Flutter, Electron, React Native, and PWA applications.",
+      "path": "skills/msstore-cli.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/msstore-cli/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15832
+    },
+    {
+      "name": "doublecheck",
+      "slug": "doublecheck",
+      "description": "Three-layer verification pipeline for AI output. Extracts verifiable claims, finds supporting or contradicting sources via web search, runs adversarial review for hallucination patterns, and produces a structured verification report with source links for human review.",
+      "path": "skills/doublecheck.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/doublecheck/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15580
+    },
+    {
+      "name": "email-template-builder",
+      "slug": "email-template-builder",
+      "description": "Build complete transactional email systems: React Email templates, provider integration (Resend, Postmark, SendGrid, AWS SES), preview server, i18n support, dark mode, spam optimization, analytics tracking. Use when adding transactional email to a new product, migrating between email providers, refactoring legacy email templates for accessibility, or adding internationalization to existing templates.",
+      "path": "skills/email-template-builder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/email-template-builder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "support_cs",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14897
+    },
+    {
+      "name": "validate-data",
+      "slug": "validate-data",
+      "description": "QA an analysis before sharing -- methodology, accuracy, and bias checks. Use when reviewing an analysis before a stakeholder presentation, spot-checking calculations and aggregation logic, verifying a SQL query's results look right, or assessing whether conclusions are actually supported by the data.",
+      "path": "skills/validate-data.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/data/skills/validate-data/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 14532
+    },
+    {
+      "name": "draft-response",
+      "slug": "draft-response",
+      "description": "Draft a professional customer-facing response tailored to the situation and relationship. Use when answering a product question, responding to an escalation or outage, delivering bad news like a delay or won't-fix, declining a feature request, or replying to a billing issue.",
+      "path": "skills/draft-response.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/customer-support/skills/draft-response/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 14183
+    },
+    {
+      "name": "landing",
+      "slug": "landing",
+      "description": "Generates a premium single-page HTML landing page with 3D CSS animations, GSAP scroll effects, and mouse-parallax depth. Forcing intake (product + elevator pitch, audience register, brand overrides, tone) locks down positioning before any copy or markup is written, so the page reflects the actual product rather than generic boilerplate. Use whenever the user says 'landing for X', 'create a landing page', 'build a landing page', 'make a landing page for X', 'I need a web page for Y', or provides ",
+      "path": "skills/landing.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/landing/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "support_cs",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13887
+    },
+    {
+      "name": "java-add-graalvm-native-image-support",
+      "slug": "java-add-graalvm-native-image-support",
+      "description": "GraalVM Native Image expert that adds native image support to Java applications, builds the project, analyzes build errors, applies fixes, and iterates until successful compilation using Oracle best practices.",
+      "path": "skills/java-add-graalvm-native-image-support.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/java-add-graalvm-native-image-support/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12631
+    },
+    {
+      "name": "kb-article",
+      "slug": "kb-article",
+      "description": "Draft a knowledge base article from a resolved issue or common question. Use when a ticket resolution is worth documenting for self-service, the same question keeps coming up, a workaround needs to be published, or a known issue should be communicated to customers.",
+      "path": "skills/kb-article.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/customer-support/skills/kb-article/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 11781
+    },
+    {
+      "name": "ticket-triage",
+      "slug": "ticket-triage",
+      "description": "Triage and prioritize a support ticket or customer issue. Use when a new ticket comes in and needs categorization, assigning P1-P4 priority, deciding which team should handle it, or checking whether it's a duplicate or known issue before routing.",
+      "path": "skills/ticket-triage.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/customer-support/skills/ticket-triage/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 10898
+    },
+    {
+      "name": "arize-ai-provider-integration",
+      "slug": "arize-ai-provider-integration",
+      "description": "Creates, reads, updates, and deletes Arize AI integrations that store LLM provider credentials used by evaluators and other Arize features. Supports any LLM provider (e.g. OpenAI, Anthropic, Azure OpenAI, AWS Bedrock, Vertex AI, Gemini, NVIDIA NIM). Use when the user mentions AI integration, LLM provider credentials, create integration, list integrations, update credentials, delete integration, or connecting an LLM provider to Arize.",
+      "path": "skills/arize-ai-provider-integration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/arize-ai-provider-integration/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9795
+    },
+    {
+      "name": "legacy-circuit-mockups",
+      "slug": "legacy-circuit-mockups",
+      "description": "Generate breadboard circuit mockups and visual diagrams using HTML5 Canvas drawing techniques. Use when asked to create circuit layouts, visualize electronic component placements, draw breadboard diagrams, mockup 6502 builds, generate retro computer schematics, or design vintage electronics projects. Supports 555 timers, W65C02S microprocessors, 28C256 EEPROMs, W65C22 VIA chips, 7400-series logic gates, LEDs, resistors, capacitors, switches, buttons, crystals, and wires.",
+      "path": "skills/legacy-circuit-mockups.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/legacy-circuit-mockups/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8685
+    },
+    {
+      "name": "customer-success-manager",
+      "slug": "customer-success-manager",
+      "description": "Monitors customer health, predicts churn risk, and identifies expansion opportunities using weighted scoring models for SaaS customer success. Use when analyzing customer accounts, reviewing retention metrics, scoring at-risk customers, or when the user mentions churn, customer health scores, upsell opportunities, expansion revenue, retention analysis, or customer analytics. Runs three Python CLI tools to produce deterministic health scores, churn risk tiers, and prioritized expansion recommenda",
+      "path": "skills/customer-success-manager.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/customer-success-manager/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "support_cs",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8308
+    },
+    {
+      "name": "ui-screenshots",
+      "slug": "ui-screenshots",
+      "description": "Capture screenshots of web apps during development using Playwright and PIL. Supports full-page captures, interactive states, and an iterate-on-crop workflow that avoids slow re-screenshots.",
+      "path": "skills/ui-screenshots.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/ui-screenshots/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7231
+    },
+    {
+      "name": "gem-researcher.agent",
+      "slug": "gem-researcher-agent",
+      "description": "Codebase exploration: patterns, dependencies, architecture discovery. Supports multiple exploration modes for cost-controlled research.",
+      "path": "skills/gem-researcher-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-researcher.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7051
+    },
+    {
+      "name": "code-tour.agent",
+      "slug": "code-tour-agent",
+      "description": "Expert agent for creating and maintaining VSCode CodeTour files with comprehensive schema support and best practices",
+      "path": "skills/code-tour-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/code-tour.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6874
+    },
+    {
+      "name": "image-manipulation-image-magick",
+      "slug": "image-manipulation-image-magick",
+      "description": "Process and manipulate images using ImageMagick. Supports resizing, format conversion, batch processing, and retrieving image metadata. Use when working with images, creating thumbnails, resizing wallpapers, or performing batch image operations.",
+      "path": "skills/image-manipulation-image-magick.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/image-manipulation-image-magick/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6494
+    },
+    {
+      "name": "dotnet-maui.agent",
+      "slug": "dotnet-maui-agent",
+      "description": "Support development of .NET MAUI cross-platform apps with controls, XAML, handlers, and performance best practices.",
+      "path": "skills/dotnet-maui-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/dotnet-maui.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6436
+    },
+    {
+      "name": "code-exemplars-blueprint-generator",
+      "slug": "code-exemplars-blueprint-generator",
+      "description": "Technology-agnostic prompt generator that creates customizable AI prompts for scanning codebases and identifying high-quality code exemplars. Supports multiple programming languages (.NET, Java, JavaScript, TypeScript, React, Angular, Python) with configurable analysis depth, categorization methods, and documentation formats to establish coding standards and maintain consistency across development teams.",
+      "path": "skills/code-exemplars-blueprint-generator.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/code-exemplars-blueprint-generator/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6237
+    },
+    {
+      "name": "react18-dep-surgeon.agent",
+      "slug": "react18-dep-surgeon-agent",
+      "description": "Dependency upgrade specialist for React 16/17 → 18.3.1. Pins to 18.3.1 exactly (not 18.x latest). Upgrades RTL to v14, Apollo 3.8+, Emotion 11.10+, react-router v6. Detects and blocks on Enzyme (no React 18 support). Returns GO/NO-GO to commander.",
+      "path": "skills/react18-dep-surgeon-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react18-dep-surgeon.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5699
+    },
+    {
+      "name": "fabric-lakehouse",
+      "slug": "fabric-lakehouse",
+      "description": "Use this skill to get context about Fabric Lakehouse and its features for software systems and AI-powered functions. It offers descriptions of Lakehouse data components, organization with schemas and shortcuts, access control, and code examples. This skill supports users in designing, building, and optimizing Lakehouse solutions using best practices.",
+      "path": "skills/fabric-lakehouse.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/fabric-lakehouse/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5651
+    },
+    {
+      "name": "plantuml-ascii",
+      "slug": "plantuml-ascii",
+      "description": "Generate ASCII art diagrams using PlantUML text mode. Use when user asks to create ASCII diagrams, text-based diagrams, terminal-friendly diagrams, or mentions plantuml ascii, text diagram, ascii art diagram. Supports: Converting PlantUML diagrams to ASCII art, Creating sequence diagrams, class diagrams, flowcharts in ASCII format, Generating Unicode-enhanced ASCII art with -utxt flag",
+      "path": "skills/plantuml-ascii.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/plantuml-ascii/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5477
+    },
+    {
+      "name": "ticket-deflector",
+      "slug": "ticket-deflector",
+      "description": ">",
+      "path": "skills/ticket-deflector.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/ticket-deflector/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4477
+    },
+    {
+      "name": "declarative-agents",
+      "slug": "declarative-agents",
+      "description": "Complete development kit for Microsoft 365 Copilot declarative agents with three comprehensive workflows (basic, advanced, validation), TypeSpec support, and Microsoft 365 Agents Toolkit integration",
+      "path": "skills/declarative-agents.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/declarative-agents/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4462
+    },
+    {
+      "name": "mcp-copilot-studio-server-generator",
+      "slug": "mcp-copilot-studio-server-generator",
+      "description": "Generate a complete MCP server implementation optimized for Copilot Studio integration with proper schema constraints and streamable HTTP support",
+      "path": "skills/mcp-copilot-studio-server-generator.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mcp-copilot-studio-server-generator/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4040
+    },
+    {
+      "name": "steno-mode",
+      "slug": "steno-mode",
+      "description": "Shorthand-first response compression that cuts ~40% of response tokens while preserving technical precision and exact literals. Use when the user says \"steno mode\", \"shorthand mode\", \"compressed responses\", \"token reduction\", \"brief structured output\", or invokes /steno. Supports four compression levels: lite, brief, court, machine. Do not trigger for requests needing polished prose such as onboarding/tutorial content, stakeholder or customer-facing copy, or teaching-focused explanations.",
+      "path": "skills/steno-mode.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/steno-mode/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3662
+    },
+    {
+      "name": "webapp-testing",
+      "slug": "webapp-testing",
+      "description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.",
+      "path": "skills/webapp-testing.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/webapp-testing/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3566
+    },
+    {
+      "name": "mcp-server-builder",
+      "slug": "mcp-server-builder",
+      "description": "Design and ship production-ready MCP (Model Context Protocol) servers from OpenAPI contracts instead of hand-written tool wrappers. Python and TypeScript support, schema validation, safe evolution. Use when exposing an existing API as an MCP server, building tool integrations for Claude or Codex or Cursor, or scaffolding an MCP project from scratch.",
+      "path": "skills/mcp-server-builder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/mcp-server-builder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "support_cs",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3537
+    },
+    {
+      "name": "mentor.agent",
+      "slug": "mentor-agent",
+      "description": "Help mentor the engineer by providing guidance and support.",
+      "path": "skills/mentor-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/mentor.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3371
+    },
+    {
+      "name": "acreadiness-assess",
+      "slug": "acreadiness-assess",
+      "description": "Run the AgentRC readiness assessment on the current repository and produce a static HTML dashboard at reports/index.html. Wraps `npx github:microsoft/agentrc readiness` and hands off rendering to the @ai-readiness-reporter custom agent. Supports policies (--policy) for org-specific scoring. Use when asked to assess, audit, or score the AI readiness of a repo.",
+      "path": "skills/acreadiness-assess.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/acreadiness-assess/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2804
+    },
+    {
+      "name": "customer-pulse-check",
+      "slug": "customer-pulse-check",
+      "description": "Synthesizes themes from PayPal disputes, HubSpot tickets, and review exports into a top-3 fixable issues list with drafted response templates. Accepts optional since-date argument.",
+      "path": "skills/customer-pulse-check.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/customer-pulse-check/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2790
+    },
+    {
+      "name": "handle-complaint",
+      "slug": "handle-complaint",
+      "description": "Handles an incoming customer complaint end-to-end — pulls context, drafts a response, and suggests an operational fix. Accepts optional email or ticket ID argument.",
+      "path": "skills/handle-complaint.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/handle-complaint/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2782
+    },
+    {
+      "name": "git-commit",
+      "slug": "git-commit",
+      "description": "Execute git commit with conventional commit message analysis, intelligent staging, and message generation. Use when user asks to commit changes, create a git commit, or mentions \"/commit\". Supports: (1) Auto-detecting type and scope from changes, (2) Generating conventional commit messages from diff, (3) Interactive commit with optional type/scope/description overrides, (4) Intelligent file staging for logical grouping",
+      "path": "skills/git-commit.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/git-commit/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2701
+    },
+    {
+      "name": "github-actions-runtime-upgrade-conventions",
+      "slug": "github-actions-runtime-upgrade-conventions",
+      "description": "Upgrade GitHub Actions to supported runtimes by selecting safe action versions, preserving workflow behavior, and validating post-upgrade execution.",
+      "path": "skills/github-actions-runtime-upgrade-conventions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/github-actions-runtime-upgrade-conventions/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2665
+    },
+    {
+      "name": "research-synthesis",
+      "slug": "research-synthesis",
+      "description": "Synthesize user research into themes, insights, and recommendations. Use when you have interview transcripts, survey results, usability test notes, support tickets, or NPS responses that need to be distilled into patterns, user segments, and prioritized next steps.",
+      "path": "skills/research-synthesis.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/design/skills/research-synthesis/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2618
+    },
+    {
+      "name": "api-architect.agent",
+      "slug": "api-architect-agent",
+      "description": "Your role is that of an API architect. Help mentor the engineer by providing guidance, support, and working code.",
+      "path": "skills/api-architect-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/api-architect.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2388
+    },
+    {
+      "name": "neon-migration-specialist.agent",
+      "slug": "neon-migration-specialist-agent",
+      "description": "Safe Postgres migrations with zero-downtime using Neon's branching workflow. Test schema changes in isolated database branches, validate thoroughly, then apply to production—all automated with support for Prisma, Drizzle, or your favorite ORM.",
+      "path": "skills/neon-migration-specialist-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/neon-migration-specialist.agent.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2385
+    },
+    {
+      "name": "nano-banana-pro-openrouter",
+      "slug": "nano-banana-pro-openrouter",
+      "description": "Generate or edit images via OpenRouter with the Gemini 3 Pro Image model. Use for prompt-only image generation, image edits, and multi-image compositing; supports 1K/2K/4K output.",
+      "path": "skills/nano-banana-pro-openrouter.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/nano-banana-pro-openrouter/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "support_cs",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2292
+    },
+    {
+      "name": "business-growth-skills",
+      "slug": "business-growth-skills",
+      "description": "Router/index for the 4 business & growth skills bundled in this plugin: customer-success-manager (health scoring, churn risk, expansion), sales-engineer (RFP analysis, competitive matrices, PoC planning), revenue-operations (pipeline, forecast accuracy, GTM efficiency), and contract-and-proposal-writer. Use when a growth/revenue request doesn't obviously match one skill and you need to pick the right one (e.g., 'which accounts are at risk', 'should we bid on this RFP').",
+      "path": "skills/business-growth-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/business-growth-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "support_cs",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1307
+    },
+    {
+      "name": "virtual-agent/android",
+      "slug": "virtual-agent-android",
+      "description": "Zoom Virtual Agent Android integration via WebView. Use for Java/Kotlin bridge callbacks, native URL handling, support_handoff relay, and lifecycle-safe embedding.",
+      "path": "skills/virtual-agent-android.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/virtual-agent/android/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1094
+    },
+    {
+      "name": "virtual-agent/ios",
+      "slug": "virtual-agent-ios",
+      "description": "Zoom Virtual Agent iOS integration via WKWebView. Use for Swift/Objective-C script injection, message handlers, support_handoff relay, and URL routing policies.",
+      "path": "skills/virtual-agent-ios.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/virtual-agent/ios/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "support_cs",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1031
+    }
+  ]
+}

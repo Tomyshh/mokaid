@@ -1,0 +1,805 @@
+{
+  "domain": "product",
+  "pack_version": "2cb5f56f8216",
+  "skill_count": 57,
+  "skills": [
+    {
+      "name": "cs-product-manager",
+      "slug": "cs-product-manager",
+      "description": "Product management agent for feature prioritization, customer discovery, PRD development, and roadmap planning using RICE framework. Use when a product decision needs structure and evidence — e.g., RICE-scoring a backlog of 20 feature requests before quarterly planning, or drafting a PRD from raw customer-interview notes.",
+      "path": "skills/cs-product-manager.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/product/cs-product-manager.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 30723
+    },
+    {
+      "name": "issue-fields-migration",
+      "slug": "issue-fields-migration",
+      "description": "Bulk-migrate metadata to GitHub issue fields from two sources: repo labels (e.g. priority labels to a Priority field) and Project V2 fields. Use when users say \"migrate my labels to issue fields\", \"migrate project fields to issue fields\", \"convert labels to issue fields\", \"copy project field values to issue fields\", or ask about adopting issue fields. Issue fields are org-level typed metadata (single select, text, number, date) that replace label-based workarounds with structured, searchable, cr",
+      "path": "skills/issue-fields-migration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/issue-fields-migration/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 23637
+    },
+    {
+      "name": "cs-ux-researcher",
+      "slug": "cs-ux-researcher",
+      "description": "UX research agent for research planning, persona generation, journey mapping, and usability test analysis. Use when product decisions need user evidence — e.g., planning interview scripts and recruiting criteria for a discovery study, or synthesizing usability-test sessions into prioritized findings and updated personas.",
+      "path": "skills/cs-ux-researcher.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/product/cs-ux-researcher.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 23477
+    },
+    {
+      "name": "cs-product-strategist",
+      "slug": "cs-product-strategist",
+      "description": "Product strategy agent for quarterly OKR planning, competitive landscape analysis, product vision development, and strategy pivot evaluation. Use when the question is direction rather than delivery — e.g., cascading company OKRs into product-team objectives for next quarter, or running a competitive teardown to decide whether to enter an adjacent market.",
+      "path": "skills/cs-product-strategist.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/product/cs-product-strategist.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 20614
+    },
+    {
+      "name": "code-to-prd",
+      "slug": "code-to-prd",
+      "description": "Reverse-engineer any codebase into a complete Product Requirements Document (PRD). Analyzes routes, components, state management, API integrations, and user interactions to produce business-readable documentation detailed enough for engineers or AI agents to fully reconstruct every page and endpoint. Works with frontend frameworks (React, Vue, Angular, Svelte, Next.js, Nuxt), backend frameworks (NestJS, Django, Express, FastAPI), and fullstack applications. Use when users mention: generate PRD, ",
+      "path": "skills/code-to-prd.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/code-to-prd/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 18552
+    },
+    {
+      "name": "scala2.instructions",
+      "slug": "scala2-instructions",
+      "description": "Scala 2.12/2.13 programming language coding conventions and best practices following Databricks style guide for functional programming, type safety, and production code quality.",
+      "path": "skills/scala2-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/scala2.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 18334
+    },
+    {
+      "name": "scala-spark.instructions",
+      "slug": "scala-spark-instructions",
+      "description": "Best practices for building Apache Spark applications in Scala, covering DataFrames, Datasets, SparkSQL, performance tuning, testing, and production deployment patterns.",
+      "path": "skills/scala-spark-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/scala-spark.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 16027
+    },
+    {
+      "name": "product-brainstorming",
+      "slug": "product-brainstorming",
+      "description": "Brainstorm product ideas, explore problem spaces, and challenge assumptions as a thinking partner. Use when exploring a new opportunity, generating solutions to a product problem, stress-testing an idea, or when a PM needs to think out loud with a sharp sparring partner before converging on a direction.",
+      "path": "skills/product-brainstorming.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/product-brainstorming/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "product",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 15441
+    },
+    {
+      "name": "quasi-coder",
+      "slug": "quasi-coder",
+      "description": "Expert 10x engineer skill for interpreting and implementing code from shorthand, quasi-code, and natural language descriptions. Use when collaborators provide incomplete code snippets, pseudo-code, or descriptions with potential typos or incorrect terminology. Excels at translating non-technical or semi-technical descriptions into production-quality code.",
+      "path": "skills/quasi-coder.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/quasi-coder/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15227
+    },
+    {
+      "name": "breakdown-plan",
+      "slug": "breakdown-plan",
+      "description": "Issue Planning and Automation prompt that generates comprehensive project plans with Epic > Feature > Story/Enabler > Test hierarchy, dependencies, priorities, and automated tracking.",
+      "path": "skills/breakdown-plan.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-plan/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14821
+    },
+    {
+      "name": "stripe-integration-expert",
+      "slug": "stripe-integration-expert",
+      "description": "Production-grade Stripe integrations: subscriptions with trials and proration, one-time payments, usage-based billing, checkout sessions, idempotent webhook handlers, customer portal, and invoicing. Covers Next.js, Express, and Django patterns. Use when integrating Stripe for the first time, debugging webhook reliability issues, migrating from a different payment provider, or adding usage-based billing to an existing subscription product.",
+      "path": "skills/stripe-integration-expert.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/stripe-integration-expert/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14341
+    },
+    {
+      "name": "inbox-setup",
+      "slug": "inbox-setup",
+      "description": "One-time setup skill that builds a personalized inbox triage knowledge base via interactive interview. Interviews the user about their email patterns, business context, reply style, and priorities using grill-me discipline (one question at a time, forcing format where possible, dependency-ordered, each question explains why I'm asking), then generates the knowledge base files that power the companion 'inbox-triage' skill. Run this once before using inbox-triage for the first time. Re-run when bu",
+      "path": "skills/inbox-setup.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/inbox-setup/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14127
+    },
+    {
+      "name": "monday-bug-fixer.agent",
+      "slug": "monday-bug-fixer-agent",
+      "description": "Elite bug-fixing agent that enriches task context from Monday.com platform data. Gathers related items, docs, comments, epics, and requirements to deliver production-quality fixes with comprehensive PRs.",
+      "path": "skills/monday-bug-fixer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/monday-bug-fixer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13031
+    },
+    {
+      "name": "roadmap-update",
+      "slug": "roadmap-update",
+      "description": "Update, create, or reprioritize your product roadmap. Use when adding a new initiative and deciding what moves to make room, shifting priorities after new information comes in, moving timelines due to a dependency slip, or building a Now/Next/Later view from scratch.",
+      "path": "skills/roadmap-update.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/roadmap-update/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "product",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 12009
+    },
+    {
+      "name": "write-spec",
+      "slug": "write-spec",
+      "description": "Write a feature spec or PRD from a problem statement or feature idea. Use when turning a vague idea or user request into a structured document, scoping a feature with goals and non-goals, defining success metrics and acceptance criteria, or breaking a big ask into a phased spec.",
+      "path": "skills/write-spec.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/write-spec/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "product",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 11931
+    },
+    {
+      "name": "agile-product-owner",
+      "slug": "agile-product-owner",
+      "description": "Agile product ownership for backlog management and sprint execution. Covers user story writing, acceptance criteria, sprint planning, and velocity tracking. Use when writing user stories, creating acceptance criteria, planning sprints, estimating story points, breaking down epics, or prioritizing the backlog.",
+      "path": "skills/agile-product-owner.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/agile-product-owner/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11762
+    },
+    {
+      "name": "change-management",
+      "slug": "change-management",
+      "description": "Framework for rolling out organizational changes without chaos. Covers the ADKAR model adapted for startups, communication templates, resistance patterns, and change fatigue management. Handles process changes, org restructures, strategy pivots, and culture changes. Use when announcing a reorg, switching tools, pivoting strategy, killing a product, changing leadership, or when user mentions change management, change rollout, managing resistance, org change, reorg, or pivot communication.",
+      "path": "skills/change-management.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/change-management/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10731
+    },
+    {
+      "name": "env-secrets-manager",
+      "slug": "env-secrets-manager",
+      "description": "Manage environment-variable hygiene and secrets safety across local development and production. Practical auditing, drift awareness, rotation readiness. Use when auditing .env files for committed secrets, planning a credential rotation, debugging missing-env-var production incidents, or hardening a new project against secrets leakage.",
+      "path": "skills/env-secrets-manager.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/env-secrets-manager/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10283
+    },
+    {
+      "name": "aws-appsync.instructions",
+      "slug": "aws-appsync-instructions",
+      "description": "Production-grade guidance for AWS AppSync Event API handlers using APPSYNC_JS runtime restrictions, utilities, modules, and datasource patterns",
+      "path": "skills/aws-appsync-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/aws-appsync.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10275
+    },
+    {
+      "name": "research-summarizer",
+      "slug": "research-summarizer",
+      "description": "Structured research summarization agent skill for non-dev users. Handles academic papers, web articles, reports, and documentation. Extracts key findings, generates comparative analyses, and produces properly formatted citations. Use when: user wants to summarize a research paper, compare multiple sources, extract citations from documents, or create structured research briefs. Plugin for Claude Code, Codex, Gemini CLI, and OpenClaw.",
+      "path": "skills/research-summarizer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/research-summarizer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10226
+    },
+    {
+      "name": "saas-scaffolder",
+      "slug": "saas-scaffolder",
+      "description": "Generates complete, production-ready SaaS project boilerplate including authentication, database schemas, billing integration, API routes, and a working dashboard using Next.js 14+ App Router, TypeScript, Tailwind CSS, shadcn/ui, Drizzle ORM, and Stripe. Use when the user wants to create a new SaaS app, start a subscription-based web project, scaffold a Next.js application, or mentions terms like starter template, boilerplate, new project, or wiring up auth and payments.",
+      "path": "skills/saas-scaffolder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/saas-scaffolder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9777
+    },
+    {
+      "name": "impediment-prioritization",
+      "slug": "impediment-prioritization",
+      "description": "Ranks any list of impediments and their countermeasures using a value-stream scoring model (ROI, Cost to Implement, Ease of Deployment, Risk Factor) and a fixed prioritization formula. Use when someone asks to prioritize, rank, sequence, or triage impediments, countermeasures, remediation items, risks, findings, gaps, action items, or backlog entries; or mentions value-stream prioritization, A3 / lean countermeasure ranking, ROI vs. effort scoring, or building a remediation / improvement backlog",
+      "path": "skills/impediment-prioritization.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/impediment-prioritization/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8135
+    },
+    {
+      "name": "github-issues",
+      "slug": "github-issues",
+      "description": "Create, update, and manage GitHub issues using MCP tools. Use this skill when users want to create bug reports, feature requests, or task issues, update existing issues, add labels/assignees/milestones, set issue fields (dates, priority, custom fields), set issue types, manage issue workflows, link issues, add dependencies, or track blocked-by/blocking relationships. Triggers on requests like \"create an issue\", \"file a bug\", \"request a feature\", \"update issue X\", \"set the priority\", \"set the sta",
+      "path": "skills/github-issues.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/github-issues/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7490
+    },
+    {
+      "name": "react19-auditor.agent",
+      "slug": "react19-auditor-agent",
+      "description": "Deep-scan specialist that identifies every React 19 breaking change and deprecated pattern across the entire codebase. Produces a prioritized migration report at .github/react19-audit.md. Reads everything, touches nothing. Invoked as a subagent by react19-commander.",
+      "path": "skills/react19-auditor-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react19-auditor.agent.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7372
+    },
+    {
+      "name": "gem-debugger.agent",
+      "slug": "gem-debugger-agent",
+      "description": "Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction.",
+      "path": "skills/gem-debugger-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-debugger.agent.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7134
+    },
+    {
+      "name": "hard-call",
+      "slug": "hard-call",
+      "description": "/em:hard-call — Framework for decisions with no good options. Use when every option is painful and a structured 10/10/10 + regret-minimization pass is needed — e.g. choosing between a layoff and a down round, or killing a beloved product line.",
+      "path": "skills/hard-call.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/hard-call/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7029
+    },
+    {
+      "name": "incident-postmortem",
+      "slug": "incident-postmortem",
+      "description": "Use when an outage, production incident, or significant service degradation has occurred and the team needs to write a structured blameless post-mortem. Triggers on phrases like \"write a post-mortem\", \"incident review\", \"what went wrong\", \"outage report\", \"root cause analysis\", or \"RCA\". Covers timeline reconstruction, contributing factor analysis, impact quantification, and action item generation with owners.",
+      "path": "skills/incident-postmortem.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/incident-postmortem/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6827
+    },
+    {
+      "name": "se-product-manager-advisor.agent",
+      "slug": "se-product-manager-advisor-agent",
+      "description": "Product management guidance for creating GitHub issues, aligning business value with user needs, and making data-driven product decisions",
+      "path": "skills/se-product-manager-advisor-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/se-product-manager-advisor.agent.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6196
+    },
+    {
+      "name": "scoring-rubric",
+      "slug": "scoring-rubric",
+      "description": "",
+      "path": "skills/scoring-rubric.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/impediment-prioritization/references/scoring-rubric.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5917
+    },
+    {
+      "name": "gen-specs-as-issues",
+      "slug": "gen-specs-as-issues",
+      "description": "This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.",
+      "path": "skills/gen-specs-as-issues.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gen-specs-as-issues/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5661
+    },
+    {
+      "name": "source-management",
+      "slug": "source-management",
+      "description": "Manages connected MCP sources for enterprise search. Detects available sources, guides users to connect new ones, handles source priority ordering, and manages rate limiting awareness.",
+      "path": "skills/source-management.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/enterprise-search/skills/source-management/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "product",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5447
+    },
+    {
+      "name": "sql-server-table-reconciliation",
+      "slug": "sql-server-table-reconciliation",
+      "description": "Use when: comparing SQL Server tables across instances, data migration validation, ETL verification, row mismatch detection, schema drift, reconciliation report, production vs staging comparison. Uses mssql-python driver with Apache Arrow for fast columnar data transfer and comparison.",
+      "path": "skills/sql-server-table-reconciliation.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/sql-server-table-reconciliation/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5446
+    },
+    {
+      "name": "product-analytics",
+      "slug": "product-analytics",
+      "description": "Use when defining product KPIs, building metric dashboards, running cohort or retention analysis, or interpreting feature adoption trends across product stages.",
+      "path": "skills/product-analytics.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/product-analytics/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5274
+    },
+    {
+      "name": "prd.agent",
+      "slug": "prd-agent",
+      "description": "Generate a comprehensive Product Requirements Document (PRD) in Markdown, detailing user stories, acceptance criteria, technical considerations, and metrics. Optionally create GitHub issues upon user confirmation.",
+      "path": "skills/prd-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/prd.agent.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5085
+    },
+    {
+      "name": "playwright-pro",
+      "slug": "playwright-pro",
+      "description": "Production-grade Playwright testing toolkit. Use when the user mentions Playwright tests, end-to-end testing, browser automation, fixing flaky tests, test migration, CI/CD testing, or test suites. Generate tests, fix flaky failures, migrate from Cypress/Selenium, sync with TestRail, run on BrowserStack. 55 templates, 3 agents, smart reporting.",
+      "path": "skills/playwright-pro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/pw/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4695
+    },
+    {
+      "name": "cdo-review",
+      "slug": "cdo-review",
+      "description": "/cs:cdo-review <plan> — Decision-driven Chief Data Officer interrogation of any plan that touches training data, data architecture, data productization, or data team hiring. Use when validating training-data rights before model work, choosing warehouse vs lakehouse vs mesh, or valuing data assets for productization or M&A.",
+      "path": "skills/cdo-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cdo-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4651
+    },
+    {
+      "name": "openapi-to-application-code",
+      "slug": "openapi-to-application-code",
+      "description": "Generate a complete, production-ready application from an OpenAPI specification",
+      "path": "skills/openapi-to-application-code.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/openapi-to-application-code/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4438
+    },
+    {
+      "name": "tech-debt-tracker",
+      "slug": "tech-debt-tracker",
+      "description": "Scan codebases for technical debt, score severity, track trends, and generate prioritized remediation plans. Use when users mention tech debt, code quality, refactoring priority, debt scoring, cleanup sprints, or code health assessment. Also use for legacy code modernization planning and maintenance cost estimation.",
+      "path": "skills/tech-debt-tracker.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/tech-debt-tracker/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4366
+    },
+    {
+      "name": "prd",
+      "slug": "prd",
+      "description": "Generate high-quality Product Requirements Documents (PRDs) for software systems and AI-powered features. Includes executive summaries, user stories, technical specifications, and risk analysis.",
+      "path": "skills/prd.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/prd/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4065
+    },
+    {
+      "name": "diagnose",
+      "slug": "diagnose",
+      "description": "Perform a systematic diagnostic scan of an AI workflow across 5 quality dimensions — prompt quality, context efficiency, tool health, architecture fitness, and safety — producing a scored report with prioritized remediation actions.",
+      "path": "skills/diagnose.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/diagnose/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3748
+    },
+    {
+      "name": "production-typescript",
+      "slug": "production-typescript",
+      "description": "",
+      "path": "skills/production-typescript.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-tracing/references/production-typescript.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3630
+    },
+    {
+      "name": "production-continuous",
+      "slug": "production-continuous",
+      "description": "",
+      "path": "skills/production-continuous.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-evals/references/production-continuous.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3626
+    },
+    {
+      "name": "dataverse-python-production-code",
+      "slug": "dataverse-python-production-code",
+      "description": "Generate production-ready Python code using Dataverse SDK with error handling, optimization, and best practices",
+      "path": "skills/dataverse-python-production-code.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/dataverse-python-production-code/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3477
+    },
+    {
+      "name": "capacity-plan",
+      "slug": "capacity-plan",
+      "description": "Plan resource capacity — workload analysis and utilization forecasting. Use when heading into quarterly planning, the team feels overallocated and you need the numbers, deciding whether to hire or deprioritize, or stress-testing whether upcoming projects fit the people you have.",
+      "path": "skills/capacity-plan.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/operations/skills/capacity-plan/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "product",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3114
+    },
+    {
+      "name": "product-discovery",
+      "slug": "product-discovery",
+      "description": "Use when validating product opportunities, mapping assumptions, planning discovery sprints, or testing problem-solution fit before committing delivery resources.",
+      "path": "skills/product-discovery.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/product-discovery/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3104
+    },
+    {
+      "name": "cpo-review",
+      "slug": "cpo-review",
+      "description": "/cs:cpo-review <plan> — JTBD-driven interrogation of product roadmap, PMF signal, and portfolio focus. Use when committing a quarter's roadmap, deciding whether to kill a feature, or claiming PMF without a retention curve.",
+      "path": "skills/cpo-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cpo-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2858
+    },
+    {
+      "name": "breakdown-epic-arch",
+      "slug": "breakdown-epic-arch",
+      "description": "Prompt for creating the high-level technical architecture for an Epic, based on a Product Requirements Document.",
+      "path": "skills/breakdown-epic-arch.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-epic-arch/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2683
+    },
+    {
+      "name": "production-overview",
+      "slug": "production-overview",
+      "description": "",
+      "path": "skills/production-overview.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-evals/references/production-overview.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2342
+    },
+    {
+      "name": "breakdown-feature-prd",
+      "slug": "breakdown-feature-prd",
+      "description": "Prompt for creating Product Requirements Documents (PRDs) for new features, based on an Epic.",
+      "path": "skills/breakdown-feature-prd.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-feature-prd/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2333
+    },
+    {
+      "name": "breakdown-epic-pm",
+      "slug": "breakdown-epic-pm",
+      "description": "Prompt for creating an Epic Product Requirements Document (PRD) for a new epic. This PRD will be used as input for generating a technical architecture specification.",
+      "path": "skills/breakdown-epic-pm.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-epic-pm/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2083
+    },
+    {
+      "name": "runbook-generator",
+      "slug": "runbook-generator",
+      "description": "Generate operational runbooks from a service name — deployment, incident response, maintenance, and rollback workflows. Templated structure customizable per environment. Use when documenting on-call procedures for a new service, standardizing incident response across teams, or producing runbooks before launching to production.",
+      "path": "skills/runbook-generator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/runbook-generator/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1758
+    },
+    {
+      "name": "instructions",
+      "slug": "instructions",
+      "description": "",
+      "path": "skills/instructions.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/product-team/.codex/instructions.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1699
+    },
+    {
+      "name": "amplitude-experiment-implementation.agent",
+      "slug": "amplitude-experiment-implementation-agent",
+      "description": "This custom agent uses Amplitude's MCP tools to deploy new experiments inside of Amplitude, enabling seamless variant testing capabilities and rollout of product features.",
+      "path": "skills/amplitude-experiment-implementation-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/amplitude-experiment-implementation.agent.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1626
+    },
+    {
+      "name": "production-python",
+      "slug": "production-python",
+      "description": "",
+      "path": "skills/production-python.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-tracing/references/production-python.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1535
+    },
+    {
+      "name": "production-guardrails",
+      "slug": "production-guardrails",
+      "description": "",
+      "path": "skills/production-guardrails.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-evals/references/production-guardrails.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1345
+    },
+    {
+      "name": "dataverse-python-advanced-patterns",
+      "slug": "dataverse-python-advanced-patterns",
+      "description": "Generate production code for Dataverse SDK using advanced patterns, error handling, and optimization techniques.",
+      "path": "skills/dataverse-python-advanced-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/dataverse-python-advanced-patterns/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "product",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 983
+    },
+    {
+      "name": "rice",
+      "slug": "rice",
+      "description": "RICE feature prioritization with scoring and capacity planning. Usage: /rice prioritize <features.csv> [options]",
+      "path": "skills/rice.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/rice/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "product",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 864
+    }
+  ]
+}

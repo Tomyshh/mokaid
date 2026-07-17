@@ -7,6 +7,7 @@ defmodule MokaidWeb.WorkerResourceController do
   use MokaidWeb, :controller
 
   alias Mokaid.Agents
+  alias Mokaid.Agents.DomainPacks
   alias Mokaid.Drive
   alias Mokaid.Knowledge
   alias Mokaid.Realtime
@@ -458,6 +459,54 @@ defmodule MokaidWeb.WorkerResourceController do
         conn
         |> put_status(:not_found)
         |> json(%{error: %{code: "not_found", message: "task not found"}})
+    end
+  end
+
+  def load_domain_skill(conn, params) do
+    workspace_id = params["workspace_id"]
+    agent_id = params["agent_id"]
+    name = params["name"] || params["skill"]
+
+    archetype =
+      cond do
+        is_binary(params["archetype"]) and params["archetype"] != "" ->
+          params["archetype"]
+
+        is_binary(agent_id) and is_binary(workspace_id) ->
+          case Agents.get_agent(workspace_id, agent_id) do
+            %{capabilities: caps} when is_map(caps) ->
+              get_in(caps, ["domain_pack", "archetype"]) ||
+                get_in(caps, ["learning", "archetype"])
+
+            _ ->
+              nil
+          end
+
+        true ->
+          nil
+      end
+
+    cond do
+      name in [nil, ""] ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: %{code: "bad_request", message: "name required"}})
+
+      archetype in [nil, "", "blank"] ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: %{code: "not_found", message: "no domain pack"}})
+
+      true ->
+        case DomainPacks.load_skill(archetype, name) do
+          {:ok, skill} ->
+            json(conn, %{data: skill})
+
+          {:error, :not_found} ->
+            conn
+            |> put_status(:not_found)
+            |> json(%{error: %{code: "not_found", message: "skill not found"}})
+        end
     end
   end
 end

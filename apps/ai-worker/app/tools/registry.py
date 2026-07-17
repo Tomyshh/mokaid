@@ -84,6 +84,26 @@ async def search_knowledge(params: dict[str, Any], ctx: RunContext) -> Any:
     return {"query": query, "results": results}
 
 
+
+
+@tool("load_domain_skill")
+async def load_domain_skill(params: dict[str, Any], ctx: RunContext) -> Any:
+    """Load the full body of a domain pack skill by name/slug (progressive disclosure)."""
+    name = params.get("name") or params.get("skill") or ""
+    if not name or ctx.phoenix is None:
+        return {"error": "name required"}
+
+    archetype = params.get("archetype")
+    if not archetype and isinstance(getattr(ctx, "agent", None), dict):
+        archetype = ctx.agent.get("archetype")
+    # RunContext may not have agent — pass via phoenix using agent_id
+    return await ctx.phoenix.load_domain_skill(
+        ctx.workspace_id,
+        ctx.agent_id,
+        name,
+        archetype=archetype,
+    )
+
 @tool("traverse_knowledge")
 async def traverse_knowledge(params: dict[str, Any], ctx: RunContext) -> Any:
     """Traverse the workspace knowledge graph around a concept/question."""

@@ -72,6 +72,7 @@ _MIME_BY_EXT = {
 _SYSTEM_TEMPLATE = """You are {name}, an AI employee working inside your team's workspace.
 Role: {role} — Department: {department}
 Skills: {skills}
+{domain_expertise_block}
 
 You were assigned a real mission by a teammate. Work autonomously and
 deliver professional-quality results. Reply and write deliverables ENTIRELY
@@ -111,6 +112,10 @@ Conversation so far (most recent last — follow the latest human instructions):
   [agent output] file — never restart from the original input unless asked.
 - Never invent facts, metrics or sources. Use `web_search` for public-web
   facts and the workspace knowledge base when workspace context would help.
+- If you are a domain specialist (level 10 / domain pack), your FIRST tool call
+  on non-trivial missions MUST be `search_knowledge` (query from the mission +
+  your knowledge brief). Use `load_domain_skill` when a listed domain skill
+  clearly matches the task before improvising.
 - Do NOT end the mission with clarifying questions alone. Produce a first
   version with sensible defaults; your teammate can ask for revisions after.
 
@@ -282,6 +287,42 @@ def _colleagues_block(request: RunRequest) -> str:
     return "\n".join(lines) or "   - (none — you work solo on this one)"
 
 
+
+def _domain_expertise_block(agent: dict) -> str:
+    """Progressive-disclosure skill index for L10 / specialist agents."""
+    tier = (agent or {}).get("tier") or ""
+    index = (agent or {}).get("domain_skill_index") or []
+    brief = (agent or {}).get("knowledge_brief") or ""
+    archetype = (agent or {}).get("archetype") or ""
+    if not index and not brief and tier != "specialist":
+        return ""
+
+    lines = ["
+## Domain expertise"]
+    if archetype:
+        lines.append(f"Specialist pack: {archetype} (tier={tier or 'specialist'}).")
+    if brief:
+        lines.append(f"User / workspace brief: {brief[:1200]}")
+    if index:
+        lines.append(
+            "Available domain skills (call `load_domain_skill` with the name when relevant):"
+        )
+        for item in index[:40]:
+            if not isinstance(item, dict):
+                continue
+            name = item.get("name") or item.get("slug") or "skill"
+            desc = (item.get("description") or "").strip()
+            if desc:
+                lines.append(f"- {name}: {desc[:160]}")
+            else:
+                lines.append(f"- {name}")
+    lines.append(
+        "Always start non-trivial missions with `search_knowledge` over your agent knowledge."
+    )
+    return "
+".join(lines)
+
+
 def _system_prompt(request: RunRequest) -> str:
     from app.agents.mission_kind import detect_mission_kind, language_for_request
 
@@ -293,6 +334,7 @@ def _system_prompt(request: RunRequest) -> str:
         role=agent.get("role_title") or "Generalist",
         department=agent.get("department") or "—",
         skills=", ".join(agent.get("skills") or []) or "generalist",
+        domain_expertise_block=_domain_expertise_block(agent),
         task_title=request.task_title or "Untitled",
         task_description=request.task_description or "(none)",
         priority=request.task_priority or "medium",
@@ -424,6 +466,12 @@ class _Engine:
             """Semantic search over the workspace knowledge base (general +
             project + your own experience). Use when workspace context helps."""
             return await engine._run_tool("search_knowledge", {"query": query})
+
+        async def load_domain_skill(name: str) -> Any:
+            """Load the full instructions for a domain pack skill by name
+            (from your specialist skill index). Prefer this over improvising
+            when a listed domain skill matches the task."""
+            return await engine._run_tool("load_domain_skill", {"name": name})
 
         async def traverse_knowledge(query: str, limit: int = 40) -> Any:
             """Traverse the knowledge graph around a concept. Prefer this when
@@ -572,6 +620,7 @@ class _Engine:
 
         native = [
             search_knowledge,
+            load_domain_skill,
             traverse_knowledge,
             knowledge_path,
             explain_concept,
@@ -884,6 +933,53 @@ class _Engine:
             or self.request.task_title
             or "Complete the mission described in your instructions."
         )
+
+        # Specialist bootstrap: retrieve domain knowledge before the agent loop.
+        agent_meta = self.request.agent or {}
+        if (agent_meta.get("tier") == "specialist" or agent_meta.get("domain_skill_index")) and not resume:
+            try:
+                boot_query = " ".join(
+                    x for x in [
+                        self.request.task_title or "",
+                        (self.request.task_description or "")[:400],
+                        (agent_meta.get("knowledge_brief") or "")[:400],
+                        agent_meta.get("archetype") or "",
+                    ]
+                    if x
+                ).strip()
+                if boot_query and self.phoenix is not None and llm.is_configured():
+                    [emb] = await llm.embed([boot_query], usage=self.ctx.usage)
+                    hits = await self.phoenix.search_knowledge(
+                        self.request.workspace_id,
+                        emb,
+                        boot_query,
+                        limit=6,
+                        project_id=self.request.project_id,
+                        agent_id=self.request.agent_id,
+                    )
+                    if hits:
+                        snippets = []
+                        for h in hits[:6]:
+                            title = h.get("title") or "note"
+                            content = (h.get("content") or "")[:700]
+                            snippets.append(f"### {title}
+{content}")
+                        instruction = (
+                            instruction
+                            + "
+
+## Retrieved domain knowledge (already searched)
+"
+                            + "
+
+".join(snippets)
+                            + "
+
+Use this context; call `search_knowledge` / "
+                            + "`load_domain_skill` again if you need more."
+                        )
+            except Exception:
+                pass
 
         # Resume: input=None continues the checkpointed thread from where it
         # stopped (the pending tool node re-executes and consumes the seeded

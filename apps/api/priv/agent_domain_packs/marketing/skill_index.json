@@ -1,0 +1,1477 @@
+{
+  "domain": "marketing",
+  "pack_version": "8039c187c8b5",
+  "skill_count": 105,
+  "skills": [
+    {
+      "name": "zoom-general",
+      "slug": "zoom-general",
+      "description": "Cross-product Zoom reference skill. Use after the workflow is clear when you need shared platform guidance, app-model comparisons, authentication context, scopes, marketplace considerations, or API-vs-MCP routing.",
+      "path": "skills/zoom-general.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/general/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 25364
+    },
+    {
+      "name": "create-an-asset",
+      "slug": "create-an-asset",
+      "description": "Generate tailored sales assets (landing pages, decks, one-pagers, workflow demos) from your deal context. Describe your prospect, audience, and goal — get a polished, branded asset ready to share with customers.",
+      "path": "skills/create-an-asset.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/create-an-asset/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 24264
+    },
+    {
+      "name": "gtm-ai-gtm",
+      "slug": "gtm-ai-gtm",
+      "description": "Go-to-market strategy for AI products. Use when positioning AI products, handling \"who is responsible when it breaks\" objections, pricing variable-cost AI, choosing between copilot/agent/teammate framing, or selling autonomous tools into enterprises.",
+      "path": "skills/gtm-ai-gtm.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-ai-gtm/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 20768
+    },
+    {
+      "name": "performance-report",
+      "slug": "performance-report",
+      "description": "Build a marketing performance report with key metrics, trend analysis, wins and misses, and prioritized optimization recommendations. Use when wrapping a campaign, when preparing weekly, monthly, or quarterly channel summaries for stakeholders, or when you need data translated into an executive summary with next-period priorities.",
+      "path": "skills/performance-report.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/performance-report/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 18760
+    },
+    {
+      "name": "copy-editing",
+      "slug": "copy-editing",
+      "description": "When the user wants to edit, review, or improve existing marketing copy. Also use when the user mentions 'edit this copy,' 'review my copy,' 'copy feedback,' 'proofread,' 'polish this,' 'make this better,' or 'copy sweep.' This skill provides a systematic approach to editing marketing copy through multiple focused passes.",
+      "path": "skills/copy-editing.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/copy-editing/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 16154
+    },
+    {
+      "name": "risk-management-specialist",
+      "slug": "risk-management-specialist",
+      "description": "Medical device risk management specialist implementing ISO 14971 throughout product lifecycle. Provides risk analysis, risk evaluation, risk control, and post-production information analysis. Use when user mentions risk management, ISO 14971, risk analysis, FMEA, fault tree analysis, hazard identification, risk control, risk matrix, benefit-risk analysis, residual risk, risk acceptability, or post-market risk.",
+      "path": "skills/risk-management-specialist.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/risk-management-specialist/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 16077
+    },
+    {
+      "name": "app-store-optimization",
+      "slug": "app-store-optimization",
+      "description": "App Store Optimization (ASO) toolkit for researching keywords, analyzing competitor rankings, generating metadata suggestions, and improving app visibility on Apple App Store and Google Play Store. Use when the user asks about ASO, app store rankings, app metadata, app titles and descriptions, app store listings, app visibility, or mobile app marketing on iOS or Android. Supports keyword research and scoring, competitor keyword analysis, metadata optimization, A/B test planning, launch checklist",
+      "path": "skills/app-store-optimization.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/app-store-optimization/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15942
+    },
+    {
+      "name": "gtm-partnership-architecture",
+      "slug": "gtm-partnership-architecture",
+      "description": "Build and scale partner ecosystems that drive revenue and platform adoption. Use when building partner programs from scratch, tiering partnerships, managing co-marketing, making build-vs-partner decisions, or structuring crawl-walk-run partner deployment.",
+      "path": "skills/gtm-partnership-architecture.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-partnership-architecture/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15370
+    },
+    {
+      "name": "search-ai-optimization-expert.agent",
+      "slug": "search-ai-optimization-expert-agent",
+      "description": "Expert guidance for modern search optimization: SEO, Answer Engine Optimization (AEO), and Generative Engine Optimization (GEO) with AI-ready content strategies",
+      "path": "skills/search-ai-optimization-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/search-ai-optimization-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14658
+    },
+    {
+      "name": "compliance-check",
+      "slug": "compliance-check",
+      "description": "Run a compliance check on a proposed action, product feature, or business initiative, surfacing applicable regulations, required approvals, and risk areas. Use when launching a feature that touches personal data, when marketing or product proposes something with regulatory implications, or when you need to know which approvals and jurisdictional requirements apply before proceeding.",
+      "path": "skills/compliance-check.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/legal/skills/compliance-check/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 14208
+    },
+    {
+      "name": "analytics-tracking",
+      "slug": "analytics-tracking",
+      "description": "Set up, audit, and debug analytics tracking implementation — GA4, Google Tag Manager, event taxonomy, conversion tracking, and data quality. Use when building a tracking plan from scratch, auditing existing analytics for gaps or errors, debugging missing events, or setting up GTM. Trigger keywords: GA4 setup, Google Tag Manager, GTM, event tracking, analytics implementation, conversion tracking, tracking plan, event taxonomy, custom dimensions, UTM tracking, analytics audit, missing events, trac",
+      "path": "skills/analytics-tracking.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/analytics-tracking/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14193
+    },
+    {
+      "name": "content-humanizer",
+      "slug": "content-humanizer",
+      "description": "Makes AI-generated content sound genuinely human — not just cleaned up, but alive. Use when content feels robotic, uses too many AI clichés, lacks personality, or reads like it was written by committee. Triggers: 'this sounds like AI', 'make it more human', 'add personality', 'it feels generic', 'sounds robotic', 'fix AI writing', 'inject our voice'. NOT for initial content creation (use content-production). NOT for SEO optimization (use content-production Mode 3).",
+      "path": "skills/content-humanizer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/content-humanizer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14052
+    },
+    {
+      "name": "cold-email",
+      "slug": "cold-email",
+      "description": "When the user wants to write, improve, or build a sequence of B2B cold outreach emails to prospects who haven't asked to hear from them. Use when the user mentions 'cold email,' 'cold outreach,' 'prospecting emails,' 'SDR emails,' 'sales emails,' 'first touch email,' 'follow-up sequence,' or 'email prospecting.' Also use when they share an email draft that sounds too sales-y and needs to be humanized. Distinct from email-sequence (lifecycle/nurture to opted-in subscribers) — this is unsolicited ",
+      "path": "skills/cold-email.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cold-email/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13836
+    },
+    {
+      "name": "campaign-plan",
+      "slug": "campaign-plan",
+      "description": "Generate a full campaign brief with objectives, audience, messaging, channel strategy, content calendar, and success metrics. Use when planning a product launch, lead-gen push, or awareness campaign, when you need a week-by-week content calendar with dependencies, or when translating a marketing goal into a structured, executable plan.",
+      "path": "skills/campaign-plan.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/campaign-plan/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 13716
+    },
+    {
+      "name": "gtm-positioning-strategy",
+      "slug": "gtm-positioning-strategy",
+      "description": "Find and own a defensible market position. Use when messaging sounds like competitors, conversion is weak despite awareness, repositioning a product, or testing positioning claims. Includes Crawl-Walk-Run rollout methodology and the word change that improved enterprise deal progression.",
+      "path": "skills/gtm-positioning-strategy.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-positioning-strategy/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13695
+    },
+    {
+      "name": "founder-coach",
+      "slug": "founder-coach",
+      "description": "Personal leadership development for founders and first-time CEOs. Covers founder archetype identification, delegation frameworks, energy management, CEO calendar audits, leadership style evolution, blind spot identification, imposter syndrome, founder mental health, and succession planning. Use when a founder feels like the bottleneck, struggles to delegate, is burning out, transitioning from IC to executive, managing a board, or when user mentions founder mode, CEO growth, leadership developmen",
+      "path": "skills/founder-coach.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/founder-coach/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13333
+    },
+    {
+      "name": "pricing-strategy",
+      "slug": "pricing-strategy",
+      "description": "Design, optimize, and communicate SaaS pricing — tier structure, value metrics, pricing pages, and price increase strategy. Use when building a pricing model from scratch, redesigning existing pricing, planning a price increase, or improving a pricing page. Trigger keywords: pricing tiers, pricing page, price increase, packaging, value metric, per seat pricing, usage-based pricing, freemium, good-better-best, pricing strategy, monetization, pricing page conversion, Van Westendorp. NOT for broade",
+      "path": "skills/pricing-strategy.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/pricing-strategy/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13266
+    },
+    {
+      "name": "referral-program",
+      "slug": "referral-program",
+      "description": "When the user wants to design, launch, or optimize a referral or affiliate program. Use when they mention 'referral program,' 'affiliate program,' 'word of mouth,' 'refer a friend,' 'incentive program,' 'customer referrals,' 'brand ambassador,' 'partner program,' 'referral link,' or 'growth through referrals.' Covers program mechanics, incentive design, and optimization — not just the idea of referrals but the actual system.",
+      "path": "skills/referral-program.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/referral-program/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13172
+    },
+    {
+      "name": "site-architecture",
+      "slug": "site-architecture",
+      "description": "When the user wants to audit, redesign, or plan their website's structure, URL hierarchy, navigation design, or internal linking strategy. Use when the user mentions 'site architecture,' 'URL structure,' 'internal links,' 'site navigation,' 'breadcrumbs,' 'topic clusters,' 'hub pages,' 'orphan pages,' 'silo structure,' 'information architecture,' or 'website reorganization.' Also use when someone has SEO problems and the root cause is structural (not content or schema). NOT for content strategy ",
+      "path": "skills/site-architecture.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/site-architecture/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13168
+    },
+    {
+      "name": "seo-auditor",
+      "slug": "seo-auditor",
+      "description": "|",
+      "path": "skills/seo-auditor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/seo-auditor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13162
+    },
+    {
+      "name": "paid-ads",
+      "slug": "paid-ads",
+      "description": "When the user wants help with paid advertising campaigns on Google Ads, Meta (Facebook/Instagram), LinkedIn, Twitter/X, or other ad platforms. Also use when the user mentions 'PPC,' 'paid media,' 'ad copy,' 'ad creative,' 'ROAS,' 'CPA,' 'ad campaign,' 'retargeting,' or 'audience targeting.' This skill covers campaign strategy, ad creation, audience targeting, and optimization.",
+      "path": "skills/paid-ads.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/paid-ads/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12489
+    },
+    {
+      "name": "brand-review",
+      "slug": "brand-review",
+      "description": "Review content against your brand voice, style guide, and messaging pillars, flagging deviations by severity with specific before/after fixes. Use when checking a draft before it ships, when auditing copy for voice consistency and terminology, or when screening for unsubstantiated claims, missing disclaimers, and other legal flags.",
+      "path": "skills/brand-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/brand-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 12482
+    },
+    {
+      "name": "local-seo-manager",
+      "slug": "local-seo-manager",
+      "description": "Manage local SEO for service-area businesses — appliance repair, HVAC, plumbing, cleaning, and any business that serves customers at their location. Use when the user wants to: audit Google Business Profile, generate neighborhood service area pages, check NAP consistency across directories, create LocalBusiness schema, or write review responses. Triggers: 'local SEO', 'Google Business Profile', 'GBP', 'service area page', 'NAP consistency', 'local citations', 'LocalBusiness schema', 'review resp",
+      "path": "skills/local-seo-manager.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/local-seo-manager/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12429
+    },
+    {
+      "name": "gtm-0-to-1-launch",
+      "slug": "gtm-0-to-1-launch",
+      "description": "Launch new products from idea to first customers. Use when launching products, finding early adopters, building launch week playbooks, diagnosing why adoption stalls, or learning that press coverage does not equal growth. Includes the three-layer diagnosis, the 2-week experiment cycle, and the launch that got 50K impressions and 12 signups.",
+      "path": "skills/gtm-0-to-1-launch.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-0-to-1-launch/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12210
+    },
+    {
+      "name": "gtm-product-led-growth",
+      "slug": "gtm-product-led-growth",
+      "description": "Build self-serve acquisition and expansion motions. Use when deciding PLG vs sales-led, optimizing activation, driving freemium conversion, building growth equations, or recognizing when product complexity demands human touch. Includes the parallel test where sales-led won 10x on revenue.",
+      "path": "skills/gtm-product-led-growth.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-product-led-growth/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12024
+    },
+    {
+      "name": "webinar-marketing",
+      "slug": "webinar-marketing",
+      "description": "When the user wants to plan, promote, run, or improve a webinar or virtual event to generate and convert demand. Use when the user mentions 'webinar,' 'virtual event,' 'online event,' 'live demo,' 'virtual summit,' 'workshop,' 'masterclass,' 'fireside chat,' 'roundtable,' 'registration funnel,' 'show-up rate,' 'attendance rate,' 'webinar promotion,' 'webinar follow-up,' or 'on-demand webinar.' Also use when they have a webinar that isn't converting — low registrations, low show-up, or attendees ",
+      "path": "skills/webinar-marketing.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/webinar-marketing/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11941
+    },
+    {
+      "name": "rfp-responder",
+      "slug": "rfp-responder",
+      "description": "Use when an RFP, RFI, RFQ, security questionnaire, vendor questionnaire, or proposal request arrives and the team needs a structured response — parsing multi-section buyer-dictated requirements (MANDATORY vs WEIGHTED vs NICE-TO-HAVE), building a Shipley-method proof-point matrix mapping each requirement to a verifiable proof point, articulating 3-5 win-themes that ladder up across requirements, and producing a Shipley-derived winrate estimate that informs a bid / no-bid / partner-bid recommendat",
+      "path": "skills/rfp-responder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/rfp-responder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11791
+    },
+    {
+      "name": "free-tool-strategy",
+      "slug": "free-tool-strategy",
+      "description": "When the user wants to build a free tool for marketing — lead generation, SEO value, or brand awareness. Use when they mention 'engineering as marketing,' 'free tool,' 'calculator,' 'generator,' 'checker,' 'grader,' 'marketing tool,' 'lead gen tool,' 'build something for traffic,' 'interactive tool,' or 'free resource.' Covers idea evaluation, tool design, and launch strategy. For pure SEO content strategy (no tool), use seo-audit or content-strategy instead.",
+      "path": "skills/free-tool-strategy.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/free-tool-strategy/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11579
+    },
+    {
+      "name": "marketing-strategy-pmm",
+      "slug": "marketing-strategy-pmm",
+      "description": "Product marketing skill for positioning, GTM strategy, competitive intelligence, and product launches. Use when the user asks about product positioning, go-to-market planning, competitive analysis, target audience definition, ICP definition, market research, launch plans, or sales enablement. Covers April Dunford positioning, ICP definition, competitive battlecards, launch playbooks, and international market entry. Produces deliverables including positioning statements, battlecard documents, lau",
+      "path": "skills/marketing-strategy-pmm.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-strategy-pmm/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11549
+    },
+    {
+      "name": "schema-markup",
+      "slug": "schema-markup",
+      "description": "When the user wants to implement, audit, or validate structured data (schema markup) on their website. Use when the user mentions 'structured data,' 'schema.org,' 'JSON-LD,' 'rich results,' 'rich snippets,' 'schema markup,' 'FAQ schema,' 'Product schema,' 'HowTo schema,' or 'structured data errors in Search Console.' Also use when someone asks why their content isn't showing rich results or wants to improve AI search visibility. NOT for general SEO audits (use seo-audit) or technical SEO crawl i",
+      "path": "skills/schema-markup.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/schema-markup/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10901
+    },
+    {
+      "name": "cs-demand-gen-specialist",
+      "slug": "cs-demand-gen-specialist",
+      "description": "Demand generation and acquisition-funnel specialist orchestrating the marketing-demand-acquisition, paid-ads, and email-sequence skills. Use when building or fixing the acquisition engine — e.g., comparing channel CAC against B2B SaaS benchmarks before reallocating a $40k/month budget, scoring paid-ads account health with ad_health_scorer.py before scaling spend, or designing a nurture sequence that must score 70+ on sequence_analyzer.py before launch. Covers channel mix, CAC/ROAS math, MQL→SQL ",
+      "path": "skills/cs-demand-gen-specialist.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/marketing/cs-demand-gen-specialist.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10875
+    },
+    {
+      "name": "marketing-ops",
+      "slug": "marketing-ops",
+      "description": "Central router for the marketing skill ecosystem. Use when unsure which marketing skill to use, when orchestrating a multi-skill campaign, or when coordinating across content, SEO, CRO, channels, and analytics. Also use when the user mentions 'marketing help,' 'campaign plan,' 'what should I do next,' 'marketing priorities,' or 'coordinate marketing.",
+      "path": "skills/marketing-ops.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-ops/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10835
+    },
+    {
+      "name": "content-production",
+      "slug": "content-production",
+      "description": "Full content production pipeline — takes a topic from blank page to published-ready piece. Use when you need to execute content: write a blog post, article, or guide end-to-end. Triggers: 'write a post about', 'draft an article', 'create content for', 'help me write', 'I need a blog post'. NOT for content strategy or calendar planning (use content-strategy). NOT for repurposing existing content (use content-repurposing). NOT for social captions only.",
+      "path": "skills/content-production.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/content-production/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10678
+    },
+    {
+      "name": "social-content",
+      "slug": "social-content",
+      "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
+      "path": "skills/social-content.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/social-content/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10658
+    },
+    {
+      "name": "ad-creative",
+      "slug": "ad-creative",
+      "description": "When the user needs to generate, iterate, or scale ad creative for paid advertising. Use when they say 'write ad copy,' 'generate headlines,' 'create ad variations,' 'bulk creative,' 'iterate on ads,' 'ad copy validation,' 'RSA headlines,' 'Meta ad copy,' 'LinkedIn ad,' or 'creative testing.' This is pure creative production — distinct from paid-ads (campaign strategy). Use ad-creative when you need the copy, not the campaign plan.",
+      "path": "skills/ad-creative.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ad-creative/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10600
+    },
+    {
+      "name": "competitor-alternatives",
+      "slug": "competitor-alternatives",
+      "description": "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' 'competitive landing pages,' 'switch from competitor,' or 'comparison content.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content arch",
+      "path": "skills/competitor-alternatives.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/competitor-alternatives/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10410
+    },
+    {
+      "name": "churn-prevention",
+      "slug": "churn-prevention",
+      "description": "Reduce voluntary and involuntary churn through cancel flow design, save offers, exit surveys, and dunning sequences. Use when designing or optimizing a cancel flow, building save offers, setting up dunning emails, or reducing failed-payment churn. Trigger keywords: cancel flow, churn reduction, save offers, dunning, exit survey, payment recovery, win-back, involuntary churn, failed payments, cancel page. NOT for customer health scoring or expansion revenue — use customer-success-manager for that",
+      "path": "skills/churn-prevention.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/churn-prevention/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10352
+    },
+    {
+      "name": "aeo",
+      "slug": "aeo",
+      "description": "Answer Engine Optimization (AEO) skill — optimize content to be cited by AI language models (ChatGPT, Perplexity, Claude, Gemini, Mistral) as authoritative sources. Distinct from SEO — AEO optimizes for citation in LLM-generated responses, not search rankings. Use when planning content for AI-first search audiences, auditing existing content for E-E-A-T signals, tracking which pages get cited by which LLMs, or building a citation-friendly content strategy. Triggers — 'AEO audit', 'optimize for C",
+      "path": "skills/aeo.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/aeo/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10191
+    },
+    {
+      "name": "email-sequence",
+      "slug": "email-sequence",
+      "description": "Design and draft multi-email sequences with full copy, timing, branching logic, exit conditions, and performance benchmarks. Use when building onboarding, lead nurture, re-engagement, win-back, or product launch flows, when you need a complete drip campaign with A/B test suggestions, or when mapping a sequence end-to-end with a flow diagram.",
+      "path": "skills/email-sequence.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/email-sequence/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 10179
+    },
+    {
+      "name": "programmatic-seo",
+      "slug": "programmatic-seo",
+      "description": "When the user wants to create SEO-driven pages at scale using templates and data. Also use when the user mentions \"programmatic SEO,\" \"template pages,\" \"pages at scale,\" \"directory pages,\" \"location pages,\" \"[keyword] + [city] pages,\" \"comparison pages,\" \"integration pages,\" or \"building many pages for SEO.\" For auditing existing SEO issues, see seo-audit.",
+      "path": "skills/programmatic-seo.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/programmatic-seo/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10110
+    },
+    {
+      "name": "design-system",
+      "slug": "design-system",
+      "description": "Captures the user's brand identity once via a 10-question onboarding wizard (primary/accent HEX + heading + body Google Fonts + design style editorial/technical/minimal/playful + default output directory + syntax theme + TOC behavior + optional logo/company), validates body-text and link contrast against WCAG 2.2 AA, derives 12 CSS custom properties in HSL space, and stores the result for every markdown-html converter to consume. Use before any markdown-html conversion. Triggers on first-run onb",
+      "path": "skills/design-system.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/design-system/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10010
+    },
+    {
+      "name": "landing-page-generator",
+      "slug": "landing-page-generator",
+      "description": "Generates high-converting landing pages as complete Next.js/React (TSX) components with Tailwind CSS. Creates hero sections, feature grids, pricing tables, FAQ accordions, testimonial blocks, and CTA sections using proven copy frameworks (PAS, AIDA, BAB). Outputs SEO meta tags, structured data, and performance-optimised code targeting Core Web Vitals (LCP < 1s, CLS < 0.1). Use when the user asks to create a landing page, marketing page, homepage, single-page site, lead capture page, campaign pag",
+      "path": "skills/landing-page-generator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/landing-page-generator/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9834
+    },
+    {
+      "name": "product-manager-toolkit",
+      "slug": "product-manager-toolkit",
+      "description": "Comprehensive toolkit for product managers including RICE prioritization, customer interview analysis, PRD templates, discovery frameworks, and go-to-market strategies. Use when prioritizing features, synthesizing user research, writing requirement documentation, or developing product strategy.",
+      "path": "skills/product-manager-toolkit.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/product-manager-toolkit/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9710
+    },
+    {
+      "name": "copywriting",
+      "slug": "copywriting",
+      "description": "When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user says \\\"write copy for,\\\" \\\"improve this copy,\\\" \\\"rewrite this page,\\\" \\\"marketing copy,\\\" \\\"headline help,\\\" or \\\"CTA copy.\\\" For email copy, see email-sequence. For popup copy, see popup-cro.",
+      "path": "skills/copywriting.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/copywriting/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9705
+    },
+    {
+      "name": "ab-test-setup",
+      "slug": "ab-test-setup",
+      "description": "When the user wants to plan, design, or implement an A/B test or experiment. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test this change,\" \"variant copy,\" \"multivariate test,\" \"hypothesis,\" \"conversion experiment,\" \"statistical significance,\" or \"test this.\" For tracking implementation, see analytics-tracking.",
+      "path": "skills/ab-test-setup.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ab-test-setup/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9699
+    },
+    {
+      "name": "markdown-html-orchestrator",
+      "slug": "markdown-html-orchestrator",
+      "description": "Use when a user wants to convert any markdown file in their Claude project into a single-file, lightly-interactive HTML — long-form documents (specs, plans, RFCs, reports, explainers), code reviews with diffs and severity-tagged annotations, or slide decks. Triggers on \"convert this markdown to HTML\", \"make this an HTML file\", \"turn this into an interactive document\", \"render this report as HTML\", \"PR writeup as HTML\", \"slides from this markdown\". Forks context to route to one of three converter",
+      "path": "skills/markdown-html-orchestrator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/markdown-html-orchestrator/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9688
+    },
+    {
+      "name": "solo-founder",
+      "slug": "solo-founder",
+      "description": "Your co-founder who doesn't exist yet. Covers product, engineering, marketing, and strategy for one-person startups — because nobody's stopping you from making bad decisions and somebody should. Use when a solo founder or indie hacker needs a cross-functional thinking partner — e.g., deciding what to cut from an MVP to ship this month, or choosing between building one more feature and talking to ten users.",
+      "path": "skills/solo-founder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/personas/solo-founder.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9580
+    },
+    {
+      "name": "growth-marketer",
+      "slug": "growth-marketer",
+      "description": "Growth marketing specialist for bootstrapped startups and indie hackers. Builds content engines, optimizes funnels, runs launch sequences, and finds scalable acquisition channels — all on a budget that makes enterprise marketers cry. Use when growth has to come before budget — e.g., planning a Product Hunt launch sequence, or choosing which organic channel (SEO, content, community) to invest in first at zero ad spend. (For funnel diagnostics with paid budget, see cs-demand-gen-specialist.)",
+      "path": "skills/growth-marketer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/personas/growth-marketer.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9212
+    },
+    {
+      "name": "product-skills",
+      "slug": "product-skills",
+      "description": "Use when coordinating product work across the 12 bundled product sub-skills (RICE, OKRs, UX research, design tokens, competitive teardown, analytics, experiments, discovery, roadmaps, spec-to-repo, landing pages, SaaS scaffolding) or the 4 standalone product-team plugins (user stories, Apple HIG, code-to-PRD, research summarizer). Triggers on 'help me prioritize', 'plan a product experiment', 'we ship features nobody uses', 'run the discovery loop', 'is our OST sound'. Forks context to route to ",
+      "path": "skills/product-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/product-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9159
+    },
+    {
+      "name": "cs-content-creator",
+      "slug": "cs-content-creator",
+      "description": "Long-form marketing content producer orchestrating the content-production skill (research → brief → draft → optimize → gate). Use when content must be written, scored, or made publish-ready — e.g., drafting a 2,000-word blog post against a target keyword and blocking publish until content_quality_gates.py passes, or auditing a draft for brand-voice drift with brand_voice_analyzer.py before it ships. Routes planning requests (topic clusters, calendars) to content-strategy. Supersedes the deprecat",
+      "path": "skills/cs-content-creator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/marketing/cs-content-creator.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9113
+    },
+    {
+      "name": "signup-flow-cro",
+      "slug": "signup-flow-cro",
+      "description": "When the user wants to optimize signup, registration, account creation, or trial activation flows. Also use when the user mentions \"signup conversions,\" \"registration friction,\" \"signup form optimization,\" \"free trial signup,\" \"reduce signup dropoff,\" or \"account creation flow.\" For post-signup onboarding, see onboarding-cro. For lead capture forms (not account creation), see form-cro.",
+      "path": "skills/signup-flow-cro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/signup-flow-cro/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9042
+    },
+    {
+      "name": "seo-audit",
+      "slug": "seo-audit",
+      "description": "Run a comprehensive SEO audit — keyword research, on-page analysis, content gaps, technical checks, and competitor comparison. Use when assessing a site's SEO health, when finding keyword opportunities and content gaps competitors own, or when you need a prioritized action plan split into quick wins and strategic investments.",
+      "path": "skills/seo-audit.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/seo-audit/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 9005
+    },
+    {
+      "name": "revenue-operations",
+      "slug": "revenue-operations",
+      "description": "Analyzes sales pipeline health, revenue forecasting accuracy, and go-to-market efficiency metrics for SaaS revenue optimization. Use when analyzing sales pipeline coverage, forecasting revenue, evaluating go-to-market performance, reviewing sales metrics, assessing pipeline analysis, tracking forecast accuracy with MAPE, calculating GTM efficiency, or measuring sales efficiency and unit economics for SaaS teams.",
+      "path": "skills/revenue-operations.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/revenue-operations/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8970
+    },
+    {
+      "name": "page-cro",
+      "slug": "page-cro",
+      "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"CRO,\" \"conversion rate optimization,\" \"this page isn't converting,\" \"improve conversions,\" or \"why isn't this page working.\" For signup/registration flows, see signup-flow-cro. For post-signup activation, see onboarding-cro. For forms outside of signup, see form-cro. For popups/modals, see popup-cro.",
+      "path": "skills/page-cro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/page-cro/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8941
+    },
+    {
+      "name": "social-media-manager",
+      "slug": "social-media-manager",
+      "description": "When the user wants to develop social media strategy, plan content calendars, manage community engagement, or grow their social presence across platforms. Also use when the user mentions 'social media strategy,' 'social calendar,' 'community management,' 'social media plan,' 'grow followers,' 'engagement rate,' 'social media audit,' or 'which platforms should I use.' For writing individual social posts, see social-content. For analyzing social performance data, see social-media-analyzer.",
+      "path": "skills/social-media-manager.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/social-media-manager/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8916
+    },
+    {
+      "name": "feature-flags-architect",
+      "slug": "feature-flags-architect",
+      "description": "Use when adding, retiring, or auditing feature flags. Triggers on \"add a flag\", \"ship behind a flag\", \"rollout plan\", \"kill switch\", \"stale flags\", \"flag debt\", \"LaunchDarkly\", \"GrowthBook\", \"Statsig\", \"Unleash\", \"Flipt\", or any progressive-delivery question. Ships flag debt scanner, rollout planner, and kill-switch auditor (all stdlib Python), 4 references on flag taxonomy + provider trade-offs + rollout strategies + lifecycle, plus a /flag-cleanup slash command.",
+      "path": "skills/feature-flags-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/feature-flags-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8901
+    },
+    {
+      "name": "form-cro",
+      "slug": "form-cro",
+      "description": "When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions \"form optimization,\" \"lead form conversions,\" \"form friction,\" \"form fields,\" \"form completion rate,\" or \"contact form.\" For signup/registration forms, see signup-flow-cro. For popups containing forms, see popup-cro.",
+      "path": "skills/form-cro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/form-cro/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8790
+    },
+    {
+      "name": "marketing-demand-acquisition",
+      "slug": "marketing-demand-acquisition",
+      "description": "Creates demand generation campaigns, optimizes paid ad spend across LinkedIn, Google, and Meta, develops SEO strategies, and structures partnership programs. Use when planning demand gen strategy, growth marketing, advertising campaigns, PPC optimization, lead generation, pipeline generation, or marketing budgets. Covers multi-channel acquisition (Google Ads, LinkedIn Ads, Meta Ads), CAC analysis, MQL/SQL workflows, attribution modeling, technical SEO, and co-marketing partnerships. Default cali",
+      "path": "skills/marketing-demand-acquisition.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-demand-acquisition/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8766
+    },
+    {
+      "name": "pricing-strategist",
+      "slug": "pricing-strategist",
+      "description": "Use when designing or revisiting product pricing — selecting a pricing model (subscription seat-based, usage-based, value-based, freemium, or hybrid), running Van Westendorp Price Sensitivity Meter analysis on WTP survey data, or designing Good/Better/Best packaging tiers. Recommends a model and a price range with trade-offs, never a single number. For Commercial leads, Product Marketing, and CMOs at the pricing-design moment — not deal-by-deal discounting, not brand positioning.",
+      "path": "skills/pricing-strategist.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/pricing-strategist/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8485
+    },
+    {
+      "name": "onboarding-cro",
+      "slug": "onboarding-cro",
+      "description": "When the user wants to optimize post-signup onboarding, user activation, first-run experience, or time-to-value. Also use when the user mentions \"onboarding flow,\" \"activation rate,\" \"user activation,\" \"first-run experience,\" \"empty states,\" \"onboarding checklist,\" \"aha moment,\" or \"new user experience.\" For signup/registration optimization, see signup-flow-cro. For ongoing email sequences, see email-sequence.",
+      "path": "skills/onboarding-cro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/onboarding-cro/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8399
+    },
+    {
+      "name": "content-creation",
+      "slug": "content-creation",
+      "description": "Draft marketing content across channels — blog posts, social media, email newsletters, landing pages, press releases, and case studies. Use when writing any marketing content, when you need channel-specific formatting, SEO-optimized copy, headline options, or calls to action.",
+      "path": "skills/content-creation.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/content-creation/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 8388
+    },
+    {
+      "name": "cpo-advisor",
+      "slug": "cpo-advisor",
+      "description": "Product leadership for scaling companies. Product vision, portfolio strategy, product-market fit, and product org design. Use when setting product vision, managing a product portfolio, measuring PMF, designing product teams, prioritizing at the portfolio level, reporting to the board on product, or when user mentions CPO, product strategy, product-market fit, product organization, portfolio prioritization, or roadmap strategy.",
+      "path": "skills/cpo-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cpo-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8323
+    },
+    {
+      "name": "cro-advisor",
+      "slug": "cro-advisor",
+      "description": "Revenue leadership for B2B SaaS companies. Revenue forecasting, sales model design, pricing strategy, net revenue retention, and sales team scaling. Use when designing the revenue engine, setting quotas, modeling NRR, evaluating pricing, building board forecasts, or when user mentions CRO, chief revenue officer, revenue strategy, sales model, ARR growth, NRR, expansion revenue, churn, pricing strategy, or sales capacity.",
+      "path": "skills/cro-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cro-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 8086
+    },
+    {
+      "name": "x-twitter-growth",
+      "slug": "x-twitter-growth",
+      "description": "X/Twitter growth engine for building audience, crafting viral content, and analyzing engagement. Use when the user wants to grow on X/Twitter, write tweets or threads, analyze their X profile, research competitors on X, plan a posting strategy, or optimize engagement. Complements social-content (generic multi-platform) with X-specific depth: algorithm mechanics, thread engineering, reply strategy, profile optimization, and competitive intelligence via web search.",
+      "path": "skills/x-twitter-growth.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/x-twitter-growth/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7989
+    },
+    {
+      "name": "social-media-analyzer",
+      "slug": "social-media-analyzer",
+      "description": "Social media campaign analysis and performance tracking. Calculates engagement rates, ROI, and benchmarks across platforms. Use when analyzing social media performance, calculating engagement rate, measuring campaign ROI, comparing platform metrics, or benchmarking against industry standards. Also use when the user mentions \"social media audit,\" \"engagement rate,\" or \"which platform performs best.",
+      "path": "skills/social-media-analyzer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/social-media-analyzer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7874
+    },
+    {
+      "name": "campaign-analytics",
+      "slug": "campaign-analytics",
+      "description": "Analyzes campaign performance with multi-touch attribution, funnel conversion analysis, and ROI calculation for marketing optimization. Use when analyzing marketing campaigns, ad performance, attribution models, conversion rates, or calculating marketing ROI, ROAS, CPA, and campaign metrics across channels.",
+      "path": "skills/campaign-analytics.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/campaign-analytics/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7753
+    },
+    {
+      "name": "cmo-advisor",
+      "slug": "cmo-advisor",
+      "description": "Marketing leadership for scaling companies. Brand positioning, growth model design, marketing budget allocation, and marketing org design. Use when designing brand strategy, selecting growth models (PLG vs sales-led vs community-led), allocating marketing budgets, building marketing teams, or when user mentions CMO, brand strategy, growth model, CAC, LTV, channel mix, or marketing ROI.",
+      "path": "skills/cmo-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cmo-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7733
+    },
+    {
+      "name": "competitive-intel",
+      "slug": "competitive-intel",
+      "description": "Systematic competitor tracking that feeds CMO positioning, CRO battlecards, and CPO roadmap decisions. Use when analyzing competitors, building sales battlecards, tracking market moves, positioning against alternatives, or when user mentions competitive intelligence, competitive analysis, competitor research, battlecards, win/loss, or market positioning.",
+      "path": "skills/competitive-intel.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/competitive-intel/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7658
+    },
+    {
+      "name": "competitive-teardown",
+      "slug": "competitive-teardown",
+      "description": "Analyzes competitor products and companies by synthesizing data from pricing pages, app store reviews, job postings, SEO signals, and social media into structured competitive intelligence. Produces feature comparison matrices scored across 12 dimensions, SWOT analyses, positioning maps, UX audits, pricing model breakdowns, action item roadmaps, and stakeholder presentation templates. Use when conducting competitor analysis, comparing products against competitors, researching the competitive land",
+      "path": "skills/competitive-teardown.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/competitive-teardown/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7602
+    },
+    {
+      "name": "marketing-ideas",
+      "slug": "marketing-ideas",
+      "description": "When the user needs marketing ideas, inspiration, or strategies for their SaaS or software product. Also use when the user asks for 'marketing ideas,' 'growth ideas,' 'how to market,' 'marketing strategies,' 'marketing tactics,' 'ways to promote,' or 'ideas to grow.' This skill provides 139 proven marketing approaches organized by category.",
+      "path": "skills/marketing-ideas.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-ideas/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7400
+    },
+    {
+      "name": "popup-cro",
+      "slug": "popup-cro",
+      "description": "When the user wants to create or optimize popups, modals, overlays, slide-ins, or banners for conversion purposes. Also use when the user mentions \"exit intent,\" \"popup conversions,\" \"modal optimization,\" \"lead capture popup,\" \"email popup,\" \"announcement banner,\" or \"overlay.\" For forms outside of popups, see form-cro. For general page conversion optimization, see page-cro.",
+      "path": "skills/popup-cro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/popup-cro/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7244
+    },
+    {
+      "name": "paywall-upgrade-cro",
+      "slug": "paywall-upgrade-cro",
+      "description": "When the user wants to create or optimize in-app paywalls, upgrade screens, upsell modals, or feature gates. Also use when the user mentions \"paywall,\" \"upgrade screen,\" \"upgrade modal,\" \"upsell,\" \"feature gate,\" \"convert free to paid,\" \"freemium conversion,\" \"trial expiration screen,\" \"limit reached screen,\" \"plan upgrade prompt,\" or \"in-app pricing.\" Distinct from public pricing pages (see page-cro) — this skill focuses on in-product upgrade moments where the user has already experienced value",
+      "path": "skills/paywall-upgrade-cro.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/paywall-upgrade-cro/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7240
+    },
+    {
+      "name": "marketing-context",
+      "slug": "marketing-context",
+      "description": "Create and maintain the marketing context document that all marketing skills read before starting. Use when the user mentions 'marketing context,' 'brand voice,' 'set up context,' 'target audience,' 'ICP,' 'style guide,' 'who is my customer,' 'positioning,' or wants to avoid repeating foundational information across marketing tasks. Run this at the start of any new project before using other marketing skills.",
+      "path": "skills/marketing-context.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-context/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7159
+    },
+    {
+      "name": "agent-harness",
+      "slug": "agent-harness",
+      "description": "Turn any domain folder of skills into a bounded agentic loop: compile a goal into a verifiable task plan, execute tasks with the domain's own tools, verify every task with machine-run checks, retry with caps, escalate to a human when budgets exhaust, and refuse to close until everything is verified or explicitly waived. Use when you want an agent or subagent to pick up a goal and drive it to a verified close across one of this repo's 18 domains ('run this goal through the engineering harness', '",
+      "path": "skills/agent-harness.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/agent-harness/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7138
+    },
+    {
+      "name": "cs-webinar-marketer",
+      "slug": "cs-webinar-marketer",
+      "description": "Webinar & virtual-event marketing specialist agent. Use when planning, promoting, running, or rescuing a webinar, virtual event, live demo, workshop, masterclass, fireside chat, or virtual summit. Orchestrates the webinar-marketing skill — sizes the funnel backward from the business goal, builds the promotion runway, designs the show-up and live-to-close sequences, scores an existing funnel to find the broken stage, and plans evergreen/on-demand automation. Treats a webinar as a funnel, not an e",
+      "path": "skills/cs-webinar-marketer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/marketing/cs-webinar-marketer.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6546
+    },
+    {
+      "name": "content-strategy",
+      "slug": "content-strategy",
+      "description": "When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions \\\"content strategy,\\\" \\\"what should I write about,\\\" \\\"content ideas,\\\" \\\"blog strategy,\\\" \\\"topic clusters,\\\" or \\\"content planning.\\\" For writing individual pieces, see copywriting. For SEO-specific audits, see seo-audit.",
+      "path": "skills/content-strategy.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/content-strategy/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6414
+    },
+    {
+      "name": "iso13485-audit-prep",
+      "slug": "iso13485-audit-prep",
+      "description": "/cs:iso13485-audit-prep <scope> — ISO 13485 QMS audit 6-question forcing interrogation. Design controls + CAPA + post-market focused. Use before Clause 8.2.4 internal audit, MDR / FDA QSR alignment review, or product-launch DHF closure audit.",
+      "path": "skills/iso13485-audit-prep.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/iso13485-audit-prep/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6359
+    },
+    {
+      "name": "guideline-generation",
+      "slug": "guideline-generation",
+      "description": ">",
+      "path": "skills/guideline-generation.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/brand-voice/skills/guideline-generation/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 6357
+    },
+    {
+      "name": "discover-brand",
+      "slug": "discover-brand",
+      "description": ">",
+      "path": "skills/discover-brand.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/brand-voice/skills/discover-brand/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 6294
+    },
+    {
+      "name": "marketing-psychology",
+      "slug": "marketing-psychology",
+      "description": "When the user wants to apply psychological principles, mental models, or behavioral science to marketing. Also use when the user mentions 'psychology,' 'mental models,' 'cognitive bias,' 'persuasion,' 'behavioral science,' 'why people buy,' 'decision-making,' or 'consumer behavior.' This skill provides 70+ mental models organized for marketing application.",
+      "path": "skills/marketing-psychology.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-psychology/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6279
+    },
+    {
+      "name": "cs-aeo",
+      "slug": "cs-aeo",
+      "description": "/cs:aeo — Answer Engine Optimization workflow. Audit content for E-E-A-T + structure signals that drive LLM citation (ChatGPT, Perplexity, Claude, Gemini, Mistral). Optimize content in 3 modes (conservative/balanced/aggressive). Track which LLMs cite which pages via local ledger. Industry-aware thresholds (8 industries with YMYL calibration). Distinct from SEO — refuses to optimize one at expense of the other.",
+      "path": "skills/cs-aeo.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cmd-cs-aeo/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5664
+    },
+    {
+      "name": "arquiteto-de-empresa",
+      "slug": "arquiteto-de-empresa",
+      "description": "Company Architect: builds a business from scratch as an OKF (Open Knowledge Format) bundle — a tree of version-controllable .md files with frontmatter type, links forming a graph, and reserved index.md/log.md, readable by humans and agents. Guides the founder through a 12-phase interview (foundation, strategy, market, financial, sales, marketing, product, operations, tech, people, legal, governance), one phase at a time, few questions per block, and generates the concepts as conformant markdown.",
+      "path": "skills/arquiteto-de-empresa.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/arquiteto-de-empresa/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5296
+    },
+    {
+      "name": "launch-strategy",
+      "slug": "launch-strategy",
+      "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' 'product update,' 'GTM plan,' 'launch checklist,' or 'launch momentum.' This skill covers phased launches, channel strategy, and ongoing launch momentum.",
+      "path": "skills/launch-strategy.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/launch-strategy/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5236
+    },
+    {
+      "name": "md-document",
+      "slug": "md-document",
+      "description": "Converts long-form markdown (specs, RFCs, reports, plans, explainers) into a single-file, lightly-interactive HTML document with sticky TOC, scrollspy, search filter, code-copy buttons, and design-system-driven brand tokens. Triggers when the markdown-html-orchestrator classifies an input as DOCUMENT, or when invoked directly via /cs:md-document. Reads the design-system config via config_loader.py and inlines the user's 12 derived CSS custom properties; refuses to render if onboarding hasn't run",
+      "path": "skills/md-document.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/md-document/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5236
+    },
+    {
+      "name": "linkedin-post-formatter",
+      "slug": "linkedin-post-formatter",
+      "description": "Format and draft compelling LinkedIn posts using Unicode bold/italic styling, visual separators, structured sections, and engagement-optimized patterns. USE FOR: draft LinkedIn post, format text for LinkedIn, create social media post, write thought leadership post, convert content to LinkedIn format, LinkedIn carousel text, Unicode bold italic formatting.",
+      "path": "skills/linkedin-post-formatter.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/linkedin-post-formatter/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5159
+    },
+    {
+      "name": "cs-webinar",
+      "slug": "cs-webinar",
+      "description": "/cs:webinar — Webinar & virtual-event marketing workflow. Plan a webinar from scratch (sized backward from the business goal), rescue one whose numbers disappointed (score the funnel, fix the broken stage), or turn a past webinar into an evergreen on-demand lead engine. Covers the full funnel: registration, promotion runway, show-up, live engagement, live-to-close, and segmented follow-up. Treats a webinar as a funnel, not an event.",
+      "path": "skills/cs-webinar.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cs-webinar/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5097
+    },
+    {
+      "name": "prompt-engineer-toolkit",
+      "slug": "prompt-engineer-toolkit",
+      "description": "Turns marketing prompts into tested, versioned production assets: A/B prompt evaluation against structured test cases, immutable prompt version history with diffs, ready-to-use marketing prompt templates (ad copy, email campaigns, social posts, landing pages, SEO meta), and an LLM-governance playbook for marketing teams (claim discipline, disclosure rules, human-review gates). Use when a marketing team relies on AI-generated content and needs prompt quality to be measurable and safe — or when th",
+      "path": "skills/prompt-engineer-toolkit.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/prompt-engineer-toolkit/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4941
+    },
+    {
+      "name": "demo-video",
+      "slug": "demo-video",
+      "description": "Use when the user asks to create a demo video, product walkthrough, feature showcase, animated presentation, marketing video, or GIF from screenshots or scene descriptions. Orchestrates playwright, ffmpeg, and edge-tts MCPs to produce polished video content.",
+      "path": "skills/demo-video.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/demo-video/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4833
+    },
+    {
+      "name": "brand-guidelines",
+      "slug": "brand-guidelines",
+      "description": "When the user wants to apply, document, or enforce brand guidelines for any product or company. Also use when the user mentions 'brand guidelines,' 'brand colors,' 'typography,' 'logo usage,' 'brand voice,' 'visual identity,' 'tone of voice,' 'brand standards,' 'style guide,' 'brand consistency,' or 'company design standards.' Covers color systems, typography, logo rules, imagery guidelines, and tone matrix for any brand — including Anthropic's official identity.",
+      "path": "skills/brand-guidelines.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/brand-guidelines/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4706
+    },
+    {
+      "name": "brand-voice-enforcement",
+      "slug": "brand-voice-enforcement",
+      "description": ">",
+      "path": "skills/brand-voice-enforcement.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/brand-voice/skills/brand-voice-enforcement/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4674
+    },
+    {
+      "name": "marketing-skills",
+      "slug": "marketing-skills",
+      "description": "Directory and router for the marketing skills library. Use when you need to find the right marketing skill for a task, see what marketing capabilities exist, or get oriented in this plugin. 44 specialist skills across 8 pods (content, SEO + AEO, CRO, channels, growth, intelligence, sales enablement, ops), 59 stdlib Python tools. Routes to one skill — it does not execute marketing work itself.",
+      "path": "skills/marketing-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/marketing-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4640
+    },
+    {
+      "name": "qdrant-search-speed-optimization",
+      "slug": "qdrant-search-speed-optimization",
+      "description": "Diagnoses and fixes slow Qdrant search. Use when someone reports 'search is slow', 'high latency', 'queries take too long', 'low QPS', 'throughput too low', 'filtered search is slow', or 'search was fast but now it's slow'. Also use when search performance degrades after config changes or data growth.",
+      "path": "skills/qdrant-search-speed-optimization.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-performance-optimization/search-speed-optimization/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4360
+    },
+    {
+      "name": "build-zoom-contact-center-app",
+      "slug": "build-zoom-contact-center-app",
+      "description": "Reference skill for Zoom Contact Center. Use after routing to a contact-center workflow when implementing app, web, or native integrations; engagement context and state handling; campaigns; callbacks; or version-drift troubleshooting.",
+      "path": "skills/build-zoom-contact-center-app.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/contact-center/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4311
+    },
+    {
+      "name": "draft-content",
+      "slug": "draft-content",
+      "description": "Draft blog posts, social media, email newsletters, landing pages, press releases, and case studies with channel-specific formatting and SEO recommendations. Use when writing any marketing content, when you need headline or subject line options, or when adapting a message for a specific platform, audience, and brand voice.",
+      "path": "skills/draft-content.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/marketing/skills/draft-content/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 4192
+    },
+    {
+      "name": "qdrant-sliding-time-window",
+      "slug": "qdrant-sliding-time-window",
+      "description": "Guides sliding time window scaling in Qdrant. Use when someone asks 'only recent data matters', 'how to expire old vectors', 'time-based data rotation', 'delete old data efficiently', 'social media feed search', 'news search', 'log search with retention', or 'how to keep only last N months of data'.",
+      "path": "skills/qdrant-sliding-time-window.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-scaling/scaling-data-volume/sliding-time-window/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4118
+    },
+    {
+      "name": "content-strategist",
+      "slug": "content-strategist",
+      "description": "Builds content engines that rank, convert, and compound. Thinks in systems — topic clusters, not individual posts. Every piece earns its place or gets killed. Use when content needs to behave like a system rather than a stream of posts — e.g., designing a topic-cluster plan to grow organic traffic from zero, or auditing an editorial calendar and killing pieces that don't convert after 90 days. (For single-asset, on-brand copy production, see cs-content-creator.)",
+      "path": "skills/content-strategist.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/personas/content-strategist.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3769
+    },
+    {
+      "name": "execute",
+      "slug": "execute",
+      "description": "/cs:execute <decision> — Generate a 90-day execution plan with weekly milestones, DRIs, and check-in cadence from an approved decision. Use when a logged decision needs to become an operating plan — e.g. turning an approved market-entry call into weekly milestones with DRIs.",
+      "path": "skills/execute.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/execute/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2958
+    },
+    {
+      "name": "cmo-review",
+      "slug": "cmo-review",
+      "description": "/cs:cmo-review <plan> — Narrative-first interrogation of positioning, ICP, message house, and channel mix. Use when launching a campaign or repositioning, or when CAC is rising and the one-sentence positioning test fails.",
+      "path": "skills/cmo-review.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cmo-review/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2911
+    },
+    {
+      "name": "react19-concurrent-patterns",
+      "slug": "react19-concurrent-patterns",
+      "description": "Preserve React 18 concurrent patterns and adopt React 19 APIs (useTransition, useDeferredValue, Suspense, use(), useOptimistic, Actions) during migration.",
+      "path": "skills/react19-concurrent-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react19-concurrent-patterns/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2675
+    },
+    {
+      "name": "qdrant-horizontal-scaling",
+      "slug": "qdrant-horizontal-scaling",
+      "description": "Diagnoses and guides Qdrant horizontal scaling decisions. Use when someone asks 'vertical or horizontal?', 'how many nodes?', 'how many shards?', 'how to add nodes', 'resharding', 'data doesn't fit', or 'need more capacity'. Also use when data growth outpaces current deployment.",
+      "path": "skills/qdrant-horizontal-scaling.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-scaling/scaling-data-volume/horizontal-scaling/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2659
+    },
+    {
+      "name": "run-campaign",
+      "slug": "run-campaign",
+      "description": "Runs an end-to-end marketing campaign — sales analysis, content brief, Canva assets, HubSpot send. Accepts optional lookback and channel arguments.",
+      "path": "skills/run-campaign.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/small-business/skills/run-campaign/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 2509
+    },
+    {
+      "name": "content-creator",
+      "slug": "content-creator",
+      "description": "Deprecated redirect skill that routes legacy 'content creator' requests to the correct specialist. Use when a user invokes 'content creator', asks to write a blog post, article, guide, or brand voice analysis (routes to content-production), or asks to plan content, build a topic cluster, or create a content calendar (routes to content-strategy). Does not handle requests directly — identifies user intent and redirects to content-production for writing/SEO/brand-voice tasks or content-strategy for",
+      "path": "skills/content-creator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/content-creator/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "marketing",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2153
+    },
+    {
+      "name": "qdrant-scaling-data-volume",
+      "slug": "qdrant-scaling-data-volume",
+      "description": "Guides Qdrant data volume scaling decisions. Use when someone asks 'data doesn't fit on one node', 'too much data', 'need more storage', 'vertical or horizontal scaling', 'tenant scaling', 'time window rotation', or 'data growth exceeds capacity'.",
+      "path": "skills/qdrant-scaling-data-volume.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-scaling/scaling-data-volume/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1592
+    },
+    {
+      "name": "virtual-agent/web",
+      "slug": "virtual-agent-web",
+      "description": "Zoom Virtual Agent SDK for web embeds. Use for campaign or entry ID chat launch, event-driven controls, user context updates, and CSP-safe deployment.",
+      "path": "skills/virtual-agent-web.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/virtual-agent/web/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "marketing",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1127
+    },
+    {
+      "name": "qdrant-search-quality",
+      "slug": "qdrant-search-quality",
+      "description": "Diagnoses and improves Qdrant search relevance. Use when someone reports 'search results are bad', 'wrong results', 'low precision', 'low recall', 'irrelevant matches', 'missing expected results', or asks 'how to improve search quality?', 'which embedding model?', 'should I use hybrid search?', 'should I use reranking?'. Also use when search quality degrades after quantization, model change, or data growth.",
+      "path": "skills/qdrant-search-quality.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-search-quality/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "marketing",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 837
+    }
+  ]
+}

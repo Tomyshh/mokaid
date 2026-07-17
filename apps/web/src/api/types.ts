@@ -115,10 +115,16 @@ export interface AgentArchetype {
   key: string;
   name: string;
   domain: string | null;
+  tier?: "blank" | "specialist";
   description: string;
   role_title: string;
   department: string;
   skills: AgentSkill[];
+  tags?: string[];
+  suggested_mcp?: string[];
+  corpus_doc_count?: number;
+  skill_count?: number;
+  credits_for_specialist?: number;
 }
 
 export interface AgentBoostTier {
@@ -133,6 +139,8 @@ export interface AgentBoostTier {
 export interface AgentCatalog {
   archetypes: AgentArchetype[];
   boosts: AgentBoostTier[];
+  specialist_boost_key?: string;
+  specialist_credits?: number;
 }
 
 export interface Subtask {
@@ -567,6 +575,10 @@ export interface OnboardingSettings {
   wizard_done?: boolean;
   tour_done?: boolean;
   checklist_dismissed?: boolean;
+  /** Free-text: what the company does. */
+  company_summary?: string;
+  /** Free-text: why they need agents / what agents should do. */
+  agent_needs?: string;
 }
 
 /* ---------- Intelligent dispatch (3D drop / quick task) ---------- */

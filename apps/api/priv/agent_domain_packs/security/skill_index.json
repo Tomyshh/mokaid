@@ -1,0 +1,1155 @@
+{
+  "domain": "security",
+  "pack_version": "5bc7df158703",
+  "skill_count": 82,
+  "skills": [
+    {
+      "name": "verification-checklist",
+      "slug": "verification-checklist",
+      "description": "",
+      "path": "skills/verification-checklist.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/verification-checklist.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 70454
+    },
+    {
+      "name": "output-formats",
+      "slug": "output-formats",
+      "description": "",
+      "path": "skills/output-formats.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/output-formats.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 59032
+    },
+    {
+      "name": "orchestrator",
+      "slug": "orchestrator",
+      "description": "",
+      "path": "skills/orchestrator.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/orchestrator.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 54590
+    },
+    {
+      "name": "github-actions-ci-cd-best-practices.instructions",
+      "slug": "github-actions-ci-cd-best-practices-instructions",
+      "description": "Comprehensive guide for building robust, secure, and efficient CI/CD pipelines using GitHub Actions. Covers workflow structure, jobs, steps, environment variables, secret management, caching, matrix strategies, testing, and deployment strategies.",
+      "path": "skills/github-actions-ci-cd-best-practices-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/github-actions-ci-cd-best-practices.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 53889
+    },
+    {
+      "name": "containerization-docker-best-practices.instructions",
+      "slug": "containerization-docker-best-practices-instructions",
+      "description": "Comprehensive best practices for creating optimized, secure, and efficient Docker images and managing containers. Covers multi-stage builds, image layer optimization, security scanning, and runtime best practices.",
+      "path": "skills/containerization-docker-best-practices-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/containerization-docker-best-practices.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 35573
+    },
+    {
+      "name": "incremental-orchestrator",
+      "slug": "incremental-orchestrator",
+      "description": "",
+      "path": "skills/incremental-orchestrator.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/incremental-orchestrator.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 34049
+    },
+    {
+      "name": "security-and-owasp.instructions",
+      "slug": "security-and-owasp-instructions",
+      "description": "Comprehensive secure coding standards based on OWASP Top 10 2025, with 55+ anti-patterns, detection regex, framework-specific fixes for modern web and backend frameworks, and AI/LLM security guidance.",
+      "path": "skills/security-and-owasp-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/security-and-owasp.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 30041
+    },
+    {
+      "name": "analysis-principles",
+      "slug": "analysis-principles",
+      "description": "",
+      "path": "skills/analysis-principles.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/analysis-principles.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 29421
+    },
+    {
+      "name": "dynatrace-expert.agent",
+      "slug": "dynatrace-expert-agent",
+      "description": "The Dynatrace Expert Agent integrates observability and security capabilities directly into GitHub workflows, enabling development teams to investigate incidents, validate deployments, triage errors, detect performance regressions, validate releases, and manage security vulnerabilities by autonomously analysing traces, logs, and Dynatrace findings. This enables targeted and precise remediation of identified issues directly within the repository.",
+      "path": "skills/dynatrace-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/dynatrace-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 25031
+    },
+    {
+      "name": "mcp-implementation-security-review",
+      "slug": "mcp-implementation-security-review",
+      "description": "|",
+      "path": "skills/mcp-implementation-security-review.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mcp-implementation-security-review/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 19712
+    },
+    {
+      "name": "diagram-conventions",
+      "slug": "diagram-conventions",
+      "description": "",
+      "path": "skills/diagram-conventions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/diagram-conventions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 18801
+    },
+    {
+      "name": "ai-security",
+      "slug": "ai-security",
+      "description": "Use when assessing AI/ML systems for prompt injection, jailbreak vulnerabilities, model inversion risk, data poisoning exposure, or agent tool abuse. Covers MITRE ATLAS technique mapping, injection signature detection, and adversarial robustness scoring.",
+      "path": "skills/ai-security.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ai-security/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 17578
+    },
+    {
+      "name": "cloud-security",
+      "slug": "cloud-security",
+      "description": "Use when assessing cloud infrastructure for security misconfigurations, IAM privilege escalation paths, S3 public exposure, open security group rules, or IaC security gaps. Covers AWS, Azure, and GCP posture assessment with MITRE ATT&CK mapping.",
+      "path": "skills/cloud-security.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/cloud-security/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 16275
+    },
+    {
+      "name": "red-team",
+      "slug": "red-team",
+      "description": "Use when planning or executing authorized red team engagements, attack path analysis, or offensive security simulations. Covers MITRE ATT&CK kill-chain planning, technique scoring, choke point identification, OPSEC risk assessment, and crown jewel targeting.",
+      "path": "skills/red-team.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/red-team/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15468
+    },
+    {
+      "name": "incident-response",
+      "slug": "incident-response",
+      "description": "Use when a security incident has been detected or declared and needs classification, triage, escalation path determination, and forensic evidence collection. Covers SEV1-SEV4 classification, false positive filtering, incident taxonomy, and NIST SP 800-61 lifecycle.",
+      "path": "skills/incident-response.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/incident-response/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15028
+    },
+    {
+      "name": "senior-backend",
+      "slug": "senior-backend",
+      "description": "Designs and implements backend systems including REST APIs, microservices, database architectures, authentication flows, and security hardening. Use when the user asks to \"design REST APIs\", \"optimize database queries\", \"implement authentication\", \"build microservices\", \"review backend code\", \"set up GraphQL\", \"handle database migrations\", or \"load test APIs\". Covers Node.js/Express/Fastify development, PostgreSQL optimization, API security, and backend architecture patterns.",
+      "path": "skills/senior-backend.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-backend/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14554
+    },
+    {
+      "name": "tm7-threat-model",
+      "slug": "tm7-threat-model",
+      "description": "Creates valid Microsoft Threat Modeling Tool (.tm7) files compatible with the Microsoft Threat Modeling Tool v7.3+. Use this skill whenever asked to create, generate, or modify a .tm7 threat model file, or when performing STRIDE threat modeling that should output a .tm7 file that opens cleanly in the Microsoft Threat Modeling Tool.",
+      "path": "skills/tm7-threat-model.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/tm7-threat-model/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14552
+    },
+    {
+      "name": "senior-fullstack",
+      "slug": "senior-fullstack",
+      "description": "Fullstack development toolkit with project scaffolding for Next.js, FastAPI, MERN, and Django stacks, code quality analysis with security and complexity scoring, and stack selection guidance. Use when the user asks to \"scaffold a new project\", \"create a Next.js app\", \"set up FastAPI with React\", \"analyze code quality\", \"audit my codebase\", \"what stack should I use\", \"generate project boilerplate\", or mentions fullstack development, project setup, or tech stack comparison.",
+      "path": "skills/senior-fullstack.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-fullstack/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14082
+    },
+    {
+      "name": "kubernetes-deployment-best-practices.instructions",
+      "slug": "kubernetes-deployment-best-practices-instructions",
+      "description": "Comprehensive best practices for deploying and managing applications on Kubernetes. Covers Pods, Deployments, Services, Ingress, ConfigMaps, Secrets, health checks, resource limits, scaling, and security contexts.",
+      "path": "skills/kubernetes-deployment-best-practices-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14081
+    },
+    {
+      "name": "threat-detection",
+      "slug": "threat-detection",
+      "description": "Use when hunting for threats in an environment, analyzing IOCs, or detecting behavioral anomalies in telemetry. Covers hypothesis-driven threat hunting, IOC sweep generation, z-score anomaly detection, and MITRE ATT&CK-mapped signal prioritization.",
+      "path": "skills/threat-detection.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/threat-detection/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13796
+    },
+    {
+      "name": "security-pen-testing",
+      "slug": "security-pen-testing",
+      "description": "Use when the user asks to perform security audits, penetration testing, vulnerability scanning, OWASP Top 10 checks, or offensive security assessments. Covers static analysis, dependency scanning, secret detection, API security testing, and pen test report generation.",
+      "path": "skills/security-pen-testing.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/security-pen-testing/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13544
+    },
+    {
+      "name": "dataverse-python-authentication-security.instructions",
+      "slug": "dataverse-python-authentication-security-instructions",
+      "description": "",
+      "path": "skills/dataverse-python-authentication-security-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/dataverse-python-authentication-security.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13388
+    },
+    {
+      "name": "power-bi-security-rls-best-practices.instructions",
+      "slug": "power-bi-security-rls-best-practices-instructions",
+      "description": "Comprehensive Power BI Row-Level Security (RLS) and advanced security patterns implementation guide with dynamic security, best practices, and governance strategies.",
+      "path": "skills/power-bi-security-rls-best-practices-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/power-bi-security-rls-best-practices.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13282
+    },
+    {
+      "name": "terraform.agent",
+      "slug": "terraform-agent",
+      "description": "Terraform infrastructure specialist with automated HCP Terraform workflows. Leverages Terraform MCP server for registry integration, workspace management, and run orchestration. Generates compliant code using latest provider/module versions, manages private registries, automates variable sets, and orchestrates infrastructure deployments with proper validation and security practices.",
+      "path": "skills/terraform-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terraform.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13266
+    },
+    {
+      "name": "codeql",
+      "slug": "codeql",
+      "description": "Comprehensive guide for setting up and configuring CodeQL code scanning via GitHub Actions workflows and the CodeQL CLI. This skill should be used when users need help with code scanning configuration, CodeQL workflow files, CodeQL CLI commands, SARIF output, security analysis setup, or troubleshooting CodeQL analysis.",
+      "path": "skills/codeql.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/codeql/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13061
+    },
+    {
+      "name": "react18-auditor.agent",
+      "slug": "react18-auditor-agent",
+      "description": "Deep-scan specialist for React 16/17 class-component codebases targeting React 18.3.1. Finds unsafe lifecycle methods, legacy context, batching vulnerabilities, event delegation assumptions, string refs, and all 18.3.1 deprecation surface. Reads everything, touches nothing. Saves .github/react18-audit.md.",
+      "path": "skills/react18-auditor-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react18-auditor.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12981
+    },
+    {
+      "name": "atlassian-admin",
+      "slug": "atlassian-admin",
+      "description": "Atlassian Administrator for managing and organizing Atlassian products (Jira, Confluence, Bitbucket, Trello), users, permissions, security, integrations, system configuration, and org-wide governance. Use when asked to add users to Jira, change Confluence permissions, configure access control, update admin settings, manage Atlassian groups, set up SSO, install marketplace apps, review security policies, or handle any org-wide Atlassian administration task.",
+      "path": "skills/atlassian-admin.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/atlassian-admin/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12440
+    },
+    {
+      "name": "pr-review-expert",
+      "slug": "pr-review-expert",
+      "description": "Use when the user asks to review pull requests, analyze code changes, check for security issues in PRs, or assess code quality of diffs.",
+      "path": "skills/pr-review-expert.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/pr-review-expert/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12377
+    },
+    {
+      "name": "vue.instructions",
+      "slug": "vue-instructions",
+      "description": "Comprehensive Vue 3 development standards and best practices: Composition API, `<script setup>`, the full reactivity system, compiler macros (defineModel/defineSlots/defineOptions), built-in components (Teleport/Suspense/Transition/KeepAlive), provide/inject, composables, Pinia, Vue Router, TypeScript, testing, performance, SSR, and security.",
+      "path": "skills/vue-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/vue.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12138
+    },
+    {
+      "name": "Security",
+      "slug": "security",
+      "description": "",
+      "path": "skills/security.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gdpr-compliant/references/Security.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11804
+    },
+    {
+      "name": "google-workspace-cli",
+      "slug": "google-workspace-cli",
+      "description": "Google Workspace administration via the gws CLI (github.com/googleworkspace/cli). Install, authenticate, and automate Gmail, Drive, Sheets, Calendar, Docs, Chat, and Tasks. Run security audits and use local recipe templates and persona bundles. Use for Google Workspace admin, gws CLI setup, Gmail automation, Drive management, or Calendar scheduling.",
+      "path": "skills/google-workspace-cli.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/google-workspace-cli/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11633
+    },
+    {
+      "name": "skeleton-assessment",
+      "slug": "skeleton-assessment",
+      "description": "",
+      "path": "skills/skeleton-assessment.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-assessment.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11271
+    },
+    {
+      "name": "sarif-output",
+      "slug": "sarif-output",
+      "description": "",
+      "path": "skills/sarif-output.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/codeql/references/sarif-output.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9825
+    },
+    {
+      "name": "react18-batching-fixer.agent",
+      "slug": "react18-batching-fixer-agent",
+      "description": "Automatic batching regression specialist. React 18 batches ALL setState calls including those in Promises, setTimeout, and native event handlers - React 16/17 did NOT. Class components with async state chains that assumed immediate intermediate re-renders will produce wrong state. This agent finds every vulnerable pattern and fixes with flushSync where semantically required.",
+      "path": "skills/react18-batching-fixer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react18-batching-fixer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9687
+    },
+    {
+      "name": "compiled-languages",
+      "slug": "compiled-languages",
+      "description": "",
+      "path": "skills/compiled-languages.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/codeql/references/compiled-languages.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9343
+    },
+    {
+      "name": "org-and-security",
+      "slug": "org-and-security",
+      "description": "",
+      "path": "skills/org-and-security.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/org-and-security.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9256
+    },
+    {
+      "name": "stackhawk-security-onboarding.agent",
+      "slug": "stackhawk-security-onboarding-agent",
+      "description": "Automatically set up StackHawk security testing for your repository with generated configuration and GitHub Actions workflow",
+      "path": "skills/stackhawk-security-onboarding-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/stackhawk-security-onboarding.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9004
+    },
+    {
+      "name": "secret-scanning",
+      "slug": "secret-scanning",
+      "description": "Guide for configuring and managing GitHub secret scanning, push protection, custom patterns, and secret alert remediation. For pre-commit secret scanning in AI coding agents via the GitHub MCP Server, this skill references the Advanced Security plugin (`advanced-security@copilot-plugins`). Use this skill when enabling secret scanning, setting up push protection, defining custom patterns, triaging alerts, resolving blocked pushes, or when an agent needs to scan code for secrets before committing.",
+      "path": "skills/secret-scanning.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/secret-scanning/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8999
+    },
+    {
+      "name": "github-actions-hardening",
+      "slug": "github-actions-hardening",
+      "description": "Security hardening reviewer for GitHub Actions workflow files (.github/workflows/*.yml). Reasons about the Actions threat model that pattern matchers and general code linters miss — untrusted-input script injection, privileged triggers running fork code, mutable action references, and over-scoped tokens. Use this skill when asked to review, audit, harden, or secure a GitHub Actions workflow, when writing a new workflow, or for any request like \"is this workflow safe?\", \"review my CI for security",
+      "path": "skills/github-actions-hardening.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/github-actions-hardening/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8807
+    },
+    {
+      "name": "tmt-element-taxonomy",
+      "slug": "tmt-element-taxonomy",
+      "description": "",
+      "path": "skills/tmt-element-taxonomy.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/tmt-element-taxonomy.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8642
+    },
+    {
+      "name": "workflow-configuration",
+      "slug": "workflow-configuration",
+      "description": "",
+      "path": "skills/workflow-configuration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/codeql/references/workflow-configuration.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8620
+    },
+    {
+      "name": "taxcore-technical-writer.agent",
+      "slug": "taxcore-technical-writer-agent",
+      "description": "A domain-expert technical writer for the TaxCore electronic fiscal invoicing ecosystem. Use this agent to create, improve, or review documentation for TaxCore applications — including the Secure Element Reader, smart card workflows, fiscal invoicing concepts, audit processes, and PKI/SE security topics. Covers end-user guides, developer docs, reference material, and setup guides across all TaxCore-related surfaces.",
+      "path": "skills/taxcore-technical-writer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/taxcore-technical-writer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8490
+    },
+    {
+      "name": "sql-code-review",
+      "slug": "sql-code-review",
+      "description": "Universal SQL code review assistant that performs comprehensive security, maintainability, and code quality analysis across all SQL databases (MySQL, PostgreSQL, SQL Server, Oracle). Focuses on SQL injection prevention, access control, code standards, and anti-pattern detection. Complements SQL optimization prompt for complete development coverage.",
+      "path": "skills/sql-code-review.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/sql-code-review/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8473
+    },
+    {
+      "name": "cli-commands",
+      "slug": "cli-commands",
+      "description": "",
+      "path": "skills/cli-commands.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/codeql/references/cli-commands.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8338
+    },
+    {
+      "name": "security-review",
+      "slug": "security-review",
+      "description": "AI-powered codebase security scanner that reasons about code like a security researcher — tracing data flows, understanding component interactions, and catching vulnerabilities that pattern-matching tools miss. Use this skill when asked to scan code for security vulnerabilities, find bugs, check for SQL injection, XSS, command injection, exposed API keys, hardcoded secrets, insecure dependencies, access control issues, or any request like \"is my code secure?\", \"review for security issues\", \"audi",
+      "path": "skills/security-review.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/security-review/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8214
+    },
+    {
+      "name": "mcp-security-audit",
+      "slug": "mcp-security-audit",
+      "description": "|",
+      "path": "skills/mcp-security-audit.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mcp-security-audit/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8077
+    },
+    {
+      "name": "vuln-categories",
+      "slug": "vuln-categories",
+      "description": "",
+      "path": "skills/vuln-categories.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/security-review/references/vuln-categories.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7907
+    },
+    {
+      "name": "skeleton-findings",
+      "slug": "skeleton-findings",
+      "description": "",
+      "path": "skills/skeleton-findings.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-findings.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7762
+    },
+    {
+      "name": "pcf-canvas-apps.instructions",
+      "slug": "pcf-canvas-apps-instructions",
+      "description": "Code components for canvas apps implementation, security, and configuration",
+      "path": "skills/pcf-canvas-apps-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/pcf-canvas-apps.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7223
+    },
+    {
+      "name": "setup-zoom-websockets",
+      "slug": "setup-zoom-websockets",
+      "description": "Reference skill for Zoom WebSockets. Use after routing to a low-latency event workflow when persistent connections, faster event delivery, or security constraints make WebSockets preferable to webhooks.",
+      "path": "skills/setup-zoom-websockets.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/websockets/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "security",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 7140
+    },
+    {
+      "name": "postgresql-code-review",
+      "slug": "postgresql-code-review",
+      "description": "PostgreSQL-specific code review assistant focusing on PostgreSQL best practices, anti-patterns, and unique quality standards. Covers JSONB operations, array usage, custom types, schema design, function optimization, and PostgreSQL-exclusive security features like Row Level Security (RLS).",
+      "path": "skills/postgresql-code-review.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/postgresql-code-review/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7038
+    },
+    {
+      "name": "wordpress.instructions",
+      "slug": "wordpress-instructions",
+      "description": "Coding, security, and testing rules for WordPress plugins and themes",
+      "path": "skills/wordpress-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/wordpress.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6875
+    },
+    {
+      "name": "security-guidance",
+      "slug": "security-guidance",
+      "description": "PreToolUse security-anti-pattern hook for Claude Code. Catches 12 common security risks (command injection, XSS, SQL injection, unsafe deserialization, GitHub Actions workflow injection, eval/new Function code injection) BEFORE the Edit/Write/MultiEdit operation completes. Session-state caching prevents duplicate warnings on the same file+rule combo. Stdlib only — no dependencies. Use when you want a safety net during Claude Code sessions that touch security-sensitive code (auth, payments, user ",
+      "path": "skills/security-guidance.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/security-guidance/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6790
+    },
+    {
+      "name": "salesforce-apex-quality",
+      "slug": "salesforce-apex-quality",
+      "description": "Apex code quality guardrails for Salesforce development. Enforces bulk-safety rules (no SOQL/DML in loops), sharing model requirements, CRUD/FLS security, SOQL injection prevention, PNB test coverage (Positive / Negative / Bulk), and modern Apex idioms. Use this skill when reviewing or generating Apex classes, trigger handlers, batch jobs, or test classes to catch governor limit risks, security gaps, and quality issues before deployment.",
+      "path": "skills/salesforce-apex-quality.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/salesforce-apex-quality/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6782
+    },
+    {
+      "name": "skill-security-auditor",
+      "slug": "skill-security-auditor",
+      "description": ">",
+      "path": "skills/skill-security-auditor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/skill-security-auditor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6768
+    },
+    {
+      "name": "alert-management",
+      "slug": "alert-management",
+      "description": "",
+      "path": "skills/alert-management.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/codeql/references/alert-management.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6432
+    },
+    {
+      "name": "skeleton-stride-analysis",
+      "slug": "skeleton-stride-analysis",
+      "description": "",
+      "path": "skills/skeleton-stride-analysis.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-stride-analysis.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6295
+    },
+    {
+      "name": "skeleton-architecture",
+      "slug": "skeleton-architecture",
+      "description": "",
+      "path": "skills/skeleton-architecture.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-architecture.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6183
+    },
+    {
+      "name": "aws-cloud-expert.agent",
+      "slug": "aws-cloud-expert-agent",
+      "description": "AWS Cloud Expert provides deep, hands-on guidance for designing, building, and operating AWS workloads. Covers the full AWS ecosystem — serverless, containers, databases, networking, IaC, security, and cost optimization — grounded in the AWS Well-Architected Framework.",
+      "path": "skills/aws-cloud-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/aws-cloud-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5622
+    },
+    {
+      "name": "skeleton-inventory",
+      "slug": "skeleton-inventory",
+      "description": "",
+      "path": "skills/skeleton-inventory.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-inventory.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5397
+    },
+    {
+      "name": "skeleton-incremental-html",
+      "slug": "skeleton-incremental-html",
+      "description": "",
+      "path": "skills/skeleton-incremental-html.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-incremental-html.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5366
+    },
+    {
+      "name": "language-patterns",
+      "slug": "language-patterns",
+      "description": "",
+      "path": "skills/language-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/security-review/references/language-patterns.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5333
+    },
+    {
+      "name": "github-actions-expert.agent",
+      "slug": "github-actions-expert-agent",
+      "description": "GitHub Actions specialist focused on secure CI/CD workflows, action pinning, OIDC authentication, permissions least privilege, and supply-chain security",
+      "path": "skills/github-actions-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/github-actions-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5190
+    },
+    {
+      "name": "azure-smart-city-iot-solution-builder",
+      "slug": "azure-smart-city-iot-solution-builder",
+      "description": "Design and plan end-to-end Azure IoT and Smart City solutions: requirements, architecture, security, operations, cost, and a phased delivery plan with concrete implementation artifacts.",
+      "path": "skills/azure-smart-city-iot-solution-builder.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-smart-city-iot-solution-builder/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5090
+    },
+    {
+      "name": "threat-model-analyst",
+      "slug": "threat-model-analyst",
+      "description": "Full STRIDE-A threat model analysis and incremental update skill for repositories and systems. Supports two modes: (1) Single analysis — full STRIDE-A threat model of a repository, producing architecture overviews, DFD diagrams, STRIDE-A analysis, prioritized findings, and executive assessments. (2) Incremental analysis — takes a previous threat model report as baseline, compares the codebase at the latest (or a given commit), and produces an updated report with change tracking (new, resolved, s",
+      "path": "skills/threat-model-analyst.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5076
+    },
+    {
+      "name": "senior-security",
+      "slug": "senior-security",
+      "description": "Use when the user asks for STRIDE threat modeling, DREAD risk scoring, data-flow-diagram threat analysis, or a quick secret scan — or when a security request needs routing to the right specialist skill (pen-testing, incident response, cloud posture, red team, AI security, threat hunting, secure code review). This skill owns threat modeling; everything else routes to a sibling.",
+      "path": "skills/senior-security.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-security/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4722
+    },
+    {
+      "name": "arduino-azure-iot-edge-integration",
+      "slug": "arduino-azure-iot-edge-integration",
+      "description": "Design and implement Arduino integration with Azure IoT Hub and IoT Edge, including secure provisioning, resilient telemetry, command handling, and production guardrails.",
+      "path": "skills/arduino-azure-iot-edge-integration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/arduino-azure-iot-edge-integration/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4446
+    },
+    {
+      "name": "cloud-design-patterns",
+      "slug": "cloud-design-patterns",
+      "description": "Cloud design patterns for distributed systems architecture covering 42 industry-standard patterns across reliability, performance, messaging, security, and deployment categories. Use when designing, reviewing, or implementing distributed system architectures.",
+      "path": "skills/cloud-design-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4243
+    },
+    {
+      "name": "kubernetes-manifests.instructions",
+      "slug": "kubernetes-manifests-instructions",
+      "description": "Best practices for Kubernetes YAML manifests including labeling conventions, security contexts, pod security, resource management, probes, and validation commands",
+      "path": "skills/kubernetes-manifests-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4181
+    },
+    {
+      "name": "tech-stack-evaluator",
+      "slug": "tech-stack-evaluator",
+      "description": "Technology stack evaluation and comparison with TCO analysis, security assessment, and ecosystem health scoring. Use when comparing frameworks, evaluating technology stacks, calculating total cost of ownership, assessing migration paths, or analyzing ecosystem viability.",
+      "path": "skills/tech-stack-evaluator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/tech-stack-evaluator/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4025
+    },
+    {
+      "name": "vulnerable-packages",
+      "slug": "vulnerable-packages",
+      "description": "",
+      "path": "skills/vulnerable-packages.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/security-review/references/vulnerable-packages.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3971
+    },
+    {
+      "name": "platform-sre-kubernetes.agent",
+      "slug": "platform-sre-kubernetes-agent",
+      "description": "SRE-focused Kubernetes specialist prioritizing reliability, safe rollouts/rollbacks, security defaults, and operational verification for production-grade deployments",
+      "path": "skills/platform-sre-kubernetes-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/platform-sre-kubernetes.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3833
+    },
+    {
+      "name": "se-security-reviewer.agent",
+      "slug": "se-security-reviewer-agent",
+      "description": "Security-focused code review specialist with OWASP Top 10, Zero Trust, LLM security, and enterprise security standards",
+      "path": "skills/se-security-reviewer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/se-security-reviewer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3709
+    },
+    {
+      "name": "secret-patterns",
+      "slug": "secret-patterns",
+      "description": "",
+      "path": "skills/secret-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/security-review/references/secret-patterns.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3514
+    },
+    {
+      "name": "skeleton-dfd",
+      "slug": "skeleton-dfd",
+      "description": "",
+      "path": "skills/skeleton-dfd.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-dfd.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3357
+    },
+    {
+      "name": "google-workspace",
+      "slug": "google-workspace",
+      "description": "Google Workspace CLI operations: setup diagnostics, security audit, recipe discovery, and output analysis. Usage: /google-workspace <setup|audit|recipe|analyze> [options]",
+      "path": "skills/google-workspace.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/google-workspace/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "security",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3234
+    },
+    {
+      "name": "wg-code-sentinel.agent",
+      "slug": "wg-code-sentinel-agent",
+      "description": "Ask WG Code Sentinel to review your code for security issues.",
+      "path": "skills/wg-code-sentinel-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/wg-code-sentinel.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3215
+    },
+    {
+      "name": "elasticsearch-observability.agent",
+      "slug": "elasticsearch-observability-agent",
+      "description": "Our expert AI assistant for debugging code (O11y), optimizing vector search (RAG), and remediating security threats using live Elastic data.",
+      "path": "skills/elasticsearch-observability-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/elasticsearch-observability.agent.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2951
+    },
+    {
+      "name": "skeleton-summary-dfd",
+      "slug": "skeleton-summary-dfd",
+      "description": "",
+      "path": "skills/skeleton-summary-dfd.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-summary-dfd.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2808
+    },
+    {
+      "name": "audit-integrity",
+      "slug": "audit-integrity",
+      "description": "Shared audit integrity framework for all AppSec agents — enforces output quality, intellectual honesty, and continuous improvement through anti-rationalization guards, self-critique loops, retry protocols, non-negotiable behaviors, self-reflection quality gates (1-10 scoring, ≥8 threshold), and a self-learning system with lesson/memory governance for security analysis agents.",
+      "path": "skills/audit-integrity.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/audit-integrity/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2776
+    },
+    {
+      "name": "skeleton-threatmodel",
+      "slug": "skeleton-threatmodel",
+      "description": "",
+      "path": "skills/skeleton-threatmodel.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/threat-model-analyst/references/skeletons/skeleton-threatmodel.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2217
+    },
+    {
+      "name": "react-audit-grep-patterns",
+      "slug": "react-audit-grep-patterns",
+      "description": "Provides the complete, verified grep scan command library for auditing React codebases before a React 18.3.1 or React 19 upgrade. Use this skill whenever running a migration audit - for both the react18-auditor and react19-auditor agents. Contains every grep pattern needed to find deprecated APIs, removed APIs, unsafe lifecycle methods, batching vulnerabilities, test file issues, dependency conflicts, and React 19 specific removals. Always use this skill when writing audit scan commands - do not",
+      "path": "skills/react-audit-grep-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/react-audit-grep-patterns/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "security",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1169
+    }
+  ]
+}

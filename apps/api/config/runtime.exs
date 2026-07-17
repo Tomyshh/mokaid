@@ -144,6 +144,17 @@ if config_env() == :prod do
     host: "s3.#{aws_region}.amazonaws.com"
 end
 
+# Dev/docker: honour AI_WORKER_URL so the API container can reach the
+# ai-worker service (http://ai-worker:8100) instead of localhost.
+if config_env() != :prod do
+  if worker_url = System.get_env("AI_WORKER_URL") do
+    config :mokaid, :ai_worker,
+      dispatch: :http,
+      url: worker_url,
+      token: System.get_env("AI_WORKER_TOKEN") || "dev-worker-token"
+  end
+end
+
 # PayMe hosted payments — seller id comes from the environment (AWS Secrets
 # Manager in deployed environments, .env locally); never from the repo.
 if System.get_env("PAYME_SELLER_ID") do

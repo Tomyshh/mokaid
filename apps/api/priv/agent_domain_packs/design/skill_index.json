@@ -1,0 +1,1099 @@
+{
+  "domain": "design",
+  "pack_version": "517043df6e44",
+  "skill_count": 78,
+  "skills": [
+    {
+      "name": "cosmosdb-datamodeling",
+      "slug": "cosmosdb-datamodeling",
+      "description": "Step-by-step guide for capturing key application requirements for NoSQL use-case and produce Azure Cosmos DB Data NoSQL Model design using best practices and common patterns, artifacts_produced: \"cosmosdb_requirements.md\" file and \"cosmosdb_data_model.md\" file",
+      "path": "skills/cosmosdb-datamodeling.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cosmosdb-datamodeling/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 47138
+    },
+    {
+      "name": "delphi-expert.agent",
+      "slug": "delphi-expert-agent",
+      "description": "An agent designed to assist with software development tasks for Delphi/Object Pascal projects.",
+      "path": "skills/delphi-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/delphi-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 23938
+    },
+    {
+      "name": "power-bi-report-design-best-practices.instructions",
+      "slug": "power-bi-report-design-best-practices-instructions",
+      "description": "Comprehensive Power BI report design and visualization best practices based on Microsoft guidance for creating effective, accessible, and performant reports and dashboards.",
+      "path": "skills/power-bi-report-design-best-practices-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/power-bi-report-design-best-practices.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 21369
+    },
+    {
+      "name": "aem-frontend-specialist.agent",
+      "slug": "aem-frontend-specialist-agent",
+      "description": "Expert assistant for developing AEM components using HTL, Tailwind CSS, and Figma-to-code workflows with design system integration",
+      "path": "skills/aem-frontend-specialist-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/aem-frontend-specialist.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 19760
+    },
+    {
+      "name": "python-pypi-package-builder",
+      "slug": "python-pypi-package-builder",
+      "description": "End-to-end skill for building, testing, linting, versioning, and publishing a production-grade Python library to PyPI. Covers all four build backends (setuptools+setuptools_scm, hatchling, flit, poetry), PEP 440 versioning, semantic versioning, dynamic git-tag versioning, OOP/SOLID design, type hints (PEP 484/526/544/561), Trusted Publishing (OIDC), and the full PyPA packaging flow. Use for: creating Python packages, pip-installable SDKs, CLI tools, framework plugins, pyproject.toml setup, py.ty",
+      "path": "skills/python-pypi-package-builder.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/python-pypi-package-builder/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 17791
+    },
+    {
+      "name": "project-architecture-planner.agent",
+      "slug": "project-architecture-planner-agent",
+      "description": "Holistic software architecture planner that evaluates tech stacks, designs scalability roadmaps, performs cloud-agnostic cost analysis, reviews existing codebases, and delivers interactive Mermaid diagrams with HTML preview and draw.io export",
+      "path": "skills/project-architecture-planner-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/project-architecture-planner.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 17701
+    },
+    {
+      "name": "refactor",
+      "slug": "refactor",
+      "description": "Surgical code refactoring to improve maintainability without changing behavior. Covers extracting functions, renaming variables, breaking down god functions, improving type safety, eliminating code smells, and applying design patterns. Less drastic than repo-rebuilder; use for gradual improvements.",
+      "path": "skills/refactor.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/refactor/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 16491
+    },
+    {
+      "name": "gtm-operating-cadence",
+      "slug": "gtm-operating-cadence",
+      "description": "Design meeting rhythms, metric reporting, quarterly planning, and decision-making velocity for scaling companies. Use when decisions are slow, planning is broken, the company is growing but alignment is worse, or leadership meetings consume all time without producing decisions.",
+      "path": "skills/gtm-operating-cadence.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-operating-cadence/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15540
+    },
+    {
+      "name": "power-bi-visualization-expert.agent",
+      "slug": "power-bi-visualization-expert-agent",
+      "description": "Expert Power BI report design and visualization guidance using Microsoft best practices for creating effective, performant, and user-friendly reports and dashboards.",
+      "path": "skills/power-bi-visualization-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/power-bi-visualization-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 14319
+    },
+    {
+      "name": "oop-design-patterns.instructions",
+      "slug": "oop-design-patterns-instructions",
+      "description": "Best practices for applying Object-Oriented Programming (OOP) design patterns, including Gang of Four (GoF) patterns and SOLID principles, to ensure clean, maintainable, and scalable code.",
+      "path": "skills/oop-design-patterns-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/oop-design-patterns.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13418
+    },
+    {
+      "name": "inbox-triage",
+      "slug": "inbox-triage",
+      "description": "Runs a full inbox triage using the knowledge base created by the 'inbox-setup' skill. Light-intake by design (most invocations skip questions and run with KB-default preferences); asks at most 2 grill-me override questions when invocation is outside normal cadence or includes category-skip intent. Searches recent emails, classifies them via the user's taxonomy, researches new senders, generates recommendations, drafts replies (NEVER sends), delivers a report in the user's preferred format, and u",
+      "path": "skills/inbox-triage.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/inbox-triage/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12965
+    },
+    {
+      "name": "database-designer",
+      "slug": "database-designer",
+      "description": "Use when the user asks to design database schemas, plan data migrations, optimize queries, choose between SQL and NoSQL, or model data relationships.",
+      "path": "skills/database-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/database-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12507
+    },
+    {
+      "name": "api-design-reviewer",
+      "slug": "api-design-reviewer",
+      "description": "Comprehensive REST API design review with automated linting, breaking-change detection, and design scorecards. Catches inconsistent conventions, missing versioning, and design smells before APIs ship. Use when reviewing a PR that adds or changes API endpoints, auditing an existing API for v2 migration, or establishing API standards for a team.",
+      "path": "skills/api-design-reviewer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/api-design-reviewer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12498
+    },
+    {
+      "name": "gtm-technical-product-pricing",
+      "slug": "gtm-technical-product-pricing",
+      "description": "Pricing strategy for technical products. Use when choosing usage-based vs seat-based, designing freemium thresholds, structuring enterprise pricing conversations, deciding when to raise prices, or using price as a positioning signal.",
+      "path": "skills/gtm-technical-product-pricing.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/gtm-technical-product-pricing/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 12442
+    },
+    {
+      "name": "jira-expert",
+      "slug": "jira-expert",
+      "description": "Atlassian Jira expert for creating and managing projects, planning, product discovery, JQL queries, workflows, custom fields, automation, reporting, and all Jira features. Use when setting up or configuring Jira projects, writing JQL and advanced searches, creating dashboards, designing workflows, or performing technical Jira operations.",
+      "path": "skills/jira-expert.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/jira-expert/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 12243
+    },
+    {
+      "name": "power-bi-data-modeling-expert.agent",
+      "slug": "power-bi-data-modeling-expert-agent",
+      "description": "Expert Power BI data modeling guidance using star schema principles, relationship design, and Microsoft best practices for optimal model performance and usability.",
+      "path": "skills/power-bi-data-modeling-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/power-bi-data-modeling-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11928
+    },
+    {
+      "name": "spec-driven-workflow-v1.instructions",
+      "slug": "spec-driven-workflow-v1-instructions",
+      "description": "Specification-Driven Workflow v1 provides a structured approach to software development, ensuring that requirements are clearly defined, designs are meticulously planned, and implementations are thoroughly documented and validated.",
+      "path": "skills/spec-driven-workflow-v1-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/spec-driven-workflow-v1.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11902
+    },
+    {
+      "name": "partnerships-architect",
+      "slug": "partnerships-architect",
+      "description": "Use when a startup is approached by a prospective partner and someone has to decide should we sign this partner, at what partner tier (referral / reseller / OEM / SI-consulting / strategic alliance), with what joint GTM commitment, and at what revshare. Classifies partner tier from independent-demand evidence vs. preferential-terms hunting, designs a 90-day joint GTM plan, models revshare against direct-sale margin, and surfaces kill criteria for unwinding under-performing partnerships. For Head",
+      "path": "skills/partnerships-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/partnerships-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11869
+    },
+    {
+      "name": "confluence-expert",
+      "slug": "confluence-expert",
+      "description": "Atlassian Confluence expert for creating and managing spaces, knowledge bases, and documentation. Configures space permissions and hierarchies, creates page templates with macros, sets up documentation taxonomies, designs page layouts, and manages content governance. Use when users need to build or restructure a Confluence space, design page hierarchies with permission structures, author or standardise documentation templates, embed Jira reports in pages, run knowledge base audits, or establish ",
+      "path": "skills/confluence-expert.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/confluence-expert/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11729
+    },
+    {
+      "name": "ux-researcher-designer",
+      "slug": "ux-researcher-designer",
+      "description": "UX research and design toolkit for Senior UX Designer/Researcher including data-driven persona generation, journey mapping, usability testing frameworks, and research synthesis. Use when conducting user research, creating personas, mapping user journeys, planning usability tests, or validating designs.",
+      "path": "skills/ux-researcher-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ux-researcher-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 11555
+    },
+    {
+      "name": "penpot-uiux-design",
+      "slug": "penpot-uiux-design",
+      "description": "Comprehensive guide for creating professional UI/UX designs in Penpot using MCP tools. Use this skill when: (1) Creating new UI/UX designs for web, mobile, or desktop applications, (2) Building design systems with components and tokens, (3) Designing dashboards, forms, navigation, or landing pages, (4) Applying accessibility standards and best practices, (5) Following platform guidelines (iOS, Android, Material Design), (6) Reviewing or improving existing Penpot designs for usability. Triggers: ",
+      "path": "skills/penpot-uiux-design.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/penpot-uiux-design/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11385
+    },
+    {
+      "name": "power-bi-model-design-review",
+      "slug": "power-bi-model-design-review",
+      "description": "Comprehensive Power BI data model design review prompt for evaluating model architecture, relationships, and optimization opportunities.",
+      "path": "skills/power-bi-model-design-review.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/power-bi-model-design-review/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10932
+    },
+    {
+      "name": "data-visualization",
+      "slug": "data-visualization",
+      "description": "Create effective data visualizations with Python (matplotlib, seaborn, plotly). Use when building charts, choosing the right chart type for a dataset, creating publication-quality figures, or applying design principles like accessibility and color theory.",
+      "path": "skills/data-visualization.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/data/skills/data-visualization/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "design",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 10726
+    },
+    {
+      "name": "power-bi-report-design-consultation",
+      "slug": "power-bi-report-design-consultation",
+      "description": "Power BI report visualization design prompt for creating effective, user-friendly, and accessible reports with optimal chart selection and layout design.",
+      "path": "skills/power-bi-report-design-consultation.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/power-bi-report-design-consultation/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10671
+    },
+    {
+      "name": "gem-designer-mobile.agent",
+      "slug": "gem-designer-mobile-agent",
+      "description": "Mobile UI/UX specialist: HIG, Material Design, safe areas, touch targets.",
+      "path": "skills/gem-designer-mobile-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-designer-mobile.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10522
+    },
+    {
+      "name": "senior-architect",
+      "slug": "senior-architect",
+      "description": "This skill should be used when the user asks to \"design system architecture\", \"evaluate microservices vs monolith\", \"create architecture diagrams\", \"analyze dependencies\", \"choose a database\", \"plan for scalability\", \"make technical decisions\", or \"review system design\". Use for architecture decision records (ADRs), tech stack evaluation, system design reviews, dependency analysis, and generating architecture diagrams in Mermaid, PlantUML, or ASCII format.",
+      "path": "skills/senior-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10404
+    },
+    {
+      "name": "ui-design-system",
+      "slug": "ui-design-system",
+      "description": "UI design system toolkit for Senior UI Designer including design token generation, component documentation, responsive design calculations, and developer handoff tools. Use when creating design systems, generating design tokens, maintaining visual consistency, or facilitating design-dev collaboration and developer handoff.",
+      "path": "skills/ui-design-system.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ui-design-system/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10387
+    },
+    {
+      "name": "se-ux-ui-designer.agent",
+      "slug": "se-ux-ui-designer-agent",
+      "description": "Jobs-to-be-Done analysis, user journey mapping, and UX research artifacts for Figma and design workflows",
+      "path": "skills/se-ux-ui-designer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/se-ux-ui-designer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10227
+    },
+    {
+      "name": "web-design-reviewer",
+      "slug": "web-design-reviewer",
+      "description": "This skill enables visual inspection of websites running locally or remotely to identify and fix design issues. Triggers on requests like \"review website design\", \"check the UI\", \"fix the layout\", \"find design problems\". Detects issues with responsive design, accessibility, visual consistency, and layout breakage, then performs fixes at the source code level.",
+      "path": "skills/web-design-reviewer.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/web-design-reviewer/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10028
+    },
+    {
+      "name": "capture",
+      "slug": "capture",
+      "description": "Captures and organizes chaotic brain dumps into a structured, actionable system with zero information loss. Use this skill whenever the user says 'capture this', 'brain dump', 'let me dump some ideas', 'I've got a bunch of thoughts', 'here's everything on my mind', 'idea dump', 'let me get this out of my head', 'I need to organize my thoughts', 'here's what I'm thinking', or any variation where someone is unloading a messy stream of ideas, tasks, thoughts, and plans wanting them turned into some",
+      "path": "skills/capture.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/capture/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9912
+    },
+    {
+      "name": "component-patterns",
+      "slug": "component-patterns",
+      "description": "",
+      "path": "skills/component-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/penpot-uiux-design/references/component-patterns.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9067
+    },
+    {
+      "name": "platform-guidelines",
+      "slug": "platform-guidelines",
+      "description": "",
+      "path": "skills/platform-guidelines.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/penpot-uiux-design/references/platform-guidelines.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8782
+    },
+    {
+      "name": "gem-designer.agent",
+      "slug": "gem-designer-agent",
+      "description": "UI/UX design specialist: layouts, themes, color schemes, design systems, accessibility.",
+      "path": "skills/gem-designer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-designer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8713
+    },
+    {
+      "name": "CSharpExpert.agent",
+      "slug": "csharpexpert-agent",
+      "description": "An agent designed to assist with software development tasks for .NET projects.",
+      "path": "skills/csharpexpert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/CSharpExpert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8455
+    },
+    {
+      "name": "dotnet-self-learning-architect.agent",
+      "slug": "dotnet-self-learning-architect-agent",
+      "description": "Senior .NET architect for complex delivery: designs .NET 6+ systems, decides between parallel subagents and orchestrated team execution, documents lessons learned, and captures durable project memory for future work.",
+      "path": "skills/dotnet-self-learning-architect-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/dotnet-self-learning-architect.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8246
+    },
+    {
+      "name": "react18-commander.agent",
+      "slug": "react18-commander-agent",
+      "description": "Master orchestrator for React 16/17 → 18.3.1 migration. Designed for class-component-heavy codebases. Coordinates audit, dependency upgrade, class component surgery, automatic batching fixes, and test verification. Uses memory to gate each phase and resume interrupted sessions. 18.3.1 is the target - it surface-exposes every deprecation that React 19 will remove, so the output is a codebase ready for the React 19 orchestra next.",
+      "path": "skills/react18-commander-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/react18-commander.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8224
+    },
+    {
+      "name": "create-implementation-plan",
+      "slug": "create-implementation-plan",
+      "description": "Create a new implementation plan file for new features, refactoring existing code or upgrading packages, design, architecture or infrastructure.",
+      "path": "skills/create-implementation-plan.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/create-implementation-plan/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8162
+    },
+    {
+      "name": "setup-troubleshooting",
+      "slug": "setup-troubleshooting",
+      "description": "",
+      "path": "skills/setup-troubleshooting.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/penpot-uiux-design/references/setup-troubleshooting.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8063
+    },
+    {
+      "name": "culture-architect",
+      "slug": "culture-architect",
+      "description": "Build, measure, and evolve company culture as operational behavior — not wall posters. Covers mission/vision/values workshops, values-to-behaviors translation, culture code creation, culture health assessment, and cultural rituals by stage. Use when building company values, assessing culture health, designing cultural rituals, creating culture codes, handling culture clashes, or when user mentions culture, values, culture debt, founder culture, or culture code.",
+      "path": "skills/culture-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/culture-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7844
+    },
+    {
+      "name": "framework-fixes",
+      "slug": "framework-fixes",
+      "description": "",
+      "path": "skills/framework-fixes.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/web-design-reviewer/references/framework-fixes.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7437
+    },
+    {
+      "name": "accessibility",
+      "slug": "accessibility",
+      "description": "",
+      "path": "skills/accessibility.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/penpot-uiux-design/references/accessibility.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7384
+    },
+    {
+      "name": "database-schema-designer",
+      "slug": "database-schema-designer",
+      "description": "Use when the user asks to create ERD diagrams, normalize database schemas, design table relationships, or plan schema migrations.",
+      "path": "skills/database-schema-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/database-schema-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 7249
+    },
+    {
+      "name": "arch.agent",
+      "slug": "arch-agent",
+      "description": "Expert in modern architecture design patterns, NFR requirements, and creating comprehensive architectural diagrams and documentation",
+      "path": "skills/arch-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/arch.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6901
+    },
+    {
+      "name": "custom-agent-foundry.agent",
+      "slug": "custom-agent-foundry-agent",
+      "description": "Expert at designing and creating VS Code custom agents with optimal configurations",
+      "path": "skills/custom-agent-foundry-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/custom-agent-foundry.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6839
+    },
+    {
+      "name": "apify-integration-expert.agent",
+      "slug": "apify-integration-expert-agent",
+      "description": "Expert agent for integrating Apify Actors into codebases. Handles Actor selection, workflow design, implementation across JavaScript/TypeScript and Python, testing, and production-ready deployment.",
+      "path": "skills/apify-integration-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/apify-integration-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6803
+    },
+    {
+      "name": "performance",
+      "slug": "performance",
+      "description": "",
+      "path": "skills/performance.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/performance.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6735
+    },
+    {
+      "name": "chro-advisor",
+      "slug": "chro-advisor",
+      "description": "People leadership for scaling companies. Hiring strategy, compensation design, org structure, culture, and retention. Use when building hiring plans, designing comp frameworks, restructuring teams, managing performance, building culture, or when user mentions CHRO, HR, people strategy, talent, headcount, compensation, org design, retention, or performance management.",
+      "path": "skills/chro-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/chro-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6492
+    },
+    {
+      "name": "reliability-resilience",
+      "slug": "reliability-resilience",
+      "description": "",
+      "path": "skills/reliability-resilience.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/reliability-resilience.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6359
+    },
+    {
+      "name": "update-implementation-plan",
+      "slug": "update-implementation-plan",
+      "description": "Update an existing implementation plan file with new or update requirements to provide new features, refactoring existing code or upgrading packages, design, architecture or infrastructure.",
+      "path": "skills/update-implementation-plan.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/update-implementation-plan/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6133
+    },
+    {
+      "name": "visual-checklist",
+      "slug": "visual-checklist",
+      "description": "",
+      "path": "skills/visual-checklist.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/web-design-reviewer/references/visual-checklist.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5985
+    },
+    {
+      "name": "gem-browser-tester.agent",
+      "slug": "gem-browser-tester-agent",
+      "description": "E2E browser testing, UI/UX validation, visual regression.",
+      "path": "skills/gem-browser-tester-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-browser-tester.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5874
+    },
+    {
+      "name": "coo-advisor",
+      "slug": "coo-advisor",
+      "description": "Operations leadership for scaling companies. Process design, OKR execution, operational cadence, and scaling playbooks. Use when designing operations, setting up OKRs, building processes, scaling teams, analyzing bottlenecks, planning operational cadence, or when user mentions COO, operations, process improvement, OKRs, scaling, operational efficiency, or execution.",
+      "path": "skills/coo-advisor.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/coo-advisor/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5704
+    },
+    {
+      "name": "md-slides",
+      "slug": "md-slides",
+      "description": "Converts a markdown deck (slides separated by `---` HR boundaries or by `# ` H1 headings, with optional `<!-- notes: ... -->` presenter notes blocks) into a single-file HTML presentation with arrow-key / space / PgDn / PgUp / Home / End / P / Esc keyboard navigation, presenter mode (split view with current slide + speaker notes + clock + next-slide preview), URL-hash deep linking, and `@media print` page-per-slide for PDF export. Triggers when the markdown-html-orchestrator classifies an input a",
+      "path": "skills/md-slides.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/md-slides/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 5391
+    },
+    {
+      "name": "powerbi-modeling",
+      "slug": "powerbi-modeling",
+      "description": "Power BI semantic modeling assistant for building optimized data models. Use when working with Power BI semantic models, creating measures, designing star schemas, configuring relationships, implementing RLS, or optimizing model performance. Triggers on queries about DAX calculations, table relationships, dimension/fact table design, naming conventions, model documentation, cardinality, cross-filter direction, calculation groups, and data model best practices. Always connects to the active model",
+      "path": "skills/powerbi-modeling.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/powerbi-modeling/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5331
+    },
+    {
+      "name": "interview-prep.agent",
+      "slug": "interview-prep-agent",
+      "description": "Technical interview coach for software engineers. Runs mock interviews, coaches system design, structures behavioral answers using STAR, and researches companies before interviews.",
+      "path": "skills/interview-prep-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/interview-prep.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5048
+    },
+    {
+      "name": "azure-logic-apps-expert.agent",
+      "slug": "azure-logic-apps-expert-agent",
+      "description": "Expert guidance for Azure Logic Apps development focusing on workflow design, integration patterns, and JSON-based Workflow Definition Language.",
+      "path": "skills/azure-logic-apps-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/azure-logic-apps-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4785
+    },
+    {
+      "name": "architecture-design",
+      "slug": "architecture-design",
+      "description": "",
+      "path": "skills/architecture-design.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/architecture-design.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4679
+    },
+    {
+      "name": "messaging-integration",
+      "slug": "messaging-integration",
+      "description": "",
+      "path": "skills/messaging-integration.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/messaging-integration.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4643
+    },
+    {
+      "name": "wg-code-alchemist.agent",
+      "slug": "wg-code-alchemist-agent",
+      "description": "Ask WG Code Alchemist to transform your code with Clean Code principles and SOLID design",
+      "path": "skills/wg-code-alchemist-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/wg-code-alchemist.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4136
+    },
+    {
+      "name": "se-system-architecture-reviewer.agent",
+      "slug": "se-system-architecture-reviewer-agent",
+      "description": "System architecture review specialist with Well-Architected frameworks, design validation, and scalability analysis for AI and distributed systems",
+      "path": "skills/se-system-architecture-reviewer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/se-system-architecture-reviewer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4040
+    },
+    {
+      "name": "cs-product-analyst",
+      "slug": "cs-product-analyst",
+      "description": "Product analytics agent for KPI definition, dashboard setup, experiment design, and test result interpretation. Use when a product question needs numbers — e.g., defining activation/retention KPIs and a dashboard spec for a new feature, or sizing an A/B test and judging whether the result is significant enough to ship.",
+      "path": "skills/cs-product-analyst.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/product/cs-product-analyst.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4004
+    },
+    {
+      "name": "accessibility-review",
+      "slug": "accessibility-review",
+      "description": "Run a WCAG 2.1 AA accessibility audit on a design or page. Trigger with \"audit accessibility\", \"check a11y\", \"is this accessible?\", or when reviewing a design for color contrast, keyboard navigation, touch target size, or screen reader behavior before handoff.",
+      "path": "skills/accessibility-review.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/design/skills/accessibility-review/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "design",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3888
+    },
+    {
+      "name": "design-critique",
+      "slug": "design-critique",
+      "description": "Get structured design feedback on usability, hierarchy, and consistency. Trigger with \"review this design\", \"critique this mockup\", \"what do you think of this screen?\", or when sharing a Figma link or screenshot for feedback at any stage from exploration to final polish.",
+      "path": "skills/design-critique.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/design/skills/design-critique/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "design",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3525
+    },
+    {
+      "name": "agentic-workflows",
+      "slug": "agentic-workflows",
+      "description": "Route gh-aw workflow design/create/debug/upgrade requests to the right prompts.",
+      "path": "skills/agentic-workflows.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/.github/skills/agentic-workflows/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3461
+    },
+    {
+      "name": "deployment-operational",
+      "slug": "deployment-operational",
+      "description": "",
+      "path": "skills/deployment-operational.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/deployment-operational.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3310
+    },
+    {
+      "name": "dotnet-design-pattern-review",
+      "slug": "dotnet-design-pattern-review",
+      "description": "Review the C#/.NET code for design pattern implementation and suggest improvements.",
+      "path": "skills/dotnet-design-pattern-review.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/dotnet-design-pattern-review/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3141
+    },
+    {
+      "name": "ux-copy",
+      "slug": "ux-copy",
+      "description": "Write or review UX copy — microcopy, error messages, empty states, CTAs. Trigger with \"write copy for\", \"what should this button say?\", \"review this error message\", or when naming a CTA, wording a confirmation dialog, filling an empty state, or writing onboarding text.",
+      "path": "skills/ux-copy.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/design/skills/ux-copy/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "design",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 3073
+    },
+    {
+      "name": "html-css-style-color-guide.instructions",
+      "slug": "html-css-style-color-guide-instructions",
+      "description": "Color usage guidelines and styling rules for HTML elements to ensure accessible, professional designs.",
+      "path": "skills/html-css-style-color-guide-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/html-css-style-color-guide.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3072
+    },
+    {
+      "name": "experiment-designer",
+      "slug": "experiment-designer",
+      "description": "Use when planning product experiments, writing testable hypotheses, estimating sample size, prioritizing tests, or interpreting A/B outcomes with practical statistical rigor.",
+      "path": "skills/experiment-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/experiment-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2906
+    },
+    {
+      "name": "demonstrate-understanding.agent",
+      "slug": "demonstrate-understanding-agent",
+      "description": "Validate user understanding of code, design patterns, and implementation details through guided questioning.",
+      "path": "skills/demonstrate-understanding-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/demonstrate-understanding.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2778
+    },
+    {
+      "name": "ai-team-dev.agent",
+      "slug": "ai-team-dev-agent",
+      "description": "AI development team agent (Nova, Sage, Milo). Use when: building features, writing application code, fixing bugs, implementing UI components, creating APIs, styling with CSS, writing database queries, or executing sprint plans. The team switches between frontend, backend, and design roles as needed.",
+      "path": "skills/ai-team-dev-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/ai-team-dev.agent.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2635
+    },
+    {
+      "name": "grill-me",
+      "slug": "grill-me",
+      "description": "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled on their design, or mentions \"grill me\".",
+      "path": "skills/grill-me.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/grill-me/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2044
+    },
+    {
+      "name": "best-practices",
+      "slug": "best-practices",
+      "description": "",
+      "path": "skills/best-practices.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/best-practices.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1592
+    },
+    {
+      "name": "design-mcp-workflow",
+      "slug": "design-mcp-workflow",
+      "description": "Design a Zoom MCP workflow for Claude. Use when deciding whether Zoom MCP fits a task, when planning tool-based AI workflows, or when separating MCP responsibilities from REST API responsibilities.",
+      "path": "skills/design-mcp-workflow.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/design-mcp-workflow/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "design",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 944
+    },
+    {
+      "name": "org-planning",
+      "slug": "org-planning",
+      "description": "Headcount planning, org design, and team structure optimization. Trigger with \"org planning\", \"headcount plan\", \"team structure\", \"reorg\", \"who should we hire next\", or when the user is thinking about team size, reporting structure, or organizational design.",
+      "path": "skills/org-planning.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/human-resources/skills/org-planning/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "design",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 927
+    },
+    {
+      "name": "persona",
+      "slug": "persona",
+      "description": "Generate data-driven user personas for UX research and product design. Usage: /persona generate [options]",
+      "path": "skills/persona.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/persona/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "design",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 903
+    },
+    {
+      "name": "event-driven",
+      "slug": "event-driven",
+      "description": "",
+      "path": "skills/event-driven.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/event-driven.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 715
+    },
+    {
+      "name": "azure-service-mappings",
+      "slug": "azure-service-mappings",
+      "description": "",
+      "path": "skills/azure-service-mappings.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/cloud-design-patterns/references/azure-service-mappings.md",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 606
+    }
+  ]
+}

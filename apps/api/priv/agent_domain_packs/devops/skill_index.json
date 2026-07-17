@@ -1,0 +1,833 @@
+{
+  "domain": "devops",
+  "pack_version": "e6005d7835d2",
+  "skill_count": 59,
+  "skills": [
+    {
+      "name": "arize-instrumentation",
+      "slug": "arize-instrumentation",
+      "description": "Adds Arize AX tracing to an LLM application for the first time. Follows a two-phase agent-assisted flow to analyze the codebase then implement instrumentation after user confirmation. Use when the user wants to instrument their app, add tracing from scratch, set up LLM observability, integrate OpenTelemetry or openinference, or get started with Arize tracing.",
+      "path": "skills/arize-instrumentation.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/arize-instrumentation/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 24130
+    },
+    {
+      "name": "azure-iac-exporter.agent",
+      "slug": "azure-iac-exporter-agent",
+      "description": "Export existing Azure resources to Infrastructure as Code templates via Azure Resource Graph analysis, Azure Resource Manager API calls, and azure-iac-generator integration. Use this skill when the user asks to export, convert, migrate, or extract existing Azure resources to IaC templates (Bicep, ARM Templates, Terraform, Pulumi).",
+      "path": "skills/azure-iac-exporter-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/azure-iac-exporter.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 22792
+    },
+    {
+      "name": "containerize-aspnet-framework",
+      "slug": "containerize-aspnet-framework",
+      "description": "Containerize an ASP.NET .NET Framework project by creating Dockerfile and .dockerfile files customized for the project.",
+      "path": "skills/containerize-aspnet-framework.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/containerize-aspnet-framework/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 20627
+    },
+    {
+      "name": "power-bi-devops-alm-best-practices.instructions",
+      "slug": "power-bi-devops-alm-best-practices-instructions",
+      "description": "Comprehensive guide for Power BI DevOps, Application Lifecycle Management (ALM), CI/CD pipelines, deployment automation, and version control best practices.",
+      "path": "skills/power-bi-devops-alm-best-practices-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/power-bi-devops-alm-best-practices.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 19116
+    },
+    {
+      "name": "import-infrastructure-as-code",
+      "slug": "import-infrastructure-as-code",
+      "description": "Import existing Azure resources into Terraform using Azure CLI discovery and Azure Verified Modules (AVM). Use when asked to reverse-engineer live Azure infrastructure, generate Infrastructure as Code from existing subscriptions/resource groups/resource IDs, map dependencies, derive exact import addresses from downloaded module source, prevent configuration drift, and produce AVM-based Terraform files ready for validation and planning across any Azure resource type.",
+      "path": "skills/import-infrastructure-as-code.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/import-infrastructure-as-code/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 18189
+    },
+    {
+      "name": "workflows-and-patterns",
+      "slug": "workflows-and-patterns",
+      "description": "",
+      "path": "skills/workflows-and-patterns.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/workflows-and-patterns.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 16427
+    },
+    {
+      "name": "devops-core-principles.instructions",
+      "slug": "devops-core-principles-instructions",
+      "description": "Foundational instructions covering core DevOps principles, culture (CALMS), and key metrics (DORA) to guide GitHub Copilot in understanding and promoting effective software delivery.",
+      "path": "skills/devops-core-principles-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/devops-core-principles.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 16372
+    },
+    {
+      "name": "containerize-aspnetcore",
+      "slug": "containerize-aspnetcore",
+      "description": "Containerize an ASP.NET Core project by creating Dockerfile and .dockerfile files customized for the project.",
+      "path": "skills/containerize-aspnetcore.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/containerize-aspnetcore/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15788
+    },
+    {
+      "name": "new-relic-incident-response.agent",
+      "slug": "new-relic-incident-response-agent",
+      "description": "Identify and fix production issues by correlating New Relic observability data with code changes. Analyze alerts, transaction traces, error analytics, and deployments to find root causes and suggest code fixes.",
+      "path": "skills/new-relic-incident-response-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/new-relic-incident-response.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15637
+    },
+    {
+      "name": "video-sdk/linux",
+      "slug": "video-sdk-linux",
+      "description": "Zoom Video SDK for Linux - C++ headless bots, raw audio/video capture/injection, Qt/GTK integration, Docker support",
+      "path": "skills/video-sdk-linux.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/zoom-plugin/skills/video-sdk/linux/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "devops",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 15164
+    },
+    {
+      "name": "knowledge-ops",
+      "slug": "knowledge-ops",
+      "description": "Use when a Head of Ops, Knowledge Manager, or TPM-Internal needs to author, validate, or clean up company SOPs and internal runbooks (procurement intake, vendor offboarding, incident-comms cascade, employee onboarding) — including 5W2H completeness checks (Who-What-When-Where-Why-How-HowMuch), cross-link and orphan-page validation across a sprawling Notion/Confluence/Obsidian wiki, KB ingestion + hygiene reporting, and runbook step verification (named owner, expected duration, observable success",
+      "path": "skills/knowledge-ops.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/knowledge-ops/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15137
+    },
+    {
+      "name": "incident-commander",
+      "slug": "incident-commander",
+      "description": "Comprehensive incident response framework from detection through resolution and post-incident review. Battle-tested SRE/DevOps practices: severity classification, timeline reconstruction, structured post-incident analysis. Use when declaring an incident, coordinating multi-team response during an outage, leading a post-mortem, or setting up on-call practices for a new service.",
+      "path": "skills/incident-commander.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/incident-commander/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 14842
+    },
+    {
+      "name": "observability-designer",
+      "slug": "observability-designer",
+      "description": "Design production-ready observability strategies combining metrics, logs, and traces. Includes SLI/SLO design, golden-signals monitoring, alert optimization. Use when adding observability to a new service, refactoring alerting that is too noisy, or designing an SLO program before scaling production load.",
+      "path": "skills/observability-designer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/observability-designer/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13520
+    },
+    {
+      "name": "azure-cloud-architect",
+      "slug": "azure-cloud-architect",
+      "description": "Design Azure architectures for startups and enterprises. Use when asked to design Azure infrastructure, create Bicep/ARM templates, optimize Azure costs, set up Azure DevOps pipelines, or migrate to Azure. Covers AKS, App Service, Azure Functions, Cosmos DB, and cost optimization.",
+      "path": "skills/azure-cloud-architect.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/azure-cloud-architect/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 13340
+    },
+    {
+      "name": "terraform-azure.instructions",
+      "slug": "terraform-azure-instructions",
+      "description": "Create or modify solutions built using Terraform on Azure.",
+      "path": "skills/terraform-azure-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/terraform-azure.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 13084
+    },
+    {
+      "name": "senior-devops",
+      "slug": "senior-devops",
+      "description": "Comprehensive DevOps skill for CI/CD, infrastructure automation, containerization, and cloud platforms (AWS, GCP, Azure). Includes pipeline setup, infrastructure as code, deployment automation, and monitoring. Use when setting up pipelines, deploying applications, managing infrastructure, implementing monitoring, or optimizing deployment processes.",
+      "path": "skills/senior-devops.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/senior-devops/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10370
+    },
+    {
+      "name": "kubernetes-operator",
+      "slug": "kubernetes-operator",
+      "description": "Use when building a Kubernetes Operator — custom controllers that reconcile CRD state. Triggers on \"build an operator\", \"CRD design\", \"reconcile loop\", \"controller-runtime\", \"kubebuilder\", \"operator-sdk\", \"metacontroller\", \"KOPF\", \"operator capability levels\", or \"custom resource\". Ships CRD validator, reconcile-loop linter, and OperatorHub capability auditor (all stdlib Python), 4 references on the operator pattern + CRD design + reconcile patterns + tooling landscape, and a /operator-audit sla",
+      "path": "skills/kubernetes-operator.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/kubernetes-operator/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 10250
+    },
+    {
+      "name": "mvvm-toolkit",
+      "slug": "mvvm-toolkit",
+      "description": "CommunityToolkit.Mvvm (the MVVM Toolkit) core: source generators ([ObservableProperty], [RelayCommand], [NotifyPropertyChangedFor], [NotifyCanExecuteChangedFor], [NotifyDataErrorInfo]), base classes (ObservableObject / ObservableValidator / ObservableRecipient), commands (RelayCommand / AsyncRelayCommand), and validation. Companion skills: mvvm-toolkit-messenger for pub/sub, mvvm-toolkit-di for Microsoft.Extensions.DependencyInjection wiring. Works across WPF, WinUI 3, MAUI, Uno, and Avalonia.",
+      "path": "skills/mvvm-toolkit.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mvvm-toolkit/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10239
+    },
+    {
+      "name": "azure-iac-generator.agent",
+      "slug": "azure-iac-generator-agent",
+      "description": "Central hub for generating Infrastructure as Code (Bicep, ARM, Terraform, Pulumi) with format-specific validation and best practices. Use this skill when the user asks to generate, create, write, or build infrastructure code, deployment code, or IaC templates in any format (Bicep, ARM Templates, Terraform, Pulumi).",
+      "path": "skills/azure-iac-generator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/azure-iac-generator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 9984
+    },
+    {
+      "name": "mvvm-toolkit-messenger",
+      "slug": "mvvm-toolkit-messenger",
+      "description": "CommunityToolkit.Mvvm Messenger pub/sub for decoupled communication between ViewModels (or any objects). Covers WeakReferenceMessenger vs StrongReferenceMessenger, IRecipient<TMessage>, RequestMessage<T> / AsyncRequestMessage<T> / CollectionRequestMessage<T>, ValueChangedMessage<T>, channels (tokens), and the ObservableRecipient activation lifecycle. Use across WPF, WinUI 3, .NET MAUI, Uno, and Avalonia.",
+      "path": "skills/mvvm-toolkit-messenger.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/mvvm-toolkit-messenger/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8394
+    },
+    {
+      "name": "terraform-sap-btp.instructions",
+      "slug": "terraform-sap-btp-instructions",
+      "description": "Terraform conventions and guidelines for SAP Business Technology Platform (SAP BTP).",
+      "path": "skills/terraform-sap-btp-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/terraform-sap-btp.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 8228
+    },
+    {
+      "name": "devops-expert.agent",
+      "slug": "devops-expert-agent",
+      "description": "DevOps specialist following the infinity loop principle (Plan → Code → Build → Test → Release → Deploy → Operate → Monitor) with focus on automation, collaboration, and continuous improvement",
+      "path": "skills/devops-expert-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/devops-expert.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7905
+    },
+    {
+      "name": "gem-devops.agent",
+      "slug": "gem-devops-agent",
+      "description": "Infrastructure deployment, CI/CD pipelines, container management.",
+      "path": "skills/gem-devops-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/gem-devops.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7516
+    },
+    {
+      "name": "azure-verified-modules-terraform.instructions",
+      "slug": "azure-verified-modules-terraform-instructions",
+      "description": " Azure Verified Modules (AVM) and Terraform",
+      "path": "skills/azure-verified-modules-terraform-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/azure-verified-modules-terraform.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7494
+    },
+    {
+      "name": "neo4j-docker-client-generator.agent",
+      "slug": "neo4j-docker-client-generator-agent",
+      "description": "AI agent that generates simple, high-quality Python Neo4j client libraries from GitHub issues with proper best practices",
+      "path": "skills/neo4j-docker-client-generator-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/neo4j-docker-client-generator.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7315
+    },
+    {
+      "name": "terraform-azure-planning.agent",
+      "slug": "terraform-azure-planning-agent",
+      "description": "Act as implementation planner for your Azure Terraform Infrastructure as Code task.",
+      "path": "skills/terraform-azure-planning-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terraform-azure-planning.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 7315
+    },
+    {
+      "name": "terraform.instructions",
+      "slug": "terraform-instructions",
+      "description": "Terraform Conventions and Guidelines",
+      "path": "skills/terraform-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/terraform.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6950
+    },
+    {
+      "name": "azure-devops-pipelines.instructions",
+      "slug": "azure-devops-pipelines-instructions",
+      "description": "Best practices for Azure DevOps Pipeline YAML files",
+      "path": "skills/azure-devops-pipelines-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/azure-devops-pipelines.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6762
+    },
+    {
+      "name": "repos-and-prs",
+      "slug": "repos-and-prs",
+      "description": "",
+      "path": "skills/repos-and-prs.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/repos-and-prs.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6725
+    },
+    {
+      "name": "terraform-azure-implement.agent",
+      "slug": "terraform-azure-implement-agent",
+      "description": "Act as an Azure Terraform Infrastructure as Code coding specialist that creates and reviews Terraform for Azure resources.",
+      "path": "skills/terraform-azure-implement-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terraform-azure-implement.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6466
+    },
+    {
+      "name": "phoenix-tracing",
+      "slug": "phoenix-tracing",
+      "description": "OpenInference semantic conventions and instrumentation for Phoenix AI observability. Use when implementing LLM tracing, creating custom spans, or deploying to production.",
+      "path": "skills/phoenix-tracing.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/phoenix-tracing/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6310
+    },
+    {
+      "name": "boards-and-iterations",
+      "slug": "boards-and-iterations",
+      "description": "",
+      "path": "skills/boards-and-iterations.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/boards-and-iterations.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6156
+    },
+    {
+      "name": "aws-incident-triage.agent",
+      "slug": "aws-incident-triage-agent",
+      "description": "On-call SRE agent that drives structured CloudWatch-based incident investigation from alarms through root-cause hypothesis.",
+      "path": "skills/aws-incident-triage-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/aws-incident-triage.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5512
+    },
+    {
+      "name": "advanced-usage",
+      "slug": "advanced-usage",
+      "description": "",
+      "path": "skills/advanced-usage.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/advanced-usage.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5415
+    },
+    {
+      "name": "se-gitops-ci-specialist.agent",
+      "slug": "se-gitops-ci-specialist-agent",
+      "description": "DevOps specialist for CI/CD pipelines, deployment debugging, and GitOps workflows focused on making deployments boring and reliable",
+      "path": "skills/se-gitops-ci-specialist-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/se-gitops-ci-specialist.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 5230
+    },
+    {
+      "name": "pipelines-and-builds",
+      "slug": "pipelines-and-builds",
+      "description": "",
+      "path": "skills/pipelines-and-builds.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/pipelines-and-builds.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4807
+    },
+    {
+      "name": "devops-engineer",
+      "slug": "devops-engineer",
+      "description": "Builds infrastructure that scales without babysitting. Automates everything worth automating. Monitors before it breaks. Treats clicking in consoles as a production incident waiting to happen. Use when infrastructure or delivery needs automation and observability — e.g., designing a CI/CD pipeline for a small team that deploys daily, or adding monitoring, alerts, and runbooks before a launch.",
+      "path": "skills/devops-engineer.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/agents/personas/devops-engineer.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 4729
+    },
+    {
+      "name": "pr-screenshots",
+      "slug": "pr-screenshots",
+      "description": "Embed before/after screenshots and annotated images in pull request descriptions. Covers PR description patterns, image upload for Azure DevOps and GitHub, and sizing best practices.",
+      "path": "skills/pr-screenshots.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/pr-screenshots/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4652
+    },
+    {
+      "name": "terraform-aws-implement.agent",
+      "slug": "terraform-aws-implement-agent",
+      "description": "Act as an AWS Terraform Infrastructure as Code coding specialist that creates and reviews Terraform for AWS resources.",
+      "path": "skills/terraform-aws-implement-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terraform-aws-implement.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4232
+    },
+    {
+      "name": "terraform-iac-reviewer.agent",
+      "slug": "terraform-iac-reviewer-agent",
+      "description": "Terraform-focused agent that reviews and creates safer IaC changes with emphasis on state safety, least privilege, module patterns, drift detection, and plan/apply discipline",
+      "path": "skills/terraform-iac-reviewer-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terraform-iac-reviewer.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 4221
+    },
+    {
+      "name": "python-azure-iot-edge-modules",
+      "slug": "python-azure-iot-edge-modules",
+      "description": "Build and operate Python Azure IoT Edge modules with robust messaging, deployment manifests, observability, and production readiness checks.",
+      "path": "skills/python-azure-iot-edge-modules.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/python-azure-iot-edge-modules/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3976
+    },
+    {
+      "name": "azurerm set attributes",
+      "slug": "azurerm-set-attributes",
+      "description": "",
+      "path": "skills/azurerm-set-attributes.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/terraform-azurerm-set-diff-analyzer/references/azurerm_set_attributes.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3966
+    },
+    {
+      "name": "variables-and-agents",
+      "slug": "variables-and-agents",
+      "description": "",
+      "path": "skills/variables-and-agents.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/variables-and-agents.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3805
+    },
+    {
+      "name": "azure-devops-cli",
+      "slug": "azure-devops-cli",
+      "description": "Manage Azure DevOps resources via CLI including projects, repos, pipelines, builds, pull requests, work items, artifacts, and service endpoints. Use when working with Azure DevOps, az commands, devops automation, CI/CD, or when user mentions Azure DevOps CLI.",
+      "path": "skills/azure-devops-cli.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3790
+    },
+    {
+      "name": "devops-rollout-plan",
+      "slug": "devops-rollout-plan",
+      "description": "Generate comprehensive rollout plans with preflight checks, step-by-step deployment, verification signals, rollback procedures, and communication plans for infrastructure and application changes",
+      "path": "skills/devops-rollout-plan.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/devops-rollout-plan/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3749
+    },
+    {
+      "name": "generate-modern-terraform-code-for-azure.instructions",
+      "slug": "generate-modern-terraform-code-for-azure-instructions",
+      "description": "Guidelines for generating modern Terraform code for Azure",
+      "path": "skills/generate-modern-terraform-code-for-azure-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/generate-modern-terraform-code-for-azure.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3416
+    },
+    {
+      "name": "sandbox-npm-install",
+      "slug": "sandbox-npm-install",
+      "description": "Install npm packages in a Docker sandbox environment. Use this skill whenever you need to install, reinstall, or update node_modules inside a container where the workspace is mounted via virtiofs. Native binaries (esbuild, lightningcss, rollup) crash on virtiofs, so packages must be installed on the local ext4 filesystem and symlinked back.",
+      "path": "skills/sandbox-npm-install.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/sandbox-npm-install/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3411
+    },
+    {
+      "name": "terratest-module-testing.agent",
+      "slug": "terratest-module-testing-agent",
+      "description": "Generate and refactor Go Terratest suites for Terraform modules, including CI-safe patterns, staged tests, and negative-path validation.",
+      "path": "skills/terratest-module-testing-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terratest-module-testing.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3208
+    },
+    {
+      "name": "long-comments-on-windows",
+      "slug": "long-comments-on-windows",
+      "description": "",
+      "path": "skills/long-comments-on-windows.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/azure-devops-cli/references/long-comments-on-windows.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3151
+    },
+    {
+      "name": "qdrant-monitoring-debugging",
+      "slug": "qdrant-monitoring-debugging",
+      "description": "Diagnoses Qdrant production issues using metrics and observability tools. Use when someone reports 'optimizer stuck', 'indexing too slow', 'memory too high', 'OOM crash', 'queries are slow', 'latency spike', or 'search was fast now it's slow'. Also use when performance degrades without obvious config changes.",
+      "path": "skills/qdrant-monitoring-debugging.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-monitoring/debugging/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 3134
+    },
+    {
+      "name": "ci-cd-pipeline-builder",
+      "slug": "ci-cd-pipeline-builder",
+      "description": "Generate pragmatic CI/CD pipelines from detected project stack signals — fast baseline generation, repeatable checks, environment-aware deployment stages. Use when setting up CI for a new project, refactoring existing pipelines, or standardizing deployment workflows across multiple repos.",
+      "path": "skills/ci-cd-pipeline-builder.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/ci-cd-pipeline-builder/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 2879
+    },
+    {
+      "name": "qdrant-deployment-options",
+      "slug": "qdrant-deployment-options",
+      "description": "Guides Qdrant deployment selection. Use when someone asks 'how to deploy Qdrant', 'Docker vs Cloud', 'local mode', 'embedded Qdrant', 'Qdrant EDGE', 'which deployment option', 'self-hosted vs cloud', or 'need lowest latency deployment'. Also use when choosing between deployment types for a new project.",
+      "path": "skills/qdrant-deployment-options.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-deployment-options/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2737
+    },
+    {
+      "name": "terraform-aws-planning.agent",
+      "slug": "terraform-aws-planning-agent",
+      "description": "Act as implementation planner for your AWS Terraform Infrastructure as Code task.",
+      "path": "skills/terraform-aws-planning-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/terraform-aws-planning.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2523
+    },
+    {
+      "name": "kubestellar-console.agent",
+      "slug": "kubestellar-console-agent",
+      "description": "Kubernetes operations expert for KubeStellar Console — helps you set up the console, configure kc-agent (MCP server), connect clusters, deploy workloads, and query live Kubernetes data via AI chat.",
+      "path": "skills/kubestellar-console-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/kubestellar-console.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2471
+    },
+    {
+      "name": "multi-stage-dockerfile",
+      "slug": "multi-stage-dockerfile",
+      "description": "Create optimized multi-stage Dockerfiles for any language or framework",
+      "path": "skills/multi-stage-dockerfile.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/multi-stage-dockerfile/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2184
+    },
+    {
+      "name": "azure-verified-modules-terraform.agent",
+      "slug": "azure-verified-modules-terraform-agent",
+      "description": "Create, update, or review Azure IaC in Terraform using Azure Verified Modules (AVM).",
+      "path": "skills/azure-verified-modules-terraform-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/azure-verified-modules-terraform.agent.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 2132
+    },
+    {
+      "name": "terraform-azurerm-set-diff-analyzer",
+      "slug": "terraform-azurerm-set-diff-analyzer",
+      "description": "Analyze Terraform plan JSON output for AzureRM Provider to distinguish between false-positive diffs (order-only changes in Set-type attributes) and actual resource changes. Use when reviewing terraform plan output for Azure resources like Application Gateway, Load Balancer, Firewall, Front Door, NSG, and other resources with Set-type attributes that cause spurious diffs due to internal ordering changes.",
+      "path": "skills/terraform-azurerm-set-diff-analyzer.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/terraform-azurerm-set-diff-analyzer/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 1703
+    },
+    {
+      "name": "operator-audit",
+      "slug": "operator-audit",
+      "description": "Run the full Kubernetes Operator audit (CRD + reconcile + capability) on the current repo",
+      "path": "skills/operator-audit.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/operator-audit/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "devops",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1579
+    },
+    {
+      "name": "qdrant-monitoring",
+      "slug": "qdrant-monitoring",
+      "description": "Guides Qdrant monitoring and observability setup. Use when someone asks 'how to monitor Qdrant', 'what metrics to track', 'is Qdrant healthy', 'optimizer stuck', 'why is memory growing', 'requests are slow', or needs to set up Prometheus, Grafana, or health checks. Also use when debugging production issues that require metric analysis.",
+      "path": "skills/qdrant-monitoring.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/qdrant-monitoring/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "devops",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 675
+    }
+  ]
+}

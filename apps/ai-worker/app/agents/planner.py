@@ -186,6 +186,24 @@ def deterministic_plan(request: RunRequest) -> list[dict[str, Any]]:
     ]
 
 
+def _ensure_specialist_bootstrap(request: RunRequest, steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    agent = request.agent or {}
+    if not (agent.get("tier") == "specialist" or agent.get("domain_skill_index")):
+        return steps
+    if steps and steps[0].get("tool") == "search_knowledge":
+        return steps
+    query = " ".join(
+        x for x in [
+            request.task_title or "",
+            (request.task_description or "")[:200],
+            (agent.get("knowledge_brief") or "")[:200],
+            agent.get("archetype") or "",
+        ]
+        if x
+    ).strip() or (request.task_title or "domain knowledge")
+    return [{"tool": "search_knowledge", "input": {"query": query}}] + list(steps)
+
+
 async def plan_steps(
     request: RunRequest,
     usage: llm.UsageTracker,
@@ -195,7 +213,7 @@ async def plan_steps(
     mcp_tools = mcp_tools or []
 
     if not llm.is_configured():
-        return deterministic_plan(request)
+        return _ensure_specialist_bootstrap(request, deterministic_plan(request))
 
     files_block = (
         "\n".join(
@@ -241,7 +259,7 @@ async def plan_steps(
         )
     except Exception as exc:  # noqa: BLE001 — planner errors fall back, run continues
         log.warning("llm_planner_failed", error=str(exc))
-        return deterministic_plan(request)
+        return _ensure_specialist_bootstrap(request, deterministic_plan(request))
 
     known = set(list_tools()) | {tool["name"] for tool in mcp_tools}
     steps = [
@@ -252,7 +270,7 @@ async def plan_steps(
 
     if not steps:
         log.warning("llm_planner_empty_plan", result=result)
-        return deterministic_plan(request)
+        return _ensure_specialist_bootstrap(request, deterministic_plan(request))
 
     log.info("llm_plan_created", steps=[s["tool"] for s in steps])
-    return steps
+    return _ensure_specialist_bootstrap(request, steps)

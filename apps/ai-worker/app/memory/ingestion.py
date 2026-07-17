@@ -5,8 +5,10 @@ structure-aware chunking (LangChain RecursiveCharacterTextSplitter, markdown
 separators first) -> contextual enrichment (document title prefixed to each
 chunk before embedding) -> embed (OpenAI text-embedding-3-small, 1536 dims) ->
 POST chunks back to the Phoenix API which stores them in pgvector and marks
-the knowledge item as indexed. Without an OpenAI key the pipeline still
-chunks (embeddings skipped) so dev/tests work offline.
+the knowledge item as indexed.
+
+Requires OPENAI_API_KEY for embeddings. Without it the item is marked failed
+in Phoenix so it never stays stuck in `indexing`.
 """
 
 from typing import Any
@@ -137,28 +139,56 @@ async def ingest_document(
     chunks = chunk_text(text)
     log.info("document_chunked", item_id=item_id, chunks=len(chunks))
 
+    phoenix = phoenix or (PhoenixClient() if item_id and workspace_id else None)
+
     if not chunks:
+        # Empty body — mark indexed with zero chunks so status does not stick.
+        if phoenix is not None:
+            await phoenix.post_knowledge_chunks(item_id, workspace_id, [])
         return {
             "knowledge_item_id": item_id,
             "chunk_count": 0,
             "embedded": False,
-            "status": "chunked",
+            "status": "indexed",
         }
 
-    if not llm.is_configured():
+    if not llm.embeddings_configured():
+        error = "embeddings unavailable: OPENAI_API_KEY is required for knowledge indexing"
+        log.warning("ingest_embeddings_unavailable", item_id=item_id)
+        if phoenix is not None:
+            await phoenix.mark_knowledge_failed(item_id, workspace_id, error)
         return {
             "knowledge_item_id": item_id,
             "chunk_count": len(chunks),
             "embedded": False,
-            "status": "chunked",
+            "status": "failed",
+            "error": error,
         }
 
     embed_inputs = contextualize(chunks, payload.get("title"))
 
-    embeddings: list[list[float]] = []
-    for start in range(0, len(embed_inputs), EMBED_BATCH_SIZE):
-        batch = embed_inputs[start : start + EMBED_BATCH_SIZE]
-        embeddings.extend(await llm.embed(batch))
+    try:
+        embeddings: list[list[float]] = []
+        for start in range(0, len(embed_inputs), EMBED_BATCH_SIZE):
+            batch = embed_inputs[start : start + EMBED_BATCH_SIZE]
+            embeddings.extend(await llm.embed(batch))
+
+        if len(embeddings) != len(chunks):
+            raise RuntimeError(
+                f"embedding count mismatch: got {len(embeddings)} for {len(chunks)} chunks"
+            )
+    except Exception as exc:
+        error = f"embedding failed: {exc}"
+        log.error("ingest_embed_failed", item_id=item_id, error=str(exc))
+        if phoenix is not None:
+            await phoenix.mark_knowledge_failed(item_id, workspace_id, error)
+        return {
+            "knowledge_item_id": item_id,
+            "chunk_count": len(chunks),
+            "embedded": False,
+            "status": "failed",
+            "error": error,
+        }
 
     log.info("document_embedded", item_id=item_id, vectors=len(embeddings))
 
@@ -176,8 +206,7 @@ async def ingest_document(
         graph = None
 
     stored = False
-    if item_id and workspace_id:
-        phoenix = phoenix or PhoenixClient()
+    if phoenix is not None:
         stored = await phoenix.post_knowledge_chunks(
             item_id,
             workspace_id,
@@ -187,6 +216,17 @@ async def ingest_document(
             ],
             graph=graph,
         )
+        if not stored:
+            error = "failed to store embedded chunks in Phoenix"
+            await phoenix.mark_knowledge_failed(item_id, workspace_id, error)
+            return {
+                "knowledge_item_id": item_id,
+                "chunk_count": len(chunks),
+                "embedded": True,
+                "stored": False,
+                "status": "failed",
+                "error": error,
+            }
 
     return {
         "knowledge_item_id": item_id,

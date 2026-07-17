@@ -1,0 +1,273 @@
+{
+  "domain": "research",
+  "pack_version": "c3d5483d4415",
+  "skill_count": 19,
+  "skills": [
+    {
+      "name": "synthesize-research",
+      "slug": "synthesize-research",
+      "description": "Synthesize user research from interviews, surveys, and feedback into structured insights. Use when you have a pile of interview notes, survey responses, or support tickets to make sense of, need to extract themes and rank findings by frequency and impact, or want to turn raw feedback into roadmap recommendations.",
+      "path": "skills/synthesize-research.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/synthesize-research/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "research",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 15710
+    },
+    {
+      "name": "dossier",
+      "slug": "dossier",
+      "description": "Decision-grade entity research skill — produces a hypothesis-tested dossier on a specific company, person, nonprofit, or government org, not a generic profile. Forcing intake makes the user state their hypothesis upfront (what they already believe and want to verify or disprove) so the dossier tests it rather than confirms it. Output is an editable Word document (.docx) with verdict on the hypothesis, identity facts, 12-month activity timeline, network and reputation signals, red flags, conversa",
+      "path": "skills/dossier.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/dossier/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 15484
+    },
+    {
+      "name": "codexer.instructions",
+      "slug": "codexer-instructions",
+      "description": "Advanced Python research assistant with Context 7 MCP integration, focusing on speed, reliability, and 10+ years of software development expertise",
+      "path": "skills/codexer-instructions.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/instructions/codexer.instructions.md",
+      "license": "MIT",
+      "tags": [
+        "research",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 15312
+    },
+    {
+      "name": "hlbpa.agent",
+      "slug": "hlbpa-agent",
+      "description": "Your perfect AI chat mode for high-level architectural documentation and review. Perfect for targeted updates after a story or researching that legacy system when nobody remembers what it's supposed to be doing.",
+      "path": "skills/hlbpa-agent.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/agents/hlbpa.agent.md",
+      "license": "MIT",
+      "tags": [
+        "research",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 11595
+    },
+    {
+      "name": "autoresearch",
+      "slug": "autoresearch",
+      "description": "Autonomous iterative experimentation loop for any programming task. Guides the user through defining goals, measurable metrics, and scope constraints, then runs an autonomous loop of code changes, testing, measuring, and keeping/discarding results. Inspired by Karpathy''s autoresearch. USE FOR: autonomous improvement, iterative optimization, experiment loop, auto research, performance tuning, automated experimentation, hill climbing, try things automatically, optimize code, run experiments, auto",
+      "path": "skills/autoresearch.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/autoresearch/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "research",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 10252
+    },
+    {
+      "name": "research-ops-skills",
+      "slug": "research-ops-skills",
+      "description": "Use when planning, funding, scoping, or synthesizing enterprise research across workstreams — clinical study design, R&D program finance, market sizing/surveys, or product/user research. Triggers on \"design this clinical study\", \"what sample size\", \"R&D budget\", \"burn rate\", \"capitalize or expense\", \"TAM SAM SOM\", \"market sizing\", \"survey design\", \"segment the market\", \"plan user interviews\", \"usability test\", \"synthesize research insights\". Forks context to route to one of four Research-Operati",
+      "path": "skills/research-ops-skills.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/research-ops-skills/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9968
+    },
+    {
+      "name": "clinical-research",
+      "slug": "clinical-research",
+      "description": "Use when designing a prospective clinical study before submission — selecting and classifying endpoints (primary / key-secondary / exploratory, with surrogate-endpoint flagging), estimating sample size and power for two-arm designs (means / proportions / survival), or scoring a study plan for feasibility and a GO / GO-WITH-CONDITIONS / REDESIGN / NO-GO phase-gate decision. Every output is an ESTIMATE plus a named human owner (clinician / biostatistician / regulatory owner) — never clinical fact,",
+      "path": "skills/clinical-research.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/clinical-research/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9942
+    },
+    {
+      "name": "customer-research",
+      "slug": "customer-research",
+      "description": "Multi-source research on a customer question or topic with source attribution. Use when a customer asks something you need to look up, investigating whether a bug has been reported before, checking what was previously told to a specific account, or gathering background before drafting a response.",
+      "path": "skills/customer-research.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/customer-support/skills/customer-research/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "research",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 9825
+    },
+    {
+      "name": "product-research",
+      "slug": "product-research",
+      "description": "Use when planning and synthesizing product/user research as a method-and-repository discipline — selecting the right method for the goal (generative interviews vs usability test vs concept test vs validation), computing method-based saturation/sample size with an explicit confidence level, or synthesizing coded observations into insights while flagging single-source anecdotes. Never fabricates user insight; an insight requires recurrence across independent participants. Distinct from product-tea",
+      "path": "skills/product-research.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/product-research/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9802
+    },
+    {
+      "name": "research-finance",
+      "slug": "research-finance",
+      "description": "Use when managing the money for an internal R&D program or portfolio — building a multi-period program budget with the F&A (indirect) split, tracking burn rate and runway against value-inflection milestones, or routing R&D cost items to a capitalize-vs-expense determination. Every budget output surfaces its assumptions block; capitalize-vs-expense is decision-support only and routes to a named finance owner — it never books an entry or decides accounting treatment. Distinct from finance/financia",
+      "path": "skills/research-finance.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/research-finance/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9693
+    },
+    {
+      "name": "llm-wiki",
+      "slug": "llm-wiki",
+      "description": "Use when building or maintaining a persistent personal knowledge base (second brain) in Obsidian where an LLM incrementally ingests sources, updates entity/concept pages, maintains cross-references, and keeps a synthesis current. Triggers include \"second brain\", \"Obsidian wiki\", \"personal knowledge management\", \"ingest this paper/article/book\", \"build a research wiki\", \"compound knowledge\", \"Memex\", or whenever the user wants knowledge to accumulate across sessions instead of being re-derived by",
+      "path": "skills/llm-wiki.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/llm-wiki/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9345
+    },
+    {
+      "name": "market-research",
+      "slug": "market-research",
+      "description": "Use when doing upstream market-research methodology — sizing a market as TAM/SAM/SOM computed BOTH top-down and bottoms-up (never a single unsourced number), planning a survey sample size with finite-population correction and per-segment minimums, or scoring candidate market segments against Kotler's measurable/substantial/accessible/differentiable/actionable criteria. Outputs always show the method and the assumptions. For market-research analysts and product-marketing at the sizing/survey/segm",
+      "path": "skills/market-research.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/market-research/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 9246
+    },
+    {
+      "name": "account-research",
+      "slug": "account-research",
+      "description": "Research a company or person and get actionable sales intel. Works standalone with web search, supercharged when you connect enrichment tools or your CRM. Trigger with \"research [company]\", \"look up [person]\", \"intel on [prospect]\", \"who is [name] at [company]\", or \"tell me about [company]\".",
+      "path": "skills/account-research.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/sales/skills/account-research/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "research",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 7014
+    },
+    {
+      "name": "deep-research",
+      "slug": "deep-research",
+      "description": "Run a disciplined, multi-source research investigation for a high-stakes question or decision — fan-out web search across many channels, parallel sub-agents, source triangulation (each claim backed by ≥3 independent sources), an adversarial review pass, and every source saved to its own file with verbatim quotes for reuse. Use when a low-quality answer is expensive: strategy work, comparing N products/methods/markets, validating a hypothesis with external data, or mapping how a field works. NOT ",
+      "path": "skills/deep-research.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/deep-research/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 6954
+    },
+    {
+      "name": "create-technical-spike",
+      "slug": "create-technical-spike",
+      "description": "Create time-boxed technical spike documents for researching and resolving critical development decisions before implementation.",
+      "path": "skills/create-technical-spike.md",
+      "source": "https://github.com/github/awesome-copilot/blob/main/skills/create-technical-spike/SKILL.md",
+      "license": "MIT",
+      "tags": [
+        "research",
+        "awesome-copilot"
+      ],
+      "stars": 0,
+      "chars": 6385
+    },
+    {
+      "name": "contact-research",
+      "slug": "contact-research",
+      "description": "Research a specific person using Common Room data. Triggers on 'who is [name]', 'look up [email]', 'research [contact]', 'is [name] a warm lead', or any contact-level question.",
+      "path": "skills/contact-research.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/partner-built/common-room/skills/contact-research/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "research",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 5126
+    },
+    {
+      "name": "loop",
+      "slug": "loop",
+      "description": "Start an autonomous experiment loop with user-selected interval (10min, 1h, daily, weekly, monthly). Uses CronCreate for scheduling. Use when the user runs /ar:loop or asks to run an autoresearch experiment continuously on a schedule.",
+      "path": "skills/loop.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/loop/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 3919
+    },
+    {
+      "name": "resume",
+      "slug": "resume",
+      "description": "Resume a paused experiment. Checkout the experiment branch, read results history, continue iterating. Use when the user runs /ar:resume or asks to pick up a previously started autoresearch experiment.",
+      "path": "skills/resume.md",
+      "source": "https://github.com/alirezarezvani/claude-skills/blob/main/.gemini/skills/resume/skill.md",
+      "license": "check-repo",
+      "tags": [
+        "research",
+        "claude-skills"
+      ],
+      "stars": 0,
+      "chars": 1836
+    },
+    {
+      "name": "user-research",
+      "slug": "user-research",
+      "description": "Plan, conduct, and synthesize user research. Trigger with \"user research plan\", \"interview guide\", \"usability test\", \"survey design\", \"research questions\", or when the user needs help with any aspect of understanding their users through research.",
+      "path": "skills/user-research.md",
+      "source": "https://github.com/anthropics/knowledge-work-plugins/blob/main/design/skills/user-research/SKILL.md",
+      "license": "Apache-2.0",
+      "tags": [
+        "research",
+        "knowledge-work-plugins"
+      ],
+      "stars": 0,
+      "chars": 1462
+    }
+  ]
+}

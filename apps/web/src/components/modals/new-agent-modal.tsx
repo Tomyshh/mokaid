@@ -45,7 +45,7 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
   const spendable = billingData?.data.credits.spendable ?? 0;
 
   const [name, setName] = useState("");
-  const [archetypeKey, setArchetypeKey] = useState("generalist");
+  const [archetypeKey, setArchetypeKey] = useState("blank");
   const [boostKey, setBoostKey] = useState<string | null>(null);
   const [knowledgeBrief, setKnowledgeBrief] = useState("");
   const [avatarAssetId, setAvatarAssetId] = useState("");
@@ -55,6 +55,8 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
   const selectedBoost = boosts.find((b) => b.key === boostKey) ?? null;
   const boostCost = selectedBoost?.credits ?? 0;
   const canAffordBoost = !selectedBoost || spendable >= boostCost;
+  const isBlank = (selectedArchetype?.tier ?? selectedArchetype?.key) === "blank" || selectedArchetype?.key === "blank";
+  const visibleBoosts = boosts.filter((b) => !(b.key === "boost_l10" && isBlank));
 
   useEffect(() => {
     if (!avatarAssetId && defaultAssetId) setAvatarAssetId(defaultAssetId);
@@ -68,7 +70,7 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
 
   const reset = () => {
     setName("");
-    setArchetypeKey("generalist");
+    setArchetypeKey("blank");
     setBoostKey(null);
     setKnowledgeBrief("");
     setAvatarAssetId(defaultAssetId);
@@ -77,6 +79,10 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
 
   const handleSubmit = async () => {
     if (!name.trim() || !canAffordBoost) return;
+    if (boostKey === "boost_l10" && isBlank) {
+      setError("Level-10 specialist boost requires a domain archetype.");
+      return;
+    }
     setError(null);
     try {
       const created = await createAgent.mutateAsync({
@@ -146,7 +152,10 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
                   <button
                     key={archetype.key}
                     type="button"
-                    onClick={() => setArchetypeKey(archetype.key)}
+                    onClick={() => {
+                      setArchetypeKey(archetype.key);
+                      if (archetype.tier === "blank" && boostKey === "boost_l10") setBoostKey(null);
+                    }}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-left transition-colors",
                       active
@@ -154,7 +163,14 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
                         : "border-border bg-surface-raised/40 hover:border-primary/40",
                     )}
                   >
-                    <span className="block text-xs font-semibold text-text">{archetype.name}</span>
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="block text-xs font-semibold text-text">{archetype.name}</span>
+                      {archetype.tier === "specialist" && (
+                        <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[9px] text-primary-light">
+                          L10 pack
+                        </span>
+                      )}
+                    </span>
                     <span className="mt-0.5 block text-[10px] text-text-muted">
                       {archetype.description}
                     </span>
@@ -167,6 +183,11 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
                           {skill.name} {skill.level}
                         </span>
                       ))}
+                      {(archetype.corpus_doc_count ?? 0) > 0 && (
+                        <span className="rounded bg-surface px-1.5 py-0.5 text-[9px] text-text-secondary">
+                          {archetype.skill_count ?? archetype.corpus_doc_count} skills
+                        </span>
+                      )}
                     </span>
                   </button>
                 );
@@ -195,7 +216,7 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
                 </span>
                 <span className="text-[10px] font-semibold text-success">0 credits</span>
               </button>
-              {boosts.map((boost) => {
+              {visibleBoosts.map((boost) => {
                 const active = boostKey === boost.key;
                 const affordable = spendable >= boost.credits;
                 return (

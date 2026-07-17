@@ -66,3 +66,6 @@ assets/raw/feminine_finance/
 # Graphify (commit graph.json / GRAPH_REPORT.md; keep local cost/cache out)
 graphify-out/cost.json
 graphify-out/cache/
+
+# Local skill harvest clones
+/tmp/mokaid-skill-sources/
