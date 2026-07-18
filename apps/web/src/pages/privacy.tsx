@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Shield } from "lucide-react";
 
-const EFFECTIVE_DATE = "6 juillet 2026";
+const EFFECTIVE_DATE = "July 6, 2026";
 const COMPANY_NAME = "Mokaid";
 const FOUNDER_NAME = "Itsaq Tom Jami";
 const CONTACT_EMAIL = "tom@yapio.io";
@@ -9,14 +9,13 @@ const CONTACT_EMAIL = "tom@yapio.io";
 export function PrivacyPage() {
   return (
     <div className="min-h-full bg-bg-deep text-text">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-border/50 bg-bg-deep/80 backdrop-blur-md">
+      <header className="sticky top-0 z-10 bg-bg-deep/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
           <Link
             to="/"
             className="mk-focus-ring flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-muted transition-colors hover:text-text"
           >
-            <ArrowLeft size={13} /> Retour au site
+            <ArrowLeft size={13} /> Back to site
           </Link>
           <Link to="/" className="flex items-center gap-2">
             <img
@@ -29,46 +28,38 @@ export function PrivacyPage() {
         </div>
       </header>
 
-      {/* Content */}
       <main className="mx-auto max-w-3xl px-5 py-16">
-        {/* Title block */}
         <div className="mb-12">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary-light">
             <Shield size={12} />
-            Document légal
+            Legal document
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-text">
-            Politique de confidentialité
-          </h1>
-          <p className="mt-4 text-sm text-text-muted">
-            Dernière mise à jour : {EFFECTIVE_DATE}
-          </p>
+          <h1 className="text-4xl font-bold tracking-tight text-text">Privacy Policy</h1>
+          <p className="mt-4 text-sm text-text-muted">Last updated: {EFFECTIVE_DATE}</p>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-            {COMPANY_NAME} attache une importance fondamentale à la protection de vos données
-            personnelles. Cette politique explique quelles données nous collectons, pourquoi nous
-            les collectons, comment nous les traitons et quels sont vos droits à leur égard.
+            {COMPANY_NAME} takes the protection of your personal data seriously. This policy
+            explains what data we collect, why we collect it, how we process it, and what rights
+            you have.
           </p>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            En utilisant la plateforme {COMPANY_NAME}, vous reconnaissez avoir lu et compris la
-            présente politique de confidentialité.
+            By using the {COMPANY_NAME} platform, you acknowledge that you have read and
+            understood this privacy policy.
           </p>
         </div>
 
         <div className="space-y-12">
-          {/* 1 */}
           <section>
-            <SectionTitle index="1" title="Responsable du traitement" />
+            <SectionTitle index="1" title="Data controller" />
             <Prose>
-              Le responsable du traitement des données personnelles collectées via la plateforme{" "}
-              {COMPANY_NAME} est :
+              The controller of personal data collected through the {COMPANY_NAME} platform is:
             </Prose>
             <div className="mt-4 rounded-lg border border-border bg-surface px-5 py-4 text-sm text-text-secondary">
               <p>
                 <strong className="text-text">{COMPANY_NAME}</strong>
               </p>
-              <p>Fondateur : {FOUNDER_NAME}</p>
+              <p>Founder: {FOUNDER_NAME}</p>
               <p>
-                Contact :{" "}
+                Contact:{" "}
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
                   className="text-primary-light hover:underline"
@@ -78,312 +69,302 @@ export function PrivacyPage() {
               </p>
             </div>
             <Prose className="mt-4">
-              Pour toute question relative à vos données personnelles ou pour exercer vos droits,
-              vous pouvez nous contacter à l&apos;adresse e-mail indiquée ci-dessus.
+              For any question about your personal data or to exercise your rights, contact us at
+              the email address above.
             </Prose>
           </section>
 
-          {/* 2 */}
           <section>
-            <SectionTitle index="2" title="Données collectées" />
+            <SectionTitle index="2" title="Data we collect" />
             <Prose>
-              Nous collectons différentes catégories de données selon votre utilisation de la
-              plateforme :
+              We collect different categories of data depending on how you use the platform:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Données de compte",
+                  label: "Account data",
                   detail:
-                    "Nom complet, adresse e-mail, mot de passe (haché), photo de profil (optionnel).",
+                    "Full name, email address, password (hashed), profile photo (optional).",
                 },
                 {
-                  label: "Données d'utilisation",
+                  label: "Usage data",
                   detail:
-                    "Actions effectuées sur la plateforme, pages visitées, temps de session, événements d'interface.",
+                    "Actions on the platform, pages visited, session duration, interface events.",
                 },
                 {
-                  label: "Données liées aux agents IA",
+                  label: "AI agent data",
                   detail:
-                    "Instructions, tâches assignées, historiques de conversation avec les agents, résultats produits.",
+                    "Instructions, assigned tasks, conversation history with agents, produced outputs.",
                 },
                 {
-                  label: "Données d'intégration",
+                  label: "Integration data",
                   detail:
-                    "Jetons d'accès OAuth (GitHub, Google, Figma, etc.) nécessaires au fonctionnement des intégrations tierces que vous activez.",
+                    "OAuth access tokens (GitHub, Google, Figma, etc.) required for third-party integrations you enable.",
                 },
                 {
-                  label: "Données de paiement",
+                  label: "Payment data",
                   detail:
-                    "Informations de facturation traitées via notre prestataire de paiement (Stripe). Nous ne stockons jamais les numéros de carte bancaire.",
+                    "Billing information processed via our payment provider (Stripe). We never store card numbers.",
                 },
                 {
-                  label: "Données techniques",
+                  label: "Technical data",
                   detail:
-                    "Adresse IP, type de navigateur, système d'exploitation, logs serveur à des fins de sécurité et de débogage.",
+                    "IP address, browser type, operating system, server logs for security and debugging.",
                 },
               ]}
             />
             <Prose className="mt-4">
-              Nous ne collectons pas de données sensibles au sens du RGPD (origines ethniques,
-              opinions politiques, données de santé, etc.).
+              We do not collect special-category data under the GDPR (racial or ethnic origin,
+              political opinions, health data, etc.).
             </Prose>
           </section>
 
-          {/* 3 */}
           <section>
-            <SectionTitle index="3" title="Finalités et bases légales du traitement" />
+            <SectionTitle index="3" title="Purposes and legal bases" />
             <Prose>
-              Chaque traitement de données repose sur une base légale conforme au Règlement
-              Général sur la Protection des Données (RGPD – Règlement UE 2016/679) :
+              Each processing activity rests on a legal basis under the General Data Protection
+              Regulation (GDPR – EU Regulation 2016/679):
             </Prose>
             <table className="mt-4 w-full overflow-hidden rounded-lg border border-border text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                    Finalité
+                    Purpose
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                    Base légale
+                    Legal basis
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {[
-                  ["Création et gestion de votre compte", "Exécution du contrat (Art. 6.1.b)"],
-                  ["Fourniture des fonctionnalités de la plateforme", "Exécution du contrat (Art. 6.1.b)"],
-                  ["Envoi d'e-mails transactionnels", "Exécution du contrat (Art. 6.1.b)"],
-                  ["Amélioration et développement du service", "Intérêt légitime (Art. 6.1.f)"],
-                  ["Sécurité et prévention de la fraude", "Intérêt légitime (Art. 6.1.f)"],
-                  ["Envoi de communications marketing (opt-in)", "Consentement (Art. 6.1.a)"],
-                  ["Respect des obligations légales", "Obligation légale (Art. 6.1.c)"],
-                  ["Facturation et comptabilité", "Obligation légale (Art. 6.1.c)"],
-                ].map(([finalite, base]) => (
-                  <tr key={finalite} className="text-text-secondary">
-                    <td className="px-4 py-3">{finalite}</td>
-                    <td className="px-4 py-3 text-xs text-text-muted">{base}</td>
+                  ["Account creation and management", "Contract performance (Art. 6.1.b)"],
+                  ["Providing platform features", "Contract performance (Art. 6.1.b)"],
+                  ["Sending transactional emails", "Contract performance (Art. 6.1.b)"],
+                  ["Improving and developing the service", "Legitimate interest (Art. 6.1.f)"],
+                  ["Security and fraud prevention", "Legitimate interest (Art. 6.1.f)"],
+                  ["Marketing communications (opt-in)", "Consent (Art. 6.1.a)"],
+                  ["Complying with legal obligations", "Legal obligation (Art. 6.1.c)"],
+                  ["Billing and accounting", "Legal obligation (Art. 6.1.c)"],
+                ].map(([purpose, basis]) => (
+                  <tr key={purpose} className="text-text-secondary">
+                    <td className="px-4 py-3">{purpose}</td>
+                    <td className="px-4 py-3 text-xs text-text-muted">{basis}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </section>
 
-          {/* 4 */}
           <section>
-            <SectionTitle index="4" title="Durées de conservation" />
+            <SectionTitle index="4" title="Retention periods" />
             <Prose>
-              Nous conservons vos données uniquement le temps nécessaire aux finalités pour
-              lesquelles elles ont été collectées :
+              We keep your data only as long as needed for the purposes for which it was
+              collected:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Données de compte actif",
-                  detail: "Pendant toute la durée de votre relation contractuelle.",
+                  label: "Active account data",
+                  detail: "For the duration of your contractual relationship.",
                 },
                 {
-                  label: "Données après fermeture du compte",
+                  label: "Data after account closure",
                   detail:
-                    "30 jours (délai de grâce pour réactivation), puis suppression ou anonymisation définitive.",
+                    "30 days (grace period for reactivation), then permanent deletion or anonymization.",
                 },
                 {
-                  label: "Données de facturation",
-                  detail: "10 ans, conformément aux obligations comptables et fiscales.",
+                  label: "Billing data",
+                  detail: "10 years, in line with accounting and tax obligations.",
                 },
                 {
-                  label: "Logs techniques",
-                  detail: "90 jours à des fins de sécurité et de débogage.",
+                  label: "Technical logs",
+                  detail: "90 days for security and debugging.",
                 },
                 {
-                  label: "Données marketing (opt-in)",
-                  detail: "Jusqu'au retrait de votre consentement.",
+                  label: "Marketing data (opt-in)",
+                  detail: "Until you withdraw your consent.",
                 },
               ]}
             />
           </section>
 
-          {/* 5 */}
           <section>
-            <SectionTitle index="5" title="Partage et destinataires des données" />
+            <SectionTitle index="5" title="Sharing and recipients" />
             <Prose>
-              Nous ne vendons jamais vos données personnelles à des tiers. Nous pouvons partager
-              vos données uniquement dans les cas suivants :
+              We never sell your personal data to third parties. We may share data only in these
+              cases:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Sous-traitants techniques",
+                  label: "Technical processors",
                   detail:
-                    "Hébergement (Render), base de données, envoi d'e-mails, analytics — tous liés par des contrats de traitement conformes au RGPD.",
+                    "Hosting (Render), database, email delivery, analytics — all bound by GDPR-compliant processing agreements.",
                 },
                 {
-                  label: "Prestataire de paiement",
+                  label: "Payment provider",
                   detail:
-                    "Stripe Inc. traite vos paiements directement et est soumis à sa propre politique de confidentialité.",
+                    "Stripe Inc. processes payments directly and is subject to its own privacy policy.",
                 },
                 {
-                  label: "Services d'intégration tiers",
+                  label: "Third-party integrations",
                   detail:
-                    "GitHub, Google Workspace, Figma, etc. — uniquement si vous activez ces intégrations et dans la limite des permissions accordées.",
+                    "GitHub, Google Workspace, Figma, etc. — only if you enable them and within the permissions you grant.",
                 },
                 {
-                  label: "Obligations légales",
+                  label: "Legal obligations",
                   detail:
-                    "Autorités compétentes sur réquisition judiciaire ou obligation légale.",
+                    "Competent authorities upon judicial request or legal obligation.",
                 },
                 {
-                  label: "Cession d'activité",
+                  label: "Business transfer",
                   detail:
-                    "En cas de fusion, acquisition ou cession, vos données peuvent être transférées au repreneur, avec notification préalable.",
+                    "In case of merger, acquisition, or sale, your data may be transferred to the successor, with prior notice.",
                 },
               ]}
             />
           </section>
 
-          {/* 6 */}
           <section>
-            <SectionTitle index="6" title="Transferts internationaux de données" />
+            <SectionTitle index="6" title="International data transfers" />
             <Prose>
-              Certains de nos sous-traitants peuvent être établis en dehors de l'Union européenne
-              (notamment aux États-Unis). Dans ce cas, nous nous assurons que ces transferts sont
-              encadrés par des garanties appropriées, notamment :
+              Some of our processors may be established outside the European Union (including the
+              United States). In that case, we ensure transfers are covered by appropriate
+              safeguards, including:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Clauses contractuelles types (CCT)",
-                  detail: "Approuvées par la Commission européenne.",
+                  label: "Standard Contractual Clauses (SCCs)",
+                  detail: "Approved by the European Commission.",
                 },
                 {
-                  label: "Décision d'adéquation",
+                  label: "Adequacy decision",
                   detail:
-                    "Reconnaissance d'un niveau de protection équivalent par la Commission européenne.",
+                    "Recognition of an equivalent level of protection by the European Commission.",
                 },
               ]}
             />
           </section>
 
-          {/* 7 */}
           <section>
-            <SectionTitle index="7" title="Cookies et traceurs" />
+            <SectionTitle index="7" title="Cookies and similar technologies" />
             <Prose>
-              La plateforme {COMPANY_NAME} utilise des cookies et technologies similaires :
+              The {COMPANY_NAME} platform uses cookies and similar technologies:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Cookies strictement nécessaires",
+                  label: "Strictly necessary cookies",
                   detail:
-                    "Session d'authentification, préférences de sécurité. Ces cookies ne nécessitent pas votre consentement.",
+                    "Authentication session, security preferences. These cookies do not require your consent.",
                 },
                 {
-                  label: "Cookies analytics",
+                  label: "Analytics cookies",
                   detail:
-                    "Mesure d'audience anonymisée pour améliorer le service. Activés uniquement avec votre consentement.",
+                    "Anonymized audience measurement to improve the service. Enabled only with your consent.",
                 },
               ]}
             />
             <Prose className="mt-4">
-              Vous pouvez gérer vos préférences cookies via les paramètres de votre navigateur.
-              Le refus des cookies non essentiels n'affecte pas l'accès aux fonctionnalités
-              principales de la plateforme.
+              You can manage cookie preferences through your browser settings. Refusing
+              non-essential cookies does not affect access to the core features of the platform.
+              See also our{" "}
+              <Link to="/cookies" className="text-primary-light hover:underline">
+                Cookie Policy
+              </Link>
+              .
             </Prose>
           </section>
 
-          {/* 8 */}
           <section>
-            <SectionTitle index="8" title="Sécurité des données" />
+            <SectionTitle index="8" title="Data security" />
             <Prose>
-              Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour
-              protéger vos données contre tout accès non autorisé, perte, altération ou
-              divulgation :
+              We implement appropriate technical and organizational measures to protect your data
+              against unauthorized access, loss, alteration, or disclosure:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Chiffrement",
+                  label: "Encryption",
                   detail:
-                    "Les données sont transmises via HTTPS (TLS 1.2+) et les mots de passe sont hachés avec bcrypt.",
+                    "Data is transmitted via HTTPS (TLS 1.2+) and passwords are hashed with bcrypt.",
                 },
                 {
-                  label: "Accès restreint",
+                  label: "Restricted access",
                   detail:
-                    "Principe du moindre privilège appliqué à l'ensemble de nos équipes et systèmes.",
+                    "Least-privilege principle applied across our teams and systems.",
                 },
                 {
-                  label: "Journalisation",
-                  detail: "Surveillance des accès et des anomalies en temps réel.",
+                  label: "Logging",
+                  detail: "Real-time monitoring of access and anomalies.",
                 },
                 {
-                  label: "Sauvegardes",
-                  detail: "Sauvegardes régulières des données avec procédures de restauration testées.",
+                  label: "Backups",
+                  detail: "Regular data backups with tested restore procedures.",
                 },
               ]}
             />
             <Prose className="mt-4">
-              En cas de violation de données personnelles susceptible d'engendrer un risque pour
-              vos droits et libertés, nous vous en informerons dans les 72 heures conformément
-              à l'article 33 du RGPD.
+              In the event of a personal data breach that may result in a risk to your rights and
+              freedoms, we will notify you within 72 hours in accordance with Article 33 GDPR.
             </Prose>
           </section>
 
-          {/* 9 */}
           <section>
-            <SectionTitle index="9" title="Vos droits" />
+            <SectionTitle index="9" title="Your rights" />
             <Prose>
-              Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits
-              suivants sur vos données personnelles :
+              Under the GDPR, you have the following rights regarding your personal data:
             </Prose>
             <SubList
               items={[
                 {
-                  label: "Droit d'accès (Art. 15)",
-                  detail: "Obtenir une copie des données personnelles que nous détenons sur vous.",
+                  label: "Right of access (Art. 15)",
+                  detail: "Obtain a copy of the personal data we hold about you.",
                 },
                 {
-                  label: "Droit de rectification (Art. 16)",
-                  detail: "Corriger des données inexactes ou incomplètes.",
+                  label: "Right to rectification (Art. 16)",
+                  detail: "Correct inaccurate or incomplete data.",
                 },
                 {
-                  label: "Droit à l'effacement (Art. 17)",
+                  label: "Right to erasure (Art. 17)",
                   detail:
-                    "Demander la suppression de vos données, sous réserve de nos obligations légales.",
+                    "Request deletion of your data, subject to our legal obligations.",
                 },
                 {
-                  label: "Droit à la limitation du traitement (Art. 18)",
+                  label: "Right to restriction (Art. 18)",
                   detail:
-                    "Restreindre temporairement le traitement de vos données dans certaines circonstances.",
+                    "Temporarily restrict processing of your data in certain circumstances.",
                 },
                 {
-                  label: "Droit à la portabilité (Art. 20)",
+                  label: "Right to portability (Art. 20)",
                   detail:
-                    "Recevoir vos données dans un format structuré et lisible par machine.",
+                    "Receive your data in a structured, machine-readable format.",
                 },
                 {
-                  label: "Droit d'opposition (Art. 21)",
+                  label: "Right to object (Art. 21)",
                   detail:
-                    "Vous opposer au traitement fondé sur notre intérêt légitime ou à des fins de prospection.",
+                    "Object to processing based on our legitimate interest or for direct marketing.",
                 },
                 {
-                  label: "Retrait du consentement",
+                  label: "Withdraw consent",
                   detail:
-                    "Retirer à tout moment votre consentement aux traitements qui en dépendent.",
+                    "Withdraw consent at any time for processing that relies on it.",
                 },
               ]}
             />
             <Prose className="mt-4">
-              Pour exercer vos droits, contactez-nous à{" "}
+              To exercise your rights, contact us at{" "}
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary-light hover:underline">
                 {CONTACT_EMAIL}
               </a>
-              . Nous nous engageons à répondre dans un délai d'un mois à compter de la réception
-              de votre demande (délai pouvant être prolongé de deux mois pour les demandes
-              complexes).
+              . We will respond within one month of receiving your request (extendable by two
+              months for complex requests).
             </Prose>
             <Prose className="mt-3">
-              Si vous estimez que le traitement de vos données n'est pas conforme à la
-              réglementation, vous avez le droit d'introduire une réclamation auprès de la
-              Commission Nationale de l'Informatique et des Libertés (CNIL) :{" "}
+              If you believe the processing of your data does not comply with applicable law, you
+              may lodge a complaint with your local supervisory authority (in France: CNIL —{" "}
               <a
                 href="https://www.cnil.fr"
                 target="_blank"
@@ -392,50 +373,44 @@ export function PrivacyPage() {
               >
                 www.cnil.fr
               </a>
-              .
+              ).
             </Prose>
           </section>
 
-          {/* 10 */}
           <section>
-            <SectionTitle index="10" title="Mineurs" />
+            <SectionTitle index="10" title="Minors" />
             <Prose>
-              La plateforme {COMPANY_NAME} est destinée aux personnes majeures (18 ans et plus).
-              Nous ne collectons pas sciemment de données personnelles de mineurs. Si vous
-              constatez qu'un mineur nous a communiqué des données personnelles, contactez-nous
-              afin que nous puissions les supprimer.
+              The {COMPANY_NAME} platform is intended for adults (18 years and older). We do not
+              knowingly collect personal data from minors. If you become aware that a minor has
+              provided us with personal data, contact us so we can delete it.
             </Prose>
           </section>
 
-          {/* 11 */}
           <section>
-            <SectionTitle index="11" title="Modifications de la présente politique" />
+            <SectionTitle index="11" title="Changes to this policy" />
             <Prose>
-              Nous pouvons mettre à jour cette politique de confidentialité à tout moment pour
-              refléter des évolutions légales, techniques ou fonctionnelles. En cas de
-              modifications significatives, nous vous notifierons par e-mail ou via une bannière
-              sur la plateforme au moins 30 jours avant leur entrée en vigueur.
+              We may update this privacy policy at any time to reflect legal, technical, or
+              product changes. For material changes, we will notify you by email or via a banner
+              on the platform at least 30 days before they take effect.
             </Prose>
             <Prose className="mt-3">
-              La date de dernière mise à jour est indiquée en haut de ce document. Nous vous
-              invitons à la consulter régulièrement.
+              The last updated date is shown at the top of this document. We encourage you to
+              review it regularly.
             </Prose>
           </section>
 
-          {/* 12 */}
           <section>
             <SectionTitle index="12" title="Contact" />
             <Prose>
-              Pour toute question, demande ou réclamation relative à la protection de vos données
-              personnelles, vous pouvez nous contacter :
+              For any question, request, or complaint about the protection of your personal data:
             </Prose>
             <div className="mt-4 rounded-lg border border-border bg-surface px-5 py-4 text-sm text-text-secondary">
               <p>
                 <strong className="text-text">{COMPANY_NAME}</strong>
               </p>
-              <p>À l'attention de : {FOUNDER_NAME}</p>
+              <p>Attention: {FOUNDER_NAME}</p>
               <p>
-                E-mail :{" "}
+                Email:{" "}
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
                   className="text-primary-light hover:underline"
@@ -447,16 +422,25 @@ export function PrivacyPage() {
           </section>
         </div>
 
-        {/* Footer links */}
-        <div className="mt-16 border-t border-border/50 pt-8 flex flex-col items-center gap-3 text-xs text-text-muted">
-          <p>© {new Date().getFullYear()} {COMPANY_NAME}. Tous droits réservés.</p>
-          <div className="flex items-center gap-4">
-            <Link to="/terms" className="hover:text-text transition-colors">
-              Conditions d'utilisation
+        <div className="mt-16 flex flex-col items-center gap-3 pt-8 text-xs text-text-muted">
+          <p>
+            © {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <Link to="/terms" className="transition-colors hover:text-text">
+              Terms of Service
             </Link>
             <span>·</span>
-            <Link to="/" className="hover:text-text transition-colors">
-              Retour à l'accueil
+            <Link to="/cookies" className="transition-colors hover:text-text">
+              Cookies
+            </Link>
+            <span>·</span>
+            <Link to="/legal" className="transition-colors hover:text-text">
+              Legal Notice
+            </Link>
+            <span>·</span>
+            <Link to="/" className="transition-colors hover:text-text">
+              Back to home
             </Link>
           </div>
         </div>
@@ -482,9 +466,7 @@ function Prose({ children, className }: { children: React.ReactNode; className?:
   );
 }
 
-function SubList(
-  { items }: { items: { label: string; detail: string }[] },
-) {
+function SubList({ items }: { items: { label: string; detail: string }[] }) {
   return (
     <ul className="mt-3 space-y-2">
       {items.map(({ label, detail }) => (

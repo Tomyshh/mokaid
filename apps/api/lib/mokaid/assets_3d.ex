@@ -32,18 +32,20 @@ defmodule Mokaid.Assets3d do
       }
     },
     %{
-      "slug" => "avatar_female",
+      "slug" => "avatar_design",
       "kind" => "character",
-      "storage_key" => "assets3d/avatar_female.7d0d7345a182.glb",
-      "cdn_path" => "/assets3d/avatar_female.7d0d7345a182.glb",
-      "sha256" => "7d0d7345a1826285f567eb2b7975e3f5ae921f4cb6e9def5662e089daf665007",
-      "byte_size" => 684_504,
+      "storage_key" => "assets3d/avatar_design.d9ea67320439.glb",
+      "cdn_path" => "/assets3d/avatar_design.d9ea67320439.glb",
+      "sha256" => "d9ea673204395bf2a8aedc741f4e12b75522d01bc74c74279607a89e1010a067",
+      "byte_size" => 479_308,
       "animation_clips" => @all_clips,
       "metadata" => %{
-        "display_name" => "Female character",
+        "display_name" => "Design",
         "target_height_m" => 1.65,
         "source" => "fiverr walking + procedural bake + POI clips (Mixamo cm-scale sit)",
-        "skeleton" => "mixamo_biped"
+        "skeleton" => "mixamo_biped",
+        "archetypes" => ["design"],
+        "legacy_slug" => "avatar_female"
       }
     },
     %{
@@ -75,11 +77,70 @@ defmodule Mokaid.Assets3d do
         "source" => "meshy corporate walking + procedural bake + POI clips",
         "skeleton" => "mixamo_biped"
       }
+    },
+    %{
+      "slug" => "avatar_legal",
+      "kind" => "character",
+      "storage_key" => "assets3d/avatar_legal.12554af1b7e1.glb",
+      "cdn_path" => "/assets3d/avatar_legal.12554af1b7e1.glb",
+      "sha256" => "12554af1b7e13465d9efc1d491c37d30ba5214e7f183f33ac68032611f69150e",
+      "byte_size" => 398_952,
+      "animation_clips" => @all_clips,
+      "metadata" => %{
+        "display_name" => "Legal / Lawyer",
+        "target_height_m" => 1.70,
+        "source" => "meshy legal walking + procedural bake + POI clips",
+        "skeleton" => "mixamo_biped",
+        "archetypes" => ["legal"]
+      }
+    },
+    %{
+      "slug" => "avatar_research",
+      "kind" => "character",
+      "storage_key" => "assets3d/avatar_research.aee3f8496ec7.glb",
+      "cdn_path" => "/assets3d/avatar_research.aee3f8496ec7.glb",
+      "sha256" => "aee3f8496ec7b06302ee3bc0af1dac77cf6e4ceb85c551ecb9f7615420b0eb40",
+      "byte_size" => 643_720,
+      "animation_clips" => @all_clips,
+      "metadata" => %{
+        "display_name" => "Research / Chercheur",
+        "target_height_m" => 1.70,
+        "source" => "meshy research walk/talk/run + procedural bake + POI clips",
+        "skeleton" => "mixamo_biped",
+        "archetypes" => ["research"]
+      }
+    },
+    %{
+      "slug" => "avatar_developer",
+      "kind" => "character",
+      "storage_key" => "assets3d/avatar_developer.d9c81b448040.glb",
+      "cdn_path" => "/assets3d/avatar_developer.d9c81b448040.glb",
+      "sha256" => "d9c81b448040f13d37dc15aa29dea9ebb4a70caee7a17c340226c6484496b5d9",
+      "byte_size" => 968_944,
+      "animation_clips" => @all_clips,
+      "metadata" => %{
+        "display_name" => "Engineering / Developer",
+        "target_height_m" => 1.75,
+        "source" => "meshy developer walk/run + procedural bake + POI clips + rest pose",
+        "skeleton" => "mixamo_biped",
+        "archetypes" => ["developer", "engineering"]
+      }
     }
   ]
 
+  @archetype_avatar_slugs %{
+    "legal" => "avatar_legal",
+    "finance" => "avatar_finance",
+    "design" => "avatar_design",
+    "research" => "avatar_research",
+    "developer" => "avatar_developer",
+    "engineering" => "avatar_developer"
+  }
+
   @doc "Idempotent upsert of catalog characters (safe to rerun from seeds)."
   def seed_catalog do
+    migrate_legacy_slugs()
+
     Enum.each(@catalog, fn attrs ->
       case Repo.get_by(Asset, slug: attrs["slug"]) do
         nil -> %Asset{} |> Asset.changeset(attrs) |> Repo.insert!()
@@ -89,6 +150,20 @@ defmodule Mokaid.Assets3d do
 
     backfill_agent_avatar_ids()
     :ok
+  end
+
+  # Keep agent avatar_asset_id stable when a catalog slug is renamed.
+  defp migrate_legacy_slugs do
+    Enum.each(@catalog, fn attrs ->
+      legacy = get_in(attrs, ["metadata", "legacy_slug"])
+
+      if is_binary(legacy) and legacy != "" do
+        case Repo.get_by(Asset, slug: legacy) do
+          nil -> :ok
+          asset -> asset |> Asset.changeset(attrs) |> Repo.update!()
+        end
+      end
+    end)
   end
 
   defp backfill_agent_avatar_ids do
@@ -120,6 +195,18 @@ defmodule Mokaid.Assets3d do
   def default_character do
     get_asset_by_slug("avatar_male")
   end
+
+  @doc "Preferred character for an agent archetype (falls back to default male)."
+  def character_for_archetype(archetype_key) when is_binary(archetype_key) do
+    slug = Map.get(@archetype_avatar_slugs, archetype_key)
+
+    cond do
+      is_binary(slug) -> get_asset_by_slug(slug) || default_character()
+      true -> default_character()
+    end
+  end
+
+  def character_for_archetype(_), do: default_character()
 
   @doc "Absolute or relative URL for an asset, using ASSETS_CDN_URL when set."
   def resolve_url(%Asset{cdn_path: path}) do

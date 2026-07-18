@@ -7,14 +7,29 @@
     <meta name="theme-color" content="#0b0b10" />
     <meta name="description" content="mokaid, the AI Workforce OS. Manage AI agents, human-linked agents and hybrid workers in a real-time 3D workspace." />
     <title>mokaid | AI Workforce OS</title>
-    <link rel="preconnect" href="https://rsms.me/" />
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <!-- Non-blocking font CSS (media=print swap) — avoids render-blocking stylesheet chain -->
+    <link rel="preconnect" href="https://rsms.me/" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&display=swap"
       rel="stylesheet"
+      href="https://rsms.me/inter/inter.css"
+      media="print"
+      onload="this.media='all'"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Append Phase-1 POI clips (sitting / preparing_coffee / playing_foosball) onto avatar GLBs.
 
-Supports Rigify-like bones (avatar_male) and Mixamo biped (female / finance / corporate).
+Supports Rigify-like bones (avatar_male) and Mixamo biped (female / finance / corporate / legal / research).
 Clips are procedural skeletal animation — in-place, root/hip motion only where needed.
 
 Usage:

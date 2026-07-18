@@ -2,10 +2,10 @@
  * Asset manifest for the 3D office.
  *
  * Environment loads from the hashed office GLB.
- * Characters resolve through the asset_3d catalog / CDN path (male + female).
+ * Characters resolve through the asset_3d catalog / CDN path (male + design).
  */
 
-import { DEFAULT_AVATAR_CDN_PATH, resolveAgentGlbUrl } from "./agent-model";
+import { DEFAULT_AVATAR_CDN_PATH, resolveAgentGlbUrl } from "./agent-cdn";
 import { OFFICE_ENVIRONMENT_CDN_PATH, resolveOfficeGlbUrl } from "./office-asset";
 
 export interface AssetEntry {
@@ -31,9 +31,14 @@ export const ASSET_MANIFEST: Record<string, AssetEntry> = {
     url: resolveAgentGlbUrl(DEFAULT_AVATAR_CDN_PATH),
     kind: "avatar",
   },
-  avatar_female: {
-    id: "avatar_female",
-    url: resolveAgentGlbUrl("/assets3d/avatar_female.7d0d7345a182.glb"),
+  avatar_design: {
+    id: "avatar_design",
+    url: resolveAgentGlbUrl("/assets3d/avatar_design.d9ea67320439.glb"),
+    kind: "avatar",
+  },
+  avatar_developer: {
+    id: "avatar_developer",
+    url: resolveAgentGlbUrl("/assets3d/avatar_developer.d9c81b448040.glb"),
     kind: "avatar",
   },
 };

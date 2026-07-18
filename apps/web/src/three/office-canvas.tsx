@@ -21,7 +21,7 @@ import { applyLabelPositions } from "./label-overlay";
 import { AgentStatusBadge } from "@/components/ui/status";
 import { Avatar } from "@/components/ui/avatar";
 import { DropDispatchModal } from "@/components/modals/drop-dispatch-modal";
-import { DEFAULT_AVATAR_CDN_PATH } from "./agent-model";
+import { DEFAULT_AVATAR_CDN_PATH } from "./agent-cdn";
 import { MAX_OFFICE_SEATS, type SecondaryActivity } from "./office-navdata";
 import { zoneForCommunity } from "./knowledge-zones";
 import {

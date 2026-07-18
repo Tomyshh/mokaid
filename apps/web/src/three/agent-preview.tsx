@@ -19,11 +19,12 @@ import {
   SceneLoader,
   Vector3,
 } from "@babylonjs/core";
+import type { AbstractMesh, AnimationGroup } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
-import type { AbstractMesh } from "@babylonjs/core";
 import { Avatar } from "@/components/ui/avatar";
 
-import { AGENT_GLB_URL, applyTint, resolveAgentGlbUrl } from "./agent-model";
+import { AGENT_GLB_URL, resolveAgentGlbUrl } from "./agent-cdn";
+import { applyTint } from "./agent-model";
 
 const TARGET_HEIGHT = 1.75;
 
@@ -91,15 +92,22 @@ interface Props {
   allowTint?: boolean;
   /** Clip to loop. Defaults to idle. */
   animation?: "idle" | "walking";
+  /** When false, pause the render loop (mesh stays loaded). Default true. */
+  active?: boolean;
+  /** Optional className on the canvas wrapper. */
+  className?: string;
 }
 
-function pickClip(groups: { name: string; start: (loop?: boolean, speed?: number, from?: number, to?: number, isAdditive?: boolean) => void; stop: () => void; from: number; to: number }[], preferred: string) {
+function pickClip(groups: AnimationGroup[], preferred: string) {
   const lower = preferred.toLowerCase();
   return (
+    groups.find((ag) => ag.name.toLowerCase() === lower) ??
     groups.find((ag) => {
       const n = ag.name.toLowerCase();
-      return n === lower || n.endsWith(`-${lower}`) || n.includes(lower);
-    }) ?? groups[0]
+      return n.endsWith(`-${lower}`) || n.endsWith(`_${lower}`);
+    }) ??
+    groups.find((ag) => ag.name.toLowerCase().includes(lower)) ??
+    groups[0]
   );
 }
 
@@ -111,12 +119,18 @@ export function AgentPreview3D({
   cdnPath,
   allowTint = true,
   animation = "idle",
+  active = true,
+  className,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
+  const sceneRef = useRef<Scene | null>(null);
   const meshesRef = useRef<AbstractMesh[]>([]);
+  const activeRef = useRef(active);
   const [failed, setFailed] = useState(false);
   const glbUrl = resolveAgentGlbUrl(cdnPath) || AGENT_GLB_URL;
+
+  activeRef.current = active;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -131,10 +145,12 @@ export function AgentPreview3D({
           preserveDrawingBuffer: false,
           stencil: false,
           adaptToDeviceRatio: true,
+          limitDeviceRatio: 1.5,
         });
         engineRef.current = engine;
 
         const scene = new Scene(engine);
+        sceneRef.current = scene;
         scene.clearColor = new Color4(0, 0, 0, 0);
 
         const camera = new ArcRotateCamera("cam", -Math.PI / 2, Math.PI / 2.5, 5, Vector3.Zero(), scene);
@@ -155,17 +171,19 @@ export function AgentPreview3D({
         meshesRef.current = result.meshes;
 
         const root = result.meshes.find((m) => !m.parent) ?? result.meshes[0];
+
         if (root) {
           const { bounds, modelHeight } = normalizeStandingRoot(root);
 
           const midY = modelHeight / 2;
           camera.target = new Vector3(0, midY, 0);
 
+          const pad = 1.12;
           const fovY = camera.fov;
           const aspectRatio = width / height;
-          const distByHeight = (modelHeight / 2 / Math.tan(fovY / 2)) * 1.12;
+          const distByHeight = (modelHeight / 2 / Math.tan(fovY / 2)) * pad;
           const modelWidth = bounds.max.x - bounds.min.x;
-          const distByWidth = (modelWidth / 2 / Math.tan((fovY * aspectRatio) / 2)) * 1.12;
+          const distByWidth = (modelWidth / 2 / Math.tan((fovY * aspectRatio) / 2)) * pad;
           const distance = Math.max(distByHeight, distByWidth);
 
           camera.radius = distance;
@@ -175,13 +193,13 @@ export function AgentPreview3D({
         }
 
         result.animationGroups.forEach((ag) => ag.stop());
+
         const clip = pickClip(result.animationGroups, animation);
-        if (clip) clip.start(true);
+        if (clip) clip.start(true, 1.0, clip.from, clip.to, false);
 
         boostMaterialLighting(result.meshes);
         if (allowTint) applyTint(result.meshes, color);
 
-        let autoAngle = 0;
         let isDragging = false;
 
         scene.onPointerObservable.add((info) => {
@@ -189,14 +207,22 @@ export function AgentPreview3D({
           if (info.type === PointerEventTypes.POINTERUP) isDragging = false;
         });
 
+        // Mild yaw for a 3/4 read — steeper yaw exaggerated A-pose arms toward camera.
+        if (root) root.rotation.y = -0.18;
+
         scene.onBeforeRenderObservable.add(() => {
-          if (!isDragging) autoAngle += 0.005;
-          if (root) root.rotation.y = autoAngle;
+          void isDragging;
         });
 
         engine.runRenderLoop(() => {
-          if (!disposed) scene.render();
+          if (disposed || !activeRef.current) return;
+          scene.render();
         });
+
+        if (!activeRef.current) {
+          // Ensure one paint when first loaded while inactive
+          scene.render();
+        }
       } catch (err) {
         console.warn("[AgentPreview3D] load failed, falling back to 2D", err);
         if (!disposed) setFailed(true);
@@ -209,6 +235,7 @@ export function AgentPreview3D({
       disposed = true;
       engineRef.current?.dispose();
       engineRef.current = null;
+      sceneRef.current = null;
       meshesRef.current = [];
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -220,9 +247,19 @@ export function AgentPreview3D({
     }
   }, [color, allowTint]);
 
+  useEffect(() => {
+    const engine = engineRef.current;
+    const scene = sceneRef.current;
+    if (!engine || !scene) return;
+    if (active) {
+      // Kick a frame immediately when becoming active
+      scene.render();
+    }
+  }, [active]);
+
   if (failed) {
     return (
-      <div className="flex items-center justify-center" style={{ width, height }}>
+      <div className={className} style={{ width, height, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Avatar name={name} size="xl" isAi color={color} />
       </div>
     );
@@ -231,10 +268,10 @@ export function AgentPreview3D({
   return (
     <canvas
       ref={canvasRef}
-      width={width * 2}
-      height={height * 2}
+      className={className}
       style={{ width, height, display: "block" }}
       aria-label={`3D preview of agent ${name}`}
+      aria-hidden={!active}
     />
   );
 }

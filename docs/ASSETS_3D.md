@@ -2,10 +2,12 @@
 
 ## Current state
 
-- **Characters**: `avatar_male`, `avatar_female`, `avatar_finance`, `avatar_corporate` GLBs with 14 `AgentVisualState` clips.
-  - Female (stylish): Fiverr walking + procedural bake (Mixamo biped).
+- **Characters**: `avatar_male`, `avatar_design`, `avatar_finance`, `avatar_corporate`, `avatar_legal`, `avatar_research` GLBs with 14 `AgentVisualState` clips (+ POI).
+  - Design (ex-female/stylish): Fiverr walking + procedural bake (Mixamo biped).
   - Female finance: Meshy biped clips mapped to AgentVisualState (`scripts/bake-avatar-finance.py`).
   - Corporate: Meshy walking + procedural bake (`scripts/bake-avatar-female.py`).
+  - Legal / lawyer: Meshy walking + procedural bake (`scripts/bake-avatar-female.py` on `assets/raw/legal/`).
+  - Research / chercheur: Meshy walk/talk/run overlays (`scripts/bake-avatar-research.py` on `assets/raw/research/`).
   - Served from `/assets3d/avatar_*.<hash>.glb` (also on S3 `mokaid-assets-3d-*`).
 - **Catalog**: Postgres table `asset_3d` — API `GET /api/assets-3d`. Agents reference via `avatar_asset_id`.
 - **Office furniture**: still procedural via `asset-manifest.ts` until environment GLBs ship.
@@ -34,8 +36,19 @@ python3 scripts/bake-avatar-animations.py assets/raw/avatar_male.glb
 ## Pipeline
 
 ```bash
-# 1. Bake clips (if the source GLB has no animations)
+# 1a. Bake clips (if the source GLB has no animations)
 python3 scripts/bake-avatar-animations.py assets/raw/avatar_male.glb
+
+# 1b. Legal / lawyer (Meshy character + walking → procedural AgentVisualState + POI)
+python3 scripts/bake-avatar-female.py \
+  assets/raw/legal/Meshy_AI_Create_a_beautiful_lo_biped_Character_output.glb \
+  assets/raw/legal/Meshy_AI_Create_a_beautiful_lo_biped_Animation_Walking_withSkin.glb \
+  -o assets/raw/avatar_legal.glb
+python3 scripts/bake-poi-clips.py assets/raw/avatar_legal.glb -o assets/raw/avatar_legal.glb
+
+# 1c. Research / chercheur (Meshy withSkin pack → walk/talk/run + procedural + POI)
+python3 scripts/bake-avatar-research.py assets/raw/research -o assets/raw/avatar_research.glb
+python3 scripts/bake-poi-clips.py assets/raw/avatar_research.glb -o assets/raw/avatar_research.glb
 
 # 2. Optimize raw exports (Draco + KTX2)
 ./scripts/optimize-assets.sh assets/raw assets/optimized

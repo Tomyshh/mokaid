@@ -61,11 +61,16 @@ scratchpad/
 assets/raw/corporate/
 assets/raw/feminine/
 assets/raw/feminine_finance/
+assets/raw/legal/
+assets/raw/research/
+assets/raw/developer/
+/Meshy_AI_*.glb
 # Python build artifacts
 *.egg-info/
 # Graphify (commit graph.json / GRAPH_REPORT.md; keep local cost/cache out)
 graphify-out/cost.json
 graphify-out/cache/
+apps/web/graphify-out/
 
 # Local skill harvest clones
 /tmp/mokaid-skill-sources/

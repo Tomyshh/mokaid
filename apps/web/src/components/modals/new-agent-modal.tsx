@@ -27,6 +27,16 @@ interface NewAgentModalProps {
 
 const DEFAULT_ACCENT = "#7c5cff";
 
+/** Archetype → preferred character slug (mirrors Assets3d.character_for_archetype/1). */
+const ARCHETYPE_AVATAR_SLUG: Record<string, string> = {
+  legal: "avatar_legal",
+  finance: "avatar_finance",
+  design: "avatar_design",
+  research: "avatar_research",
+  developer: "avatar_developer",
+  engineering: "avatar_developer",
+};
+
 function assetLabel(asset: Asset3d): string {
   const meta = asset.metadata as { display_name?: string } | undefined;
   return meta?.display_name || asset.slug.replace(/_/g, " ");
@@ -155,6 +165,11 @@ export function NewAgentModal({ open, onOpenChange, onCreated }: NewAgentModalPr
                     onClick={() => {
                       setArchetypeKey(archetype.key);
                       if (archetype.tier === "blank" && boostKey === "boost_l10") setBoostKey(null);
+                      const preferredSlug = ARCHETYPE_AVATAR_SLUG[archetype.key];
+                      const preferred = preferredSlug
+                        ? models.find((a) => a.slug === preferredSlug)
+                        : undefined;
+                      if (preferred) setAvatarAssetId(preferred.id);
                     }}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-left transition-colors",

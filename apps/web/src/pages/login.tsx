@@ -110,12 +110,19 @@ export function LoginPage() {
         data-login-left
         className="relative hidden w-[52%] overflow-hidden lg:block"
       >
-        <img
-          src="/desk-illustrations.png"
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        <picture className="contents">
+          <source srcSet="/desk-illustrations.webp" type="image/webp" />
+          <img
+            src="/desk-illustrations.png"
+            alt=""
+            aria-hidden
+            width={1568}
+            height={1003}
+            decoding="async"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </picture>
         <div
           className="absolute inset-0"
           style={{
@@ -143,7 +150,7 @@ export function LoginPage() {
                   <div
                     key={agent.name}
                     data-agent-card
-                    className="mk-glass flex items-center gap-3.5 rounded-lg border border-border/60 p-3.5 shadow-md"
+                    className="mk-glass flex items-center gap-3.5 rounded-lg border border-primary/25 p-3.5 shadow-md shadow-primary/5"
                   >
                     <span
                       className={cn(

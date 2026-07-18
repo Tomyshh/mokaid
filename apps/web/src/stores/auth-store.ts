@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { disposeOfficeHost } from "@/three/office-scene-host";
+
+/** Dynamic import — never pull Babylon into the auth/landing entry graph. */
+function disposeOfficeHostLazy() {
+  void import("@/three/office-scene-host").then((m) => m.disposeOfficeHost());
+}
 
 interface AuthUser {
   id: string;
@@ -49,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
       selectWorkspace: (id) => {
         // Drop the WebGL context when switching workspaces so seats/POIs remount cleanly.
         const prev = useAuthStore.getState().workspaceId;
-        if (prev && prev !== id) disposeOfficeHost();
+        if (prev && prev !== id) disposeOfficeHostLazy();
         set({ workspaceId: id });
       },
       addWorkspace: (workspace) =>
@@ -59,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
           workspaces: state.workspaces.map((w) => (w.id === id ? { ...w, ...patch } : w)),
         })),
       logout: () => {
-        disposeOfficeHost();
+        disposeOfficeHostLazy();
         set({ token: null, user: null, workspaceId: null, workspaces: [] });
       },
     }),

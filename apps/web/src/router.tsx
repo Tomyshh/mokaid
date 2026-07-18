@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ComponentType } from "react";
 import {
   createRootRoute,
   createRoute,
@@ -5,31 +6,99 @@ import {
   redirect,
   Outlet,
 } from "@tanstack/react-router";
-import { AppShell } from "@/components/layout/app-shell";
 import { useAuthStore } from "@/stores/auth-store";
 import { LandingPage } from "@/pages/landing";
 import { LoginPage } from "@/pages/login";
 import { SignupPage } from "@/pages/signup";
-import { DashboardPage } from "@/pages/dashboard";
-import { AgentsPage } from "@/pages/agents";
-import { TasksPage } from "@/pages/tasks";
-import { ProjectsPage } from "@/pages/projects";
-import { KnowledgePage } from "@/pages/knowledge";
-import { DrivePage } from "@/pages/drive";
-import { CalendarPage } from "@/pages/calendar";
-import { AnalyticsPage } from "@/pages/analytics";
-import { SettingsPage } from "@/pages/settings";
-import { MembersPage } from "@/pages/members";
-import { McpHubPage } from "@/pages/mcp-hub";
-import { FigmaCallbackPage } from "@/pages/figma-callback";
-import { GoogleCallbackPage } from "@/pages/google-callback";
-import { GithubCallbackPage } from "@/pages/github-callback";
-import { LinearCallbackPage } from "@/pages/linear-callback";
-import { SlackCallbackPage } from "@/pages/slack-callback";
-import { NotionCallbackPage } from "@/pages/notion-callback";
-import { BillingPage } from "@/pages/billing";
-import { PrivacyPage } from "@/pages/privacy";
-import { TermsPage } from "@/pages/terms";
+
+/** Wrap a lazy page so route transitions don't blank the shell without feedback. */
+function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
+  const Comp = lazy(loader);
+  return function LazyRoutePage() {
+    return (
+      <Suspense
+        fallback={
+          <div className="flex h-full min-h-[40vh] items-center justify-center text-sm text-text-muted">
+            Loading…
+          </div>
+        }
+      >
+        <Comp />
+      </Suspense>
+    );
+  };
+}
+
+const AppShell = lazyPage(() =>
+  import("@/components/layout/app-shell").then((m) => ({ default: m.AppShell })),
+);
+
+const DashboardPage = lazyPage(() =>
+  import("@/pages/dashboard").then((m) => ({ default: m.DashboardPage })),
+);
+const AgentsPage = lazyPage(() =>
+  import("@/pages/agents").then((m) => ({ default: m.AgentsPage })),
+);
+const TasksPage = lazyPage(() =>
+  import("@/pages/tasks").then((m) => ({ default: m.TasksPage })),
+);
+const ProjectsPage = lazyPage(() =>
+  import("@/pages/projects").then((m) => ({ default: m.ProjectsPage })),
+);
+const KnowledgePage = lazyPage(() =>
+  import("@/pages/knowledge").then((m) => ({ default: m.KnowledgePage })),
+);
+const DrivePage = lazyPage(() =>
+  import("@/pages/drive").then((m) => ({ default: m.DrivePage })),
+);
+const CalendarPage = lazyPage(() =>
+  import("@/pages/calendar").then((m) => ({ default: m.CalendarPage })),
+);
+const AnalyticsPage = lazyPage(() =>
+  import("@/pages/analytics").then((m) => ({ default: m.AnalyticsPage })),
+);
+const SettingsPage = lazyPage(() =>
+  import("@/pages/settings").then((m) => ({ default: m.SettingsPage })),
+);
+const MembersPage = lazyPage(() =>
+  import("@/pages/members").then((m) => ({ default: m.MembersPage })),
+);
+const McpHubPage = lazyPage(() =>
+  import("@/pages/mcp-hub").then((m) => ({ default: m.McpHubPage })),
+);
+const BillingPage = lazyPage(() =>
+  import("@/pages/billing").then((m) => ({ default: m.BillingPage })),
+);
+const FigmaCallbackPage = lazyPage(() =>
+  import("@/pages/figma-callback").then((m) => ({ default: m.FigmaCallbackPage })),
+);
+const GoogleCallbackPage = lazyPage(() =>
+  import("@/pages/google-callback").then((m) => ({ default: m.GoogleCallbackPage })),
+);
+const GithubCallbackPage = lazyPage(() =>
+  import("@/pages/github-callback").then((m) => ({ default: m.GithubCallbackPage })),
+);
+const LinearCallbackPage = lazyPage(() =>
+  import("@/pages/linear-callback").then((m) => ({ default: m.LinearCallbackPage })),
+);
+const SlackCallbackPage = lazyPage(() =>
+  import("@/pages/slack-callback").then((m) => ({ default: m.SlackCallbackPage })),
+);
+const NotionCallbackPage = lazyPage(() =>
+  import("@/pages/notion-callback").then((m) => ({ default: m.NotionCallbackPage })),
+);
+const PrivacyPage = lazyPage(() =>
+  import("@/pages/privacy").then((m) => ({ default: m.PrivacyPage })),
+);
+const TermsPage = lazyPage(() =>
+  import("@/pages/terms").then((m) => ({ default: m.TermsPage })),
+);
+const CookiesPage = lazyPage(() =>
+  import("@/pages/cookies").then((m) => ({ default: m.CookiesPage })),
+);
+const LegalPage = lazyPage(() =>
+  import("@/pages/legal").then((m) => ({ default: m.LegalPage })),
+);
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -141,6 +210,18 @@ const termsRoute = createRoute({
   component: TermsPage,
 });
 
+const cookiesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cookies",
+  component: CookiesPage,
+});
+
+const legalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/legal",
+  component: LegalPage,
+});
+
 const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
@@ -153,6 +234,8 @@ const routeTree = rootRoute.addChildren([
   notionCallbackRoute,
   privacyRoute,
   termsRoute,
+  cookiesRoute,
+  legalRoute,
   appRoute.addChildren(pageRoutes),
 ]);
 

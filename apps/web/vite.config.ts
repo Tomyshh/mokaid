@@ -64,12 +64,33 @@ export default defineConfig(({ mode }) => {
   build: {
     target: "es2022",
     sourcemap: false,
+    modulePreload: {
+      // Avoid eagerly fetching heavy async chunks (Babylon / charts) on the landing.
+      resolveDependencies: (_filename, deps) =>
+        deps.filter(
+          (dep) => !dep.includes("babylon") && !dep.includes("charts") && !dep.includes("recharts"),
+        ),
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          babylon: ["@babylonjs/core", "@babylonjs/loaders"],
-          charts: ["recharts"],
-          vendor: ["react", "react-dom", "@tanstack/react-query", "@tanstack/react-router"],
+        /**
+         * Babylon/charts stay out of manualChunks so they are only pulled by
+         * dynamic import() consumers (office / agent preview / analytics).
+         */
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("gsap") || id.includes("/lenis")) return "gsap";
+          if (id.includes("framer-motion")) return "motion";
+          if (
+            id.includes("/react/") ||
+            id.includes("/react-dom/") ||
+            id.includes("@tanstack/react-query") ||
+            id.includes("@tanstack/react-router") ||
+            id.includes("@tanstack/react-store") ||
+            id.includes("@tanstack/history")
+          ) {
+            return "vendor";
+          }
         },
       },
     },

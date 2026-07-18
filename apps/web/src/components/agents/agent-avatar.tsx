@@ -13,7 +13,7 @@ import type { Agent } from "@/api/types";
 import { Avatar } from "@/components/ui/avatar";
 import { AgentLevelRing } from "@/components/agents/agent-level-ring";
 import { cn } from "@/lib/cn";
-import { DEFAULT_AVATAR_CDN_PATH } from "@/three/agent-model";
+import { DEFAULT_AVATAR_CDN_PATH } from "@/three/agent-cdn";
 
 const AgentHeadPreview3D = lazy(() =>
   import("@/three/agent-preview").then((m) => ({ default: m.AgentHeadPreview3D })),

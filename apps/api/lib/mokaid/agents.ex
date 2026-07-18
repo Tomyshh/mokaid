@@ -61,7 +61,7 @@ defmodule Mokaid.Agents do
            Archetypes.build_create_attrs(sanitize_client_attrs(attrs), archetype_key, boost_key) do
       prepared =
         if blank?(prepared["avatar_asset_id"]) do
-          case Mokaid.Assets3d.default_character() do
+          case Mokaid.Assets3d.character_for_archetype(archetype.key) do
             %{id: id} -> Map.put(prepared, "avatar_asset_id", id)
             _ -> prepared
           end

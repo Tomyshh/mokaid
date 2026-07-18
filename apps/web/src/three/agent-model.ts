@@ -19,10 +19,13 @@ import {
 import "@babylonjs/loaders/glTF";
 import type { AbstractMesh } from "@babylonjs/core";
 import type { AgentVisualState } from "@mokaid/shared-types";
-import { env } from "@/lib/env";
+import {
+  AGENT_GLB_URL,
+  DEFAULT_AVATAR_CDN_PATH,
+  resolveAgentGlbUrl,
+} from "./agent-cdn";
 
-/** Hashed filename matching assets/optimized + S3 upload + asset_3d seed. */
-export const DEFAULT_AVATAR_CDN_PATH = "/assets3d/avatar_male.342ae6ded162.glb";
+export { AGENT_GLB_URL, DEFAULT_AVATAR_CDN_PATH, resolveAgentGlbUrl };
 
 const VISUAL_STATES: AgentVisualState[] = [
   "idle",
@@ -77,17 +80,6 @@ export type AgentAnimName =
   | "sitting"
   | "preparing_coffee"
   | "playing_foosball";
-
-export function resolveAgentGlbUrl(cdnPath?: string | null): string {
-  const path = (cdnPath && cdnPath.trim()) || DEFAULT_AVATAR_CDN_PATH;
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  const base = env.VITE_ASSETS_CDN_URL.trim().replace(/\/$/, "");
-  if (!base) return path.startsWith("/") ? path : `/${path}`;
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
-}
-
-/** @deprecated Prefer resolveAgentGlbUrl() — kept for existing imports. */
-export const AGENT_GLB_URL = resolveAgentGlbUrl();
 
 const TARGET_HEIGHT = 1.75;
 
